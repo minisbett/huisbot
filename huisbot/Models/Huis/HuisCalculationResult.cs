@@ -88,7 +88,7 @@ public class HuisCalculationResult
   /// The PP for the flashlight skill.
   /// </summary>
   [JsonProperty("fl_pp")]
-  public int FLPP { get; set; }
+  public double FLPP { get; set; }
 
   /// <summary>
   /// The total PP of the score.
