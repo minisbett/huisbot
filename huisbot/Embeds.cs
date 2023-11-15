@@ -93,7 +93,7 @@ internal static class Embeds
   /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
   public static Embed Info(bool osuAvailable, bool huisAvailable) => BaseEmbed
-    .WithColor(new Color(0xFFCA58))
+    .WithColor(new Color(0xFFD4A8))
     .WithTitle($"Information about Huisbot {Program.VERSION}")
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
                      "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
