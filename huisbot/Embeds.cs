@@ -136,27 +136,22 @@ internal static class Embeds
     string version = match.Groups[5].Value;
 
     // Construct some strings for the embed.
-    string totalPP = $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
-    string hits = $"[{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}]";
+    string total = $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
+    string aim = live.AimPP == local.AimPP ? $"{local.AimPP:N2}pp" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
+    string tap = live.TapPP == local.TapPP ? $"{local.TapPP:N2}pp" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string mods = local.Mods.Replace("CL", "") == "" ? "" : $"+{local.Mods.Replace(", ", "").Replace("CL", "")}";
-    string aim = live.AimPP == local.AimPP ? $"{live.AimPP:N2}pp" : $"~~{live.AimPP:N2}~~ {local.AimPP:N2}pp *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = live.AccPP == local.AccPP ? $"{live.AccPP:N2}pp" : $"~~{live.AccPP:N2}~~ {local.AccPP:N2}pp *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
-    string tap = live.TapPP == local.TapPP ? $"{live.TapPP:N2}pp" : $"~~{live.TapPP:N2}~~ {local.TapPP:N2}pp *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
-    string fl = live.FLPP == local.FLPP ? $"{live.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
-    string links = $"[map visualizer](https://osu.direct/preview?b={beatmapId}) • [osu!](https://osu.ppy.sh/b/{beatmapId}) • " +
+    string links = $"[map visualizer](https://osu.direct/preview?b={beatmapId}) • [osu! page](https://osu.ppy.sh/b/{beatmapId}) • " +
                    $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string length = $"{_emojis["length"]} {(int)beatmap.GetLength(local.Mods).TotalMinutes}:{beatmap.GetLength(local.Mods).Seconds:00}";
-    string bpm = $"{_emojis["bpm"]} {beatmap.GetBPM(local.Mods)} BPM";
-    string objects = $"{_emojis["circles"]} {beatmap.CircleCount} {_emojis["sliders"]} {beatmap.SliderCount} {_emojis["spinners"]} {beatmap.SpinnerCount}";
-    string stats = $"CS **{beatmap.CircleSize}** AR **{beatmap.ApproachRate}** OD **{beatmap.OverallDifficulty}** HP **{beatmap.DrainRate}**";
-    string mapper = $"[{beatmap.Creator}](https://osu.ppy.sh/u/{HttpUtility.UrlEncode(beatmap.Creator)})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{artist} - {title} [{version}] {mods}")
-      .WithDescription($"▸ {totalPP}\n▸ {local.Accuracy:N2}% ▸ {combo} ▸ {hits}\n▸ __Aim__: {aim} ▸ __Acc__: {aim}\n▸ __Tap__: {tap} ▸ __FL__: {fl}\n{links}")
-      //.AddField("Beatmap Info", $"▸ {length} {bpm} {objects}\n▸ {stats} ▸ mapped by {mapper}\n{links}")
+      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {aim}\n▸ **Acc**: {aim}\n▸ **FL**: {fl}\n{links}", true)
+      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n{hits}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
