@@ -1,6 +1,7 @@
 ﻿using huisbot.Models.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace huisbot.Services;
 
@@ -111,6 +112,38 @@ public class HuisApiService
     {
       _logger.LogError("Failed to get the player from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
         ex.Message, playerId, reworkId);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Calculates the specified score via the Huis API and returns the result.
+  /// </summary>
+  /// <param name="request">The score request.</param>
+  /// <returns>The result.</returns>
+  public async Task<HuisCalculationResult?> CalculateAsync(HuisCalculationRequest request)
+  {
+    // TODO: Implement caching
+
+    try
+    {
+      // Get the player from the API.
+      HttpResponseMessage response = await _http.PatchAsync("calculate-score", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
+      string json = await response.Content.ReadAsStringAsync();
+      HuisCalculationResult? result = JsonConvert.DeserializeObject<HuisCalculationResult>(await response.Content.ReadAsStringAsync());
+
+      // Check whether the deserialized json is valid.
+      if (response is null)
+      {
+        _logger.LogError("Failed to deserialize the calculation response from the Huis API.");
+        return null;
+      }
+
+      return result;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the calculation response from the Huis API: {Message}", ex.Message);
       return null;
     }
   }

@@ -1,5 +1,5 @@
 ﻿using huisbot.Models.Huis;
-using huisbot.Models.osu;
+using huisbot.Models.Osu;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -56,7 +56,7 @@ public class OsuApiService
   /// </summary>
   /// <param name="id">The name of the user.</param>
   /// <returns>The ID of the user.</returns>
-  public async Task<int?> GetIdByUsername(string name)
+  public async Task<int?> GetUserIdAsync(string name)
   {
     try
     {
@@ -73,6 +73,34 @@ public class OsuApiService
     catch (Exception ex)
     {
       _logger.LogError("Failed to get the user with name \"{name}\" from the osu! API: {Message}", name, ex.Message);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Returns the beatmap set ID for the specified beatmap ID.
+  /// </summary>
+  /// <returns>The Beatmap Set ID of the specified beatmap.</returns>
+  public async Task<OsuBeatmap?> GetBeatmapAsync(int id)
+  {
+    try
+    {
+      // Get the user from the API.
+      string json = await _http.GetStringAsync($"get_beatmaps?b={id}&k={_config.GetValue<string>("OSU_API_KEY")}");
+      OsuBeatmap? map = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.BeatmapId == id);
+
+      // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
+      if (map is null)
+      {
+        _logger.LogError("Failed to deserialize the beatmap from the response of the osu! API.");
+        return null;
+      }
+
+      return map;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
       return null;
     }
   }

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using huisbot.Models.Huis;
+using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,7 +25,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
   public async Task HandleAsync(
     [Summary("player", "The osu! id or name of the player.")] string playerId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(PlayerAutocompleteHandler))] string reworkId)
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId)
   {
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
@@ -35,7 +36,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     }
 
     // Try to get the specified rework by the specified identifier. If it doesn't exist, notify the user.
-    HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId);
+    HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (rework is null)
     {
       await RespondAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
@@ -46,7 +47,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     if (!int.TryParse(playerId, out int userId))
     {
       // Get the ID from the osu! api. If it failed or the user could not be found, notify the user.
-      int? id = await _osu.GetIdByUsername(playerId);
+      int? id = await _osu.GetUserIdAsync(playerId);
       if (id is null)
       {
         await RespondAsync(embed: Embeds.InternalError("Failed to resolve the user ID the osu! API."));
@@ -71,27 +72,5 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 
     // Show the player embed.
     await RespondAsync(embed: Embeds.Player(player, rework));
-  }
-}
-
-/// <summary>
-/// Autocomplete for the player command.
-/// </summary>
-public class PlayerAutocompleteHandler : AutocompleteHandler
-{
-  public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
-    IParameterInfo pInfo, IServiceProvider services)
-  {
-    // Get all reworks and check whether the request was successful. If not, return an error result.
-    HuisRework[]? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
-    if (reworks is null)
-      return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
-
-    // Get all suggested reworks where the name or code contains the input value.
-    string userInput = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";
-    IEnumerable<HuisRework> suggestedReworks = reworks.Where(x => (x.Name?.ToLower().Contains(userInput) ?? false) || (x.Code?.ToLower().Contains(userInput) ?? false));
-
-    // Return the first 25 reworks, since more are not supported due to Discord API limitations.
-    return AutocompletionResult.FromSuccess(suggestedReworks.Select(x => new AutocompleteResult(x.Name, x.Code)).Take(25));
   }
 }

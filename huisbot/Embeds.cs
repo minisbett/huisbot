@@ -1,6 +1,10 @@
 ﻿using Discord;
 using huisbot.Models.Huis;
+using huisbot.Models.Osu;
 using huisbot.Utils.Extensions;
+using System.Text.RegularExpressions;
+using System.Web;
+using Emoji = huisbot.Models.Utility.Emoji;
 
 namespace huisbot;
 
@@ -98,7 +102,97 @@ internal static class Embeds
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
                      "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
     .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source Code](https://github.com/minisbett/huisbot)", true)
-    .AddField("API Status", $"osu! {new Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Emoji(osuAvailable ? "✅" : "❌")}", true)
+    .AddField("API Status", $"osu! {new Discord.Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Discord.Emoji(osuAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
+  /// </summary>
+  /// <param name="local">Bool whether the local score finished calculating.</param>
+  /// <param name="live">Bool whether the live score finished calculating.</param>
+  /// <returns>An embed for displaying the score calculation progress.</returns>
+  public static Embed Calculating(bool local, bool live) => BaseEmbed
+    .WithDescription($"*{(local ? live ? "Finalizing" : "Calculating live score" : "Calculating local score")}...*\n\n" +
+                     $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
+    .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying a calculated score and it's difference to the current live state.
+  /// </summary>
+  /// <param name="local">The local score in the rework.</param>
+  /// <param name="live">The score on the live servers.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="beatmap">The beatmap.</param>
+  /// <returns>An embed for displaying a calculated score</returns>
+  public static Embed CalculatedScore(HuisCalculationResult local, HuisCalculationResult live, HuisRework rework, OsuBeatmap beatmap)
+  {
+    // Split the map name into it's components using regex.
+    Match match = Regex.Match(local.MapName ?? "", @"^(\d+) - (.+) - (.+) \((.+)\) \[(.+)\]$");
+    string beatmapId = match.Groups[1].Value;
+    string artist = match.Groups[2].Value;
+    string title = match.Groups[3].Value;
+    string creator = match.Groups[4].Value;
+    string version = match.Groups[5].Value;
+
+    // Construct some strings for the embed.
+    string totalPP = $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
+    string hits = $"[{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}]";
+    string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
+    string mods = local.Mods.Replace("CL", "") == "" ? "" : $"+{local.Mods.Replace(", ", "").Replace("CL", "")}";
+    string aim = live.AimPP == local.AimPP ? $"{live.AimPP:N2}pp" : $"~~{live.AimPP:N2}~~ {local.AimPP:N2}pp *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = live.AccPP == local.AccPP ? $"{live.AccPP:N2}pp" : $"~~{live.AccPP:N2}~~ {local.AccPP:N2}pp *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
+    string tap = live.TapPP == local.TapPP ? $"{live.TapPP:N2}pp" : $"~~{live.TapPP:N2}~~ {local.TapPP:N2}pp *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string fl = live.FLPP == local.FLPP ? $"{live.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string links = $"[map visualizer](https://osu.direct/preview?b={beatmapId}) • [osu!](https://osu.ppy.sh/b/{beatmapId}) • " +
+                   $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
+    string length = $"{_emojis["length"]} {(int)beatmap.GetLength(local.Mods).TotalMinutes}:{beatmap.GetLength(local.Mods).Seconds:00}";
+    string bpm = $"{_emojis["bpm"]} {beatmap.GetBPM(local.Mods)} BPM";
+    string objects = $"{_emojis["circles"]} {beatmap.CircleCount} {_emojis["sliders"]} {beatmap.SliderCount} {_emojis["spinners"]} {beatmap.SpinnerCount}";
+    string stats = $"CS **{beatmap.CircleSize}** AR **{beatmap.ApproachRate}** OD **{beatmap.OverallDifficulty}** HP **{beatmap.DrainRate}**";
+    string mapper = $"[{beatmap.Creator}](https://osu.ppy.sh/u/{HttpUtility.UrlEncode(beatmap.Creator)})";
+
+    return BaseEmbed
+      .WithColor(new Color(0x4061E9))
+      .WithTitle($"{artist} - {title} [{version}] {mods}")
+      .WithDescription($"▸ {totalPP}\n▸ {local.Accuracy:N2}% ▸ {combo} ▸ {hits}\n▸ __Aim__: {aim} ▸ __Acc__: {aim}\n▸ __Tap__: {tap} ▸ __FL__: {fl}")
+      .AddField("Beatmap Info", $"▸ {length} {bpm} {objects}\n▸ {stats} ▸ mapped by {mapper}\n{links}")
+      .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
+      .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
+      .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+    .Build();
+  }
+
+  /// <summary>
+  /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
+  /// </summary>
+  private static Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
+  {
+    { "XH", new Emoji("rankSSH", 1159888184600170627) },
+    { "X", new Emoji("rankSS", 1159888182075207740) },
+    { "SH", new Emoji("rankSH", 1159888343245537300) },
+    { "S", new Emoji("rankS", 1159888340536012921) },
+    { "A", new Emoji("rankA", 1159888148080361592) },
+    { "B", new Emoji("rankB", 1159888151771369562) },
+    { "C", new Emoji("rankC", 1159888154891919502) },
+    { "D", new Emoji("rankD", 1159888158150893678) },
+    { "F", new Emoji("rankF", 1159888321342865538) },
+    { "300", new Emoji("300", 1159888146448797786) },
+    { "100", new Emoji("100", 1159888144406171719) },
+    { "50", new Emoji("50", 1159888143282094221) },
+    { "miss", new Emoji("miss", 1159888326698995842)},
+    { "loved", new Emoji("loved", 1159888325491036311) },
+    { "qualified", new Emoji("approved", 1159888150542418031) },
+    { "approved", new Emoji("approved", 1159888150542418031) },
+    { "ranked", new Emoji("ranked", 1159888338199773339) },
+    { "length", new Emoji("length", 1159888322873786399) },
+    { "bpm", new Emoji("length", 1159888153000280074) },
+    { "circles", new Emoji("circles", 1159888155902758953) },
+    { "sliders", new Emoji("sliders", 1159888389902970890) },
+    { "spinners", new Emoji("spinners", 1159888345250414723) },
+    { "osu", new Emoji("std", 1159888333044981913) },
+    { "taiko", new Emoji("taiko", 1159888334492029038) },
+    { "fruits", new Emoji("fruits", 1159888328984903700) },
+    { "mania", new Emoji("mania", 1159888330637463623) },
+  };
 }

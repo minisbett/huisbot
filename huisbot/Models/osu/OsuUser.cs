@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace huisbot.Models.osu;
+namespace huisbot.Models.Osu;
 
 /// <summary>
 /// Represents a user from the osu! API v1.
