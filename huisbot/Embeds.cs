@@ -155,8 +155,8 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{artist} - {title} [{version}] {mods}")
-      .WithDescription($"▸ {totalPP}\n▸ {local.Accuracy:N2}% ▸ {combo} ▸ {hits}\n▸ __Aim__: {aim} ▸ __Acc__: {aim}\n▸ __Tap__: {tap} ▸ __FL__: {fl}")
-      .AddField("Beatmap Info", $"▸ {length} {bpm} {objects}\n▸ {stats} ▸ mapped by {mapper}\n{links}")
+      .WithDescription($"▸ {totalPP}\n▸ {local.Accuracy:N2}% ▸ {combo} ▸ {hits}\n▸ __Aim__: {aim} ▸ __Acc__: {aim}\n▸ __Tap__: {tap} ▸ __FL__: {fl}\n{links}")
+      //.AddField("Beatmap Info", $"▸ {length} {bpm} {objects}\n▸ {stats} ▸ mapped by {mapper}\n{links}")
       .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)

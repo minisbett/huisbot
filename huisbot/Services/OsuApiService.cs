@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,8 +40,8 @@ public class OsuApiService
       HttpResponseMessage response = await _http.GetAsync("");
 
       // Check whether it returns the expected result.
-      if (!response.IsSuccessStatusCode)
-        throw new Exception($"API returned status code {response.StatusCode}.");
+      if (response.StatusCode != HttpStatusCode.Redirect)
+        throw new Exception($"API returned status code {response.StatusCode}. Expected: Redirect (302).");
 
       return true;
     }
