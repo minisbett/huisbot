@@ -36,7 +36,7 @@ public class OsuApiService
     try
     {
       // Try to send a request to the base URL of the osu! API.
-      HttpResponseMessage response = await _http.GetAsync("/");
+      HttpResponseMessage response = await _http.GetAsync("");
 
       // Check whether it returns the expected result.
       if (!response.IsSuccessStatusCode)
@@ -52,7 +52,7 @@ public class OsuApiService
   }
 
   /// <summary>
-  /// Returns the ID of the osu! user by the specified name.
+  /// Returns the ID of the osu! user by the specified name. Returns -1 if the user could not be found.
   /// </summary>
   /// <param name="id">The name of the user.</param>
   /// <returns>The ID of the user.</returns>
@@ -61,15 +61,12 @@ public class OsuApiService
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"/get_user?u={name}&type=string&k={_config.GetValue<string>("OSU_API_KEY")}");
-      OsuUser? user = JsonConvert.DeserializeObject<OsuUser>(json);
+      string json = await _http.GetStringAsync($"get_user?u={name}&type=string&k={_config.GetValue<string>("OSU_API_KEY")}");
+      OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
 
-      // Check whether the deserialized json is valid.
+      // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
       if (user is null)
-      {
-        _logger.LogError("Failed to deserialize the user from the osu! API.");
-        return null;
-      }
+        return -1;
 
       return user.Id;
     }

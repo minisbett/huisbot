@@ -11,16 +11,18 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContext>
 {
+  private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
-  public PlayerCommandModule(HuisApiService huis)
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis)
   {
+    _osu = osu;
     _huis = huis;
   }
 
   [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
   public async Task HandleAsync(
-    [Summary("player", "The osu! id or name of the player.")] int playerId,
+    [Summary("player", "The osu! id or name of the player.")] string playerId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(PlayerAutocompleteHandler))] string reworkId)
   {
@@ -40,8 +42,27 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
       return;
     }
 
+    // If the specified player identifier is not a number, try to get the ID by the specified name.
+    if (!int.TryParse(playerId, out int userId))
+    {
+      // Get the ID from the osu! api. If it failed or the user could not be found, notify the user.
+      int? id = await _osu.GetIdByUsername(playerId);
+      if (id is null)
+      {
+        await RespondAsync(embed: Embeds.InternalError("Failed to resolve the user ID the osu! API."));
+        return;
+      }
+      else if (id == -1)
+      {
+        await RespondAsync(embed: Embeds.Error($"The specified user (`{playerId}`) could not be found."));
+        return;
+      }
+
+      userId = id.Value;
+    }
+
     // Get the player from the specified rework and check whether the request was successful. If not, notify the user about an internal error.
-    HuisPlayer? player = await _huis.GetPlayerAsync(playerId, rework.Id);
+    HuisPlayer? player = await _huis.GetPlayerAsync(userId, rework.Id);
     if (player is null)
     {
       await RespondAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));

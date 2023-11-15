@@ -32,7 +32,7 @@ public class HuisApiService
     try
     {
       // Try to send a request to the base URL of the Huis API.
-      HttpResponseMessage response = await _http.GetAsync("/");
+      HttpResponseMessage response = await _http.GetAsync("");
 
       // Check whether it returns the expected result.
       if (!(await response.Content.ReadAsStringAsync()).Contains("<pre>Cannot GET /</pre>"))
@@ -60,7 +60,7 @@ public class HuisApiService
     try
     {
       // Get the reworks from the API.
-      string json = await _http.GetStringAsync("/reworks/list");
+      string json = await _http.GetStringAsync("reworks/list");
       HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json);
 
       // Check whether the deserialized json is valid.
@@ -94,7 +94,7 @@ public class HuisApiService
     try
     {
       // Get the player from the API.
-      string json = await _http.GetStringAsync($"/player/userdata/{playerId}/{reworkId}");
+      string json = await _http.GetStringAsync($"player/userdata/{playerId}/{reworkId}");
       HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json);
 
       // Check whether the deserialized json is valid.
