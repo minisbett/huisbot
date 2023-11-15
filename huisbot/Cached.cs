@@ -27,7 +27,7 @@ internal class Cached<T>
   /// <summary>
   /// The span after which the value expires.
   /// </summary>
-  private readonly TimeSpan _expirationSpan;
+  private TimeSpan _expirationSpan;
 
   /// <summary>
   /// The last refresh time of the value.

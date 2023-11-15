@@ -1,19 +1,13 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
 using huisbot.Models.Utility;
 using huisbot.Services;
 using huisbot.Utils;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace huisbot.Modules.Utility;
 
