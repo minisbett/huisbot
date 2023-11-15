@@ -13,8 +13,8 @@ namespace huisbot.Models.osu;
 internal class OsuUser
 {
   /// <summary>
-  /// The username of the user.
+  /// The ID of the user.
   /// </summary>
-  [JsonProperty("username")]
-  public string? Username { get; private set; }
+  [JsonProperty("user_id")]
+  public int Id { get; private set; }
 }

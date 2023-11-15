@@ -52,16 +52,16 @@ public class OsuApiService
   }
 
   /// <summary>
-  /// Returns the username of the osu! user by the specified ID.
+  /// Returns the ID of the osu! user by the specified name.
   /// </summary>
-  /// <param name="id">The ID of the user.</param>
-  /// <returns>The username of the user.</returns>
-  public async Task<string?> GetUsernameById(int id)
+  /// <param name="id">The name of the user.</param>
+  /// <returns>The ID of the user.</returns>
+  public async Task<int?> GetIdByUsername(string name)
   {
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"/get_user?u={id}&k={_config.GetValue<string>("OSU_API_KEY")}");
+      string json = await _http.GetStringAsync($"/get_user?u={name}&type=string&k={_config.GetValue<string>("OSU_API_KEY")}");
       OsuUser? user = JsonConvert.DeserializeObject<OsuUser>(json);
 
       // Check whether the deserialized json is valid.
@@ -71,11 +71,11 @@ public class OsuApiService
         return null;
       }
 
-      return user.Username;
+      return user.Id;
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the user with ID {Id} from the osu! API: {Message}", id, ex.Message);
+      _logger.LogError("Failed to get the user with name \"{name}\" from the osu! API: {Message}", name, ex.Message);
       return null;
     }
   }
