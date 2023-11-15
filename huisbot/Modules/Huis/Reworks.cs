@@ -3,11 +3,12 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Services;
+using huisbot.Utils.Extensions;
 
 namespace huisbot.Modules;
 
 /// <summary>
-/// The interaction module for the reworks command.
+/// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
 public class ReworksCommandModule : InteractionModuleBase<SocketInteractionContext>
 {

@@ -15,6 +15,11 @@ public class Program
   /// </summary>
   public const string VERSION = "1.0.0";
 
+  /// <summary>
+  /// The startup time of the application.
+  /// </summary>
+  public static readonly DateTime STARTUP_TIME = DateTime.UtcNow;
+
   public static async Task Main(string[] args)
   {
     // Load the .env file.
@@ -59,6 +64,9 @@ public class Program
         // Add the handler for Discord interactions.
         services.AddHostedService<InteractionHandler>();
 
+        // Add the osu! API service for communicating with the osu! v1 API.
+        services.AddSingleton<OsuApiService>();
+
         // Add the Huis API service for communicating with the Huis API.
         services.AddSingleton<HuisApiService>();
 
@@ -66,6 +74,13 @@ public class Program
         services.AddHttpClient("huisapi", client =>
         {
           client.BaseAddress = new Uri("https://pp-api.huismetbenen.nl/");
+          client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
+        });
+
+        // Add an http client for communicating with the osu! v1 API.
+        services.AddHttpClient("osuapi", client =>
+        {
+          client.BaseAddress = new Uri("https://osu.ppy.sh/api/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
         });
       })

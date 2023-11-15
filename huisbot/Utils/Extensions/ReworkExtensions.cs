@@ -7,7 +7,12 @@ namespace huisbot.Utils.Extensions;
 /// </summary>
 internal static class ReworkExtensions
 {
-  public static string GetBranchUrl(this Rework rework)
+  /// <summary>
+  /// Returns an URL to the commit of the rework.
+  /// </summary>
+  /// <param name="rework">The rework.</param>
+  /// <returns>An URL to the commit of the rework.</returns>
+  public static string GetCommitUrl(this Rework rework)
   {
     if (rework.Url is null || rework.Commit is null)
       return "";

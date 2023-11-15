@@ -24,6 +24,30 @@ public class HuisApiService
   }
 
   /// <summary>
+  /// Returns a bool whether a connection to the Huis API can be established.
+  /// </summary>
+  /// <returns>Bool whether a connection can be established.</returns>
+  public async Task<bool> IsAvailableAsync()
+  {
+    try
+    {
+      // Try to send a request to the base URL of the Huis API.
+      string result = await _http.GetStringAsync("/");
+
+      // Check whether it returns the expected result.
+      if (result != "Cannot GET /")
+        throw new Exception("Result does not match \"Cannot GET /\".");
+
+      return true;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("IsAvailable() returned false: {Message}", ex.Message);
+      return false;
+    }
+  }
+
+  /// <summary>
   /// Returns an array of all reworks from the API.
   /// </summary>
   /// <returns></returns>
