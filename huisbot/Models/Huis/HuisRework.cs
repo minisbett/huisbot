@@ -5,7 +5,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents a rework from the Huis API.
 /// </summary>
-public class Rework
+public class HuisRework
 {
   /// <summary>
   /// The internal id of the rework. 1 is always the current live changes.

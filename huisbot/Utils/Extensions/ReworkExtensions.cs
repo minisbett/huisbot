@@ -3,7 +3,7 @@
 namespace huisbot.Utils.Extensions;
 
 /// <summary>
-/// Provides extension methods for the <see cref="Rework"/> class.
+/// Provides extension methods for the <see cref="HuisRework"/> class.
 /// </summary>
 internal static class ReworkExtensions
 {
@@ -12,7 +12,7 @@ internal static class ReworkExtensions
   /// </summary>
   /// <param name="rework">The rework.</param>
   /// <returns>An URL to the commit of the rework.</returns>
-  public static string GetCommitUrl(this Rework rework)
+  public static string GetCommitUrl(this HuisRework rework)
   {
     if (rework.Url is null || rework.Commit is null)
       return "";
@@ -30,7 +30,7 @@ internal static class ReworkExtensions
   /// </summary>
   /// <param name="rework">The rework.</param>
   /// <returns>A human readable string for the rework type.</returns>
-  public static string GetReadableReworkType(this Rework rework)
+  public static string GetReadableReworkType(this HuisRework rework)
     => rework.ReworkType switch
     {
       "LIVE" => "Live",
@@ -46,7 +46,7 @@ internal static class ReworkExtensions
   /// </summary>
   /// <param name="rework">The rework.</param>
   /// <returns>A human readable string for the ruleset.</returns>
-  public static string GetReadableRuleset(this Rework rework)
+  public static string GetReadableRuleset(this HuisRework rework)
    => rework.RulesetId switch
    {
      0 => "osu!",

@@ -1,5 +1,8 @@
 ﻿using huisbot.Models.Huis;
+using huisbot.Models.osu;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +17,13 @@ namespace huisbot.Services;
 public class OsuApiService
 {
   private readonly HttpClient _http;
+  private readonly IConfiguration _config;
   private readonly ILogger<OsuApiService> _logger;
 
-  public OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiService> logger)
+  public OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
   {
     _http = httpClientFactory.CreateClient("osuapi");
+    _config = config;
     _logger = logger;
   }
 
@@ -43,6 +48,35 @@ public class OsuApiService
     {
       _logger.LogError("IsAvailable() returned false: {Message}", ex.Message);
       return false;
+    }
+  }
+
+  /// <summary>
+  /// Returns the username of the osu! user by the specified ID.
+  /// </summary>
+  /// <param name="id">The ID of the user.</param>
+  /// <returns>The username of the user.</returns>
+  public async Task<string?> GetUsernameById(int id)
+  {
+    try
+    {
+      // Get the user from the API.
+      string json = await _http.GetStringAsync($"/get_user?u={id}&k={_config.GetValue<string>("OSU_API_KEY")}");
+      OsuUser? user = JsonConvert.DeserializeObject<OsuUser>(json);
+
+      // Check whether the deserialized json is valid.
+      if (user is null)
+      {
+        _logger.LogError("Failed to deserialize the user from the osu! API.");
+        return null;
+      }
+
+      return user.Username;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the user with ID {Id} from the osu! API: {Message}", id, ex.Message);
+      return null;
     }
   }
 }

@@ -23,7 +23,7 @@ public class ReworksCommandModule : InteractionModuleBase<SocketInteractionConte
   public async Task HandleAsync()
   {
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
-    Rework[]? reworks = await _huis.GetReworksAsync();
+    HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
       await RespondAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
@@ -64,7 +64,7 @@ public class ReworksComponentModule : InteractionModuleBase<SocketInteractionCon
     SocketMessageComponent interaction = (SocketMessageComponent)Context.Interaction;
 
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
-    Rework[]? reworks = await _huis.GetReworksAsync();
+    HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
       await interaction.UpdateAsync(msg =>

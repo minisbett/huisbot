@@ -5,7 +5,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents a player from the Huis API.
 /// </summary>
-public class Player
+public class HuisPlayer
 {
   [JsonProperty("user_id")]
   /// <summary>

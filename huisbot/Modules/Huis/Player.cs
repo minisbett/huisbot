@@ -25,7 +25,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     [Autocomplete(typeof(PlayerAutocompleteHandler))] string reworkId)
   {
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
-    Rework[]? reworks = await _huis.GetReworksAsync();
+    HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
       await RespondAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
@@ -33,7 +33,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     }
 
     // Try to get the specified rework by the specified identifier. If it doesn't exist, notify the user.
-    Rework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId);
+    HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId);
     if (rework is null)
     {
       await RespondAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
@@ -41,7 +41,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     }
 
     // Get the player from the specified rework and check whether the request was successful. If not, notify the user about an internal error.
-    Player? player = await _huis.GetPlayerAsync(playerId, rework.Id);
+    HuisPlayer? player = await _huis.GetPlayerAsync(playerId, rework.Id);
     if (player is null)
     {
       await RespondAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
@@ -62,13 +62,13 @@ public class PlayerAutocompleteHandler : AutocompleteHandler
     IParameterInfo pInfo, IServiceProvider services)
   {
     // Get all reworks and check whether the request was successful. If not, return an error result.
-    Rework[]? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
+    HuisRework[]? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
     if (reworks is null)
       return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
 
     // Get all suggested reworks where the name or code contains the input value.
     string userInput = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";
-    IEnumerable<Rework> suggestedReworks = reworks.Where(x => (x.Name?.ToLower().Contains(userInput) ?? false) || (x.Code?.ToLower().Contains(userInput) ?? false));
+    IEnumerable<HuisRework> suggestedReworks = reworks.Where(x => (x.Name?.ToLower().Contains(userInput) ?? false) || (x.Code?.ToLower().Contains(userInput) ?? false));
 
     // Return the first 25 reworks, since more are not supported due to Discord API limitations.
     return AutocompletionResult.FromSuccess(suggestedReworks.Select(x => new AutocompleteResult(x.Name, x.Code)).Take(25));

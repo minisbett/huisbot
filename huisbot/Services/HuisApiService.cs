@@ -15,7 +15,7 @@ public class HuisApiService
   /// <summary>
   /// The cached reworks from the API.
   /// </summary>
-  private readonly Cached<Rework[]> _reworks = new Cached<Rework[]>(TimeSpan.FromMinutes(5));
+  private readonly Cached<HuisRework[]> _reworks = new Cached<HuisRework[]>(TimeSpan.FromMinutes(5));
 
   public HuisApiService(IHttpClientFactory httpClientFactory, ILogger<HuisApiService> logger)
   {
@@ -51,7 +51,7 @@ public class HuisApiService
   /// Returns an array of all reworks from the API.
   /// </summary>
   /// <returns></returns>
-  public async Task<Rework[]?> GetReworksAsync()
+  public async Task<HuisRework[]?> GetReworksAsync()
   {
     // If the cached reworks are not expired, return them.
     if (!_reworks.IsExpired)
@@ -61,7 +61,7 @@ public class HuisApiService
     {
       // Get the reworks from the API.
       string json = await _http.GetStringAsync("/reworks/list");
-      Rework[]? reworks = JsonConvert.DeserializeObject<Rework[]>(json);
+      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json);
 
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
@@ -87,7 +87,7 @@ public class HuisApiService
   /// <param name="playerId">The osu! id of the player.</param>
   /// <param name="playerId">The id of the rework.</param>
   /// <returns></returns>
-  public async Task<Player?> GetPlayerAsync(int playerId, int reworkId)
+  public async Task<HuisPlayer?> GetPlayerAsync(int playerId, int reworkId)
   {
     // TODO: Implement caching
 
@@ -95,7 +95,7 @@ public class HuisApiService
     {
       // Get the player from the API.
       string json = await _http.GetStringAsync($"/player/userdata/{playerId}/{reworkId}");
-      Player? player = JsonConvert.DeserializeObject<Player>(json);
+      HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json);
 
       // Check whether the deserialized json is valid.
       if (player is null)

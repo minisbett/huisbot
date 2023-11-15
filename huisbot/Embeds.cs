@@ -52,7 +52,7 @@ internal static class Embeds
   /// </summary>
   /// <param name="rework">The rework to display.</param>
   /// <returns>The embed for displaying the specified rework.</returns>
-  public static Embed Rework(Rework rework) => BaseEmbed
+  public static Embed Rework(HuisRework rework) => BaseEmbed
     .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
     .WithUrl($"https://pp.huismetbenen.nl/rankings/info/{rework.Code}")
     .AddField("Description", (rework.Description ?? "") == "" ? "*No description available.*" : rework.Description)
@@ -67,7 +67,7 @@ internal static class Embeds
   /// <param name="player">The player to display.</param>
   /// <param name="rework">The rework.</param>
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
-  public static Embed Player(Player player, Rework rework)
+  public static Embed Player(HuisPlayer player, HuisRework rework)
   {
     string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*\n(inclusive {player.BonusPP:N2}pp bonus pp)";
     string weightedpp1 = $"**Acc** {player.WeightedAccPP:N2}pp | **Aim** {player.WeightedAimPP:N2}pp";
