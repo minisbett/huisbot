@@ -1,6 +1,6 @@
 ﻿using huisbot.Models.Huis;
 
-namespace huisbot.Extensions;
+namespace huisbot.Utils.Extensions;
 
 /// <summary>
 /// Provides extension methods for the <see cref="Rework"/> class.

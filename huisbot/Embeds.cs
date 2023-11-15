@@ -1,12 +1,6 @@
 ﻿using Discord;
-using huisbot.Extensions;
 using huisbot.Models.Huis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+using huisbot.Utils.Extensions;
 
 namespace huisbot;
 
@@ -24,6 +18,17 @@ internal static class Embeds
     .WithCurrentTimestamp();
 
   /// <summary>
+  /// Returns an error embed for displaying an internal error message.
+  /// </summary>
+  /// <param name="message">The error message.</param>
+  /// <returns>An embed for displaying an internal error message.</returns>
+  public static Embed InternalError(string message) => BaseEmbed
+    .WithColor(Color.Red)
+    .WithTitle("An internal error occured.")
+    .WithDescription(message)
+    .Build();
+
+  /// <summary>
   /// Returns an error embed for displaying an error message.
   /// </summary>
   /// <param name="message">The error message.</param>
@@ -34,13 +39,11 @@ internal static class Embeds
     .Build();
 
   /// <summary>
-  /// Returns an error embed for displaying an internal error message.
+  /// Returns an error embed for displaying a neutral message.
   /// </summary>
-  /// <param name="message">The error message.</param>
-  /// <returns>An embed for displaying an internal error message.</returns>
-  public static Embed InternalError(string message) => BaseEmbed
-    .WithColor(Color.Red)
-    .WithTitle("An internal error occured.")
+  /// <param name="message">The neutral message.</param>
+  /// <returns>An embed for displaying a neutral message.</returns>
+  public static Embed Neutral(string message) => BaseEmbed
     .WithDescription(message)
     .Build();
 
@@ -77,11 +80,11 @@ internal static class Embeds
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
-      .WithAuthor($"{player.Name} on {rework.Name}", $"https://a.ppy.sh/{player.Id}", $"https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code}")  
+      .WithAuthor($"{player.Name} on {rework.Name}", $"https://a.ppy.sh/{player.Id}", $"https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code}")
       .AddField("Comparison of Total PP", pp, true)
       .AddField("Weighted PP", $"{weightedpp1}\n{weightedpp2}", true)
       .AddField("**Useful Links**", $"[osu! profile](https://osu.ppy.sh/u/{player.Id}) • {huisRework} • {huisProfile} • [Source Code]({rework.GetBranchUrl()})")
-      .WithFooter($"{BaseEmbed.Footer} • Last Updated")
+      .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(player.LastUpdated)
       .Build();
   }

@@ -1,11 +1,6 @@
 ﻿using huisbot.Models.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace huisbot.Services;
 
@@ -35,7 +30,7 @@ public class HuisApiService
   public async Task<Rework[]?> GetReworksAsync()
   {
     // If the cached reworks are not expired, return them.
-    if(!_reworks.IsExpired)
+    if (!_reworks.IsExpired)
       return _reworks.Value;
 
     try
@@ -45,7 +40,7 @@ public class HuisApiService
       Rework[]? reworks = JsonConvert.DeserializeObject<Rework[]>(json);
 
       // Check whether the deserialized json is valid.
-      if(reworks is null || reworks.Length == 0)
+      if (reworks is null || reworks.Length == 0)
       {
         _logger.LogError("Failed to deserialize the reworks from the Huis API.\nhttps://pp-api.huismetbenen.nl/reworks/list");
         return null;

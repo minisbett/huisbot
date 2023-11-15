@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot;
+﻿namespace huisbot;
 
 /// <summary>
 /// A wrapper around a variable to cache it for a certain time.
@@ -33,7 +27,7 @@ internal class Cached<T>
   /// <summary>
   /// The span after which the value expires.
   /// </summary>
-  private TimeSpan _expirationSpan;
+  private readonly TimeSpan _expirationSpan;
 
   /// <summary>
   /// The last refresh time of the value.

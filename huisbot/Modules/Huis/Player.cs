@@ -1,13 +1,8 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace huisbot.Modules;
+namespace huisbot.Modules.Huis;
 
 /// <summary>
 /// The interaction module for the player command.
@@ -36,7 +31,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 
     // Try to get the specified rework by the specified identifier. If it doesn't exist, notify the user.
     Rework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkIdentifier || x.Code == reworkIdentifier);
-    if(rework is null)
+    if (rework is null)
     {
       await RespondAsync(embed: Embeds.Error($"The specified rework (`{reworkIdentifier}`) could not be found."));
       return;
@@ -44,7 +39,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 
     // Get the player from the specified rework and check whether the request was successful. If not, notify the user about an internal error.
     Player? player = await _huis.GetPlayerAsync(playerId, rework.Id);
-    if(player is null)
+    if (player is null)
     {
       await RespondAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
       return;
