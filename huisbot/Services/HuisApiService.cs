@@ -32,11 +32,11 @@ public class HuisApiService
     try
     {
       // Try to send a request to the base URL of the Huis API.
-      string result = await _http.GetStringAsync("/");
+      HttpResponseMessage response = await _http.GetAsync("/");
 
       // Check whether it returns the expected result.
-      if (result != "Cannot GET /")
-        throw new Exception("Result does not match \"Cannot GET /\".");
+      if (!(await response.Content.ReadAsStringAsync()).Contains("<pre>Cannot GET /</pre>"))
+        throw new Exception("Result does not contain \"<pre>Cannot GET /</pre>\".");
 
       return true;
     }

@@ -26,11 +26,7 @@ public class InfoCommandModule : InteractionModuleBase<SocketInteractionContext>
   [SlashCommand("info", "Displays info about the bot.")]
   public async Task HandleAsync()
   {
-    // Get the status of the osu! and Huis API.
-    bool osuAvailable = await _osu.IsAvailableAsync();
-    bool huisAvailable = await _huis.IsAvailableAsync();
-
     // Return the info embed to the user.
-    await RespondAsync(embed: Embeds.Info(osuAvailable, huisAvailable));
+    await RespondAsync(embed: Embeds.Info(await _osu.IsAvailableAsync(), await _huis.IsAvailableAsync()));
   }
 }

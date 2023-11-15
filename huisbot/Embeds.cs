@@ -96,9 +96,9 @@ internal static class Embeds
     .WithColor(new Color(0xFFCA58))
     .WithTitle($"Information about Huisbot {Program.VERSION}")
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
-                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping or DM `@minisbett`.")
-    .AddField("Uptime", (DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString())
-    .AddField("API Status", $"osu! {new Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Emoji(osuAvailable ? "✅" : "❌")}")
+                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
+    .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source Code](https://github.com/minisbett/huisbot)", true)
+    .AddField("API Status", $"osu! {new Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Emoji(osuAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
 }

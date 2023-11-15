@@ -18,7 +18,12 @@ public class Program
   /// <summary>
   /// The startup time of the application.
   /// </summary>
-  public static readonly DateTime STARTUP_TIME = DateTime.UtcNow;
+  public static readonly DateTime STARTUP_TIME;
+
+  static Program()
+  {
+    STARTUP_TIME = DateTime.UtcNow;
+  }
 
   public static async Task Main(string[] args)
   {
