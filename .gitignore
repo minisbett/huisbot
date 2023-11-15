@@ -396,4 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/huisbot/huisbot/.env
+/huisbot/.env
