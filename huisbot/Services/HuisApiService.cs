@@ -63,7 +63,7 @@ public class HuisApiService
     {
       // Get the reworks from the API.
       string json = await _http.GetStringAsync("reworks/list");
-      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json);
+      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json)?.Where(x => x.RulesetId == 0).ToArray() /* std only for now */;
 
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
