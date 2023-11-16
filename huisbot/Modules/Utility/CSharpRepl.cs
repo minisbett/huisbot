@@ -73,6 +73,10 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       return;
     }
 
+    // If the code does not end with a semicolon, add one.
+    if (!code.EndsWith(";"))
+      code += ";";
+
     // If the references array has not been initialized yet, initialize it with all assemblies referenced by the entry assembly.
     if (_references is null)
     {
