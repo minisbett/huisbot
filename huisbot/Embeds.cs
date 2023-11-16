@@ -52,6 +52,16 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an error embed for displaying a success message.
+  /// </summary>
+  /// <param name="message">The success message.</param>
+  /// <returns>An embed for displaying a success message.</returns>
+  public static Embed Success(string message) => BaseEmbed
+    .WithColor(Color.Green)
+    .WithDescription(message)
+    .Build();
+
+  /// <summary>
   /// Returns an embed with the specified rework.
   /// </summary>
   /// <param name="rework">The rework to display.</param>

@@ -99,18 +99,24 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
     await RespondAsync(embed: Embeds.Neutral("Executing code..."));
 
-    // Run the specified code and save the resulting ScriptState object.
-    ScriptState<object> state = await CSharpScript.RunAsync(code, options, globals);
+    ScriptState<object> state;
+    try
+    {
+      // Try to run the specified code and save the resulting ScriptState object.
+      state = await CSharpScript.RunAsync(code, options, globals);
+    }
+    catch (Exception ex)
+    {
+      // If an error occured, notify the user.
+      await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Error($"```cs\n{ex.Message}```"));
+      return;
+    }
 
     // If the resulting object is null, send a message indicating that the code has been executed.
     // This happens if the specified code does not return anything and simply executes some code.
     if (state.ReturnValue is null)
     {
-      await (await GetOriginalResponseAsync()).ModifyAsync(msg =>
-      {
-        msg.Embed = null;
-        msg.Content = "Action peformed successfully.";
-      });
+      await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Success("Action performed successfully."));
 
       return;
     }
@@ -125,7 +131,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000)
     {
-      await (await GetOriginalResponseAsync()).ModifyAsync(msg =>
+      await ModifyOriginalResponseAsync(msg =>
       {
         msg.Embed = null;
         msg.Content = "The result was too long to be displayed in a message.";
@@ -139,7 +145,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     // Edit the original response and replace the content with the string representation.
-    await (await GetOriginalResponseAsync()).ModifyAsync(msg =>
+    await ModifyOriginalResponseAsync(msg =>
     {
       msg.Embed = null;
       msg.Content = $"```\n{str}\n```";

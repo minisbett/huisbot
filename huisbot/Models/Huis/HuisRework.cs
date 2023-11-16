@@ -54,4 +54,9 @@ public class HuisRework
   /// </summary>
   [JsonProperty("banner_text")]
   public string? Description { get; private set; }
+
+  public override string ToString()
+  {
+    return $"{Id} {Name} ({Code})";
+  }
 }
