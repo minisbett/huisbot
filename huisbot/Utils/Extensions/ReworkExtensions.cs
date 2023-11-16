@@ -38,7 +38,7 @@ internal static class ReworkExtensions
       "REWORK_PUBLIC_INACTIVE" => "Inactive Public Rework",
       "HISTORIC" => "Historic",
       "MASTER" => "Confirmed for next deploy",
-      _ => "Unknown"
+      _ => rework.ReworkType ?? "null"
     };
 
   /// <summary>
