@@ -81,6 +81,7 @@ public class Program
         {
           client.BaseAddress = new Uri("https://pp-api.huismetbenen.nl/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
+          client.DefaultRequestHeaders.Add("x-onion-key", context.Configuration.GetValue<string>("HUIS_ONION_KEY"));
         });
 
         // Add an http client for communicating with the osu! v1 API.
@@ -88,7 +89,6 @@ public class Program
         {
           client.BaseAddress = new Uri("https://osu.ppy.sh/api/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
-          client.DefaultRequestHeaders.Add("x-onion-key", context.Configuration.GetValue<string>("HUIS_ONION_KEY"));
         });
       })
       .Build();
