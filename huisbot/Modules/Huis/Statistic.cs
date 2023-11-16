@@ -59,21 +59,29 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
       return;
     }
 
-    // Configure the plot with a size of 1000x600, a legend in the upper center, the axis labels and an extra axis on the right for the difference.
+    // Configure the plot with a size of 1000x600, colors, a legend in the upper center, the axis labels and an extra axis on the right for the difference.
     Plot liveLocal = new Plot(1000, 600);
+    liveLocal.Style(Color.FromArgb(63, 66, 66), Color.FromArgb(63, 66, 66), Color.FromArgb(57, 59, 59), null, null, Color.White);
     liveLocal.Title($"{(topscores ? "Top Scores" : "Top Players")} - Live vs {rework.Name} @ {DateTime.UtcNow.ToShortDateString()} " +
                     $"{DateTime.UtcNow.ToLongTimeString()} (commit {rework.Commit})");
     liveLocal.LeftAxis.Label("Performance Points");
+    liveLocal.LeftAxis.Color(Color.LightGray);
     liveLocal.BottomAxis.Label($"No. # Top {(topscores ? "Score" : "Player")}");
-    liveLocal.AddAxis(Edge.Right, 2, "Difference", Color.Black);
-    liveLocal.Legend(true, Alignment.UpperCenter);
+    liveLocal.BottomAxis.Color(Color.LightGray);
+    liveLocal.AddAxis(Edge.Right, 2, "Difference", Color.LightGray);
+    Legend legend = liveLocal.Legend(true, Alignment.UpperCenter);
+    legend.Orientation = Orientation.Horizontal;
+    legend.FillColor = Color.FromArgb(63, 66, 66);
+    legend.FontColor = Color.White;
+    legend.OutlineColor = Color.Transparent;
+    legend.ShadowColor = Color.Transparent;
 
     // Add the scatter lines of the old and new values and the difference.
     double[] xs = Enumerable.Range(0, statistic.Old.Length).Select(x => (double)x).ToArray();
-    ScatterPlot diff = liveLocal.AddScatterLines(xs, statistic.Difference, Color.LightGray, 1, LineStyle.Solid, "Difference");
+    ScatterPlot diff = liveLocal.AddScatterLines(xs, statistic.Difference, Color.FromArgb(103, 106, 106), 1, LineStyle.Solid, "Difference");
     diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
-    liveLocal.AddScatterLines(xs, statistic.Old, Color.Red, 2, LineStyle.Solid, "Live");
-    liveLocal.AddScatterLines(xs, statistic.New, Color.Blue, 2, LineStyle.Solid, "Local");
+    liveLocal.AddScatterLines(xs, statistic.Old, Color.FromArgb(244, 122, 31), 2, LineStyle.Solid, "Live");
+    liveLocal.AddScatterLines(xs, statistic.New, Color.FromArgb(0, 124, 195), 2, LineStyle.Solid, "Local");
 
     // Render the plot to a bitmap and send it.
     using MemoryStream ms1 = new MemoryStream();
