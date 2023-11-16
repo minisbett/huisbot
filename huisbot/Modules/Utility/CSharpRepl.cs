@@ -119,7 +119,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     string str = Inspector.Inspect(state.Exception ?? state.ReturnValue);
 
     // As a safety measure, replace secrets from the config with a placeholder.
-    foreach (string secret in new string[] { "BOT_TOKEN" })
+    foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY" })
       str = str.Replace(_config.GetValue<string>(secret), "<censored>");
 
     // If the string representation is too long, send a file containing it.
