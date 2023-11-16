@@ -53,27 +53,27 @@ public class OsuApiService
   }
 
   /// <summary>
-  /// Returns the ID of the osu! user by the specified name. Returns -1 if the user could not be found.
+  /// Returns the the osu! user by the specified ID or name. Returns <see cref="OsuUser.NotFound"/> if the user could not be found.
   /// </summary>
-  /// <param name="id">The name of the user.</param>
-  /// <returns>The ID of the user.</returns>
-  public async Task<int?> GetUserIdAsync(string name)
+  /// <param name="identifier">The identifier the user.</param>
+  /// <returns>The user.</returns>
+  public async Task<OsuUser?> GetUserAsync(string identifier)
   {
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"get_user?u={name}&type=string&k={_config.GetValue<string>("OSU_API_KEY")}");
+      string json = await _http.GetStringAsync($"get_user?u={identifier}&k={_config.GetValue<string>("OSU_API_KEY")}");
       OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
 
-      // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
+      // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
       if (user is null)
-        return -1;
+        return OsuUser.NotFound;
 
-      return user.Id;
+      return user;
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the user with name \"{name}\" from the osu! API: {Message}", name, ex.Message);
+      _logger.LogError("Failed to get the user with identifier \"{Identifier}\" from the osu! API: {Message}", identifier, ex.Message);
       return null;
     }
   }

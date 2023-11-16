@@ -3,7 +3,9 @@ using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Models.Huis;
+using huisbot.Persistence;
 using huisbot.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -76,6 +78,9 @@ public class Program
         // Add the Huis API service for communicating with the Huis API.
         services.AddSingleton<HuisApiService>();
 
+        // Register the osu!-discord link service, responsible for providing logic for linking osu! accounts to Discord accounts.
+        services.AddScoped<OsuDiscordLinkService>();
+
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>
         {
@@ -90,8 +95,18 @@ public class Program
           client.BaseAddress = new Uri("https://osu.ppy.sh/api/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
         });
+
+        // Register our data context for accessing our database.
+        services.AddDbContext<Database>(options =>
+        {
+          options.UseSqlite("Data Source=database.db");
+          options.UseSnakeCaseNamingConvention();
+        });
       })
       .Build();
+
+    // Run migrations on the database.
+    await host.Services.GetRequiredService<Database>().Database.MigrateAsync();
 
     // Try to initially load the reworks for a faster use after startup.
     HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();

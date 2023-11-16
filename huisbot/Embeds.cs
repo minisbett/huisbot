@@ -169,6 +169,17 @@ internal static class Embeds
   }
 
   /// <summary>
+  /// returns an embed for displaying a successful link between a Discord and an osu! account.
+  /// </summary>
+  /// <param name="user">The osu! user that was linked.</param>
+  /// <returns>An embed for displaying a successful link between a Discord and an osu! account.</returns>
+  public static Embed LinkSuccessful(OsuUser user) => BaseEmbed
+    .WithColor(Color.Green)
+    .WithDescription($"Your Discord account was successfully linked to the osu! account `{user.Name}`.")
+    .WithThumbnailUrl($"https://a.ppy.sh/{user.Id}")
+    .Build();
+
+  /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
   /// </summary>
   private static Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
