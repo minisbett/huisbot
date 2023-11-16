@@ -1,5 +1,7 @@
 ﻿using Discord.Net;
+using huisbot.Enums;
 using huisbot.Models.Huis;
+using huisbot.Modules.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -174,7 +176,7 @@ public class HuisApiService
   /// </summary>
   /// <param name="request">The score request.</param>
   /// <returns>The calculation result.</returns>
-  public async Task<HuisCalculationResult?> CalculateAsync(HuisCalculationRequest request)
+  public async Task<HuisCalculatedScore?> CalculateAsync(HuisCalculationRequest request)
   {
     // TODO: Implement caching
 
@@ -183,7 +185,7 @@ public class HuisApiService
       // Get the player from the API.
       HttpResponseMessage response = await _http.PatchAsync("calculate-score", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisCalculationResult? result = JsonConvert.DeserializeObject<HuisCalculationResult>(await response.Content.ReadAsStringAsync());
+      HuisCalculatedScore? result = JsonConvert.DeserializeObject<HuisCalculatedScore>(await response.Content.ReadAsStringAsync());
 
       // Check whether the deserialized json is valid.
       if (response is null)
@@ -203,7 +205,7 @@ public class HuisApiService
   /// </summary>
   /// <param name="statisticId">The statistic ID.</param>
   /// <param name="reworkId">The rework ID.</param>
-  /// <returns>The statistic.</returns>
+  /// <returns>The statistic comparing the specified rework with the live pp system.</returns>
   private async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
   {
     // TODO: Implement caching
@@ -222,7 +224,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the statistic response from the Huis API: {Message} https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
+      _logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
         statisticId, reworkId, ex.Message, all ? "all" : "");
       return null;
     }
@@ -241,4 +243,35 @@ public class HuisApiService
   /// <param name="reworkId">The rework ID.</param>
   /// <returns>The top-scores statistic in the specified rework.</returns>
   public Task<HuisStatistic?> GetTopScoresStatisticAsync(int reworkId) => GetStatisticAsync("topscores", reworkId, true);
+
+  /// <summary>
+  /// Returns the global score leaderboard in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <param name="sort">The sort options.</param>
+  /// <returns>The global score leaderboard in the specified rework.</returns>
+  public async Task<HuisScore[]?> GetScoreLeaderboardAsync(int reworkId, HuisScoreLeaderboardSort sort)
+  {
+    // TODO: Implement caching
+
+    try
+    {
+      // Get the leaderboard data from the API.
+      string json = await _http.GetStringAsync($"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "desc" : "asc")}");
+      HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
+
+      // Check whether the deserialized json is valid.
+      if (scores is null)
+        throw new Exception("Deserialization of JSON returned null.");
+
+      return scores;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} " +
+                      "https://pp-api.huismetbenen.nl/rankings/topscores/{ReworkId}?sort={Sort}&order={Order}",
+        ex.Message, reworkId, sort.Code, sort.IsAscending ? "desc" : "asc");
+      return null;
+    }
+  }
 }

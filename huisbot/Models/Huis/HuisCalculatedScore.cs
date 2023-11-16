@@ -10,7 +10,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation response received from Huismetbenen.
 /// </summary>
-public class HuisCalculationResult
+public class HuisCalculatedScore
 {
   /// <summary>
   /// The fully qualified name of the map of the score in the format "(map id) - (artist) - (title) ((creator)) [(version)]".
@@ -45,7 +45,7 @@ public class HuisCalculationResult
   /// <summary>
   /// The 100s/oks of the score.
   /// </summary>
-  [JsonProperty("ok")]
+  [JsonProperty("oks")]
   public int Count100 { get; set; }
 
   /// <summary>

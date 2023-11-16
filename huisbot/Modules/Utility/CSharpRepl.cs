@@ -33,15 +33,18 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     "Discord.Rest",
     "Discord.WebSocket",
     "huisbot",
-    "huisbot.Utils",
-    "huisbot.Utils.Extensions",
+    "huisbot.Enums",
     "huisbot.Models",
     "huisbot.Models.Huis",
+    "huisbot.Models.Osu",
     "huisbot.Models.Utility",
     "huisbot.Modules",
     "huisbot.Modules.Huis",
     "huisbot.Modules.Utility",
+    "huisbot.Persistence",
     "huisbot.Services",
+    "huisbot.Utils",
+    "huisbot.Utils.Extensions"
   };
 
   /// <summary>

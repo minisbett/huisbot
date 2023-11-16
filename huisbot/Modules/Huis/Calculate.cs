@@ -70,7 +70,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, false));
 
     // Get the local result from the Huis API and check whether it was successful.
-    HuisCalculationResult? local = await _huis.CalculateAsync(request);
+    HuisCalculatedScore? local = await _huis.CalculateAsync(request);
     if (local is null)
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the local score with the Huis API."));
@@ -82,7 +82,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
     await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
 
     // Get the live result from the Huis API and check whether it was successful.
-    HuisCalculationResult? live = await _huis.CalculateAsync(request);
+    HuisCalculatedScore? live = await _huis.CalculateAsync(request);
     if (live is null)
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));

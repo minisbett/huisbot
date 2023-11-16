@@ -135,7 +135,7 @@ internal static class Embeds
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisCalculationResult local, HuisCalculationResult live, HuisRework rework, OsuBeatmap beatmap)
+  public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap)
   {
     // Split the map name into it's components using regex.
     Match match = Regex.Match(local.MapName ?? "", @"^(\d+) - (.+) - (.+) \((.+)\) \[(.+)\]$");
