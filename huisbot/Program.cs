@@ -93,6 +93,11 @@ public class Program
       })
       .Build();
 
+    // Try to initially load the reworks for a faster use after startup.
+    HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
+    await huisApi.GetReworksAsync();
+    
+
     // Run the host.
     await host.RunAsync();
   }

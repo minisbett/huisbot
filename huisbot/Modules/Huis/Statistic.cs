@@ -47,15 +47,15 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (rework is null)
     {
-      await FollowupAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
+      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;
     }
 
     // Get the statistic from the Huis API and check whether the request was successful. If not, notify the user.
     HuisStatistic? statistic = await (topscores ? _huis.GetTopScoresStatisticAsync(rework.Id) : _huis.GetTopPlayerStatisticAsync(rework.Id));
-    if (statistic is null || statistic.Old is null || statistic.New is null || statistic.Difference is null)
+    if (statistic is null)
     {
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the specified statistic (`{statisticId}`) from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the statistic `{statisticId}` from the Huis API."));
       return;
     }
 
@@ -77,7 +77,7 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     legend.ShadowColor = Color.Transparent;
 
     // Add the scatter lines of the old and new values and the difference.
-    double[] xs = Enumerable.Range(0, statistic.Old.Length).Select(x => (double)x).ToArray();
+    double[] xs = Enumerable.Range(0, statistic.Old!.Length).Select(x => (double)x).ToArray();
     ScatterPlot diff = liveLocal.AddScatterLines(xs, statistic.Difference, Color.FromArgb(103, 106, 106), 1, LineStyle.Solid, "Difference");
     diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
     liveLocal.AddScatterLines(xs, statistic.Old, Color.FromArgb(244, 122, 31), 2, LineStyle.Solid, "Live");

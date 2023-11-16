@@ -52,7 +52,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
     HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (rework is null)
     {
-      await FollowupAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
+      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;
     }
 

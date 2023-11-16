@@ -92,10 +92,7 @@ public class OsuApiService
 
       // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
       if (map is null)
-      {
-        _logger.LogError("Failed to deserialize the beatmap from the response of the osu! API.");
-        return null;
-      }
+        throw new Exception("Deserialization of JSON returned null.");
 
       return map;
     }

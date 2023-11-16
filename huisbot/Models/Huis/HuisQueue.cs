@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,6 @@ public class HuisQueue
   /// <summary>
   /// The entries in the queue.
   /// </summary>
+  [JsonProperty("queue")]
   public HuisQueueEntry[]? Entries { get; private set; }
 }

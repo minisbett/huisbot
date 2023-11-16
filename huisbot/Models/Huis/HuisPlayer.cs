@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using huisbot.Services;
 
 namespace huisbot.Models.Huis;
 
@@ -7,6 +8,17 @@ namespace huisbot.Models.Huis;
 /// </summary>
 public class HuisPlayer
 {
+  /// <summary>
+  /// Returns a player object representing an uncalculated player.
+  /// </summary>
+  public static HuisPlayer Uncalculated => new HuisPlayer() { IsCalculated = false };
+
+  /// <summary>
+  /// Bool whether the player is calculated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, int)"/>, which returns
+  /// an object where this is false in order to report that the request was successful, but no player data was received back to the caller.
+  /// </summary>
+  public bool IsCalculated { get; init; } = true;
+
   [JsonProperty("user_id")]
   /// <summary>
   /// The osu! user id of the player.

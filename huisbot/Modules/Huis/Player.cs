@@ -41,7 +41,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (rework is null)
     {
-      await FollowupAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
+      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;
     }
 
@@ -57,7 +57,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
       }
       else if (id == -1)
       {
-        await FollowupAsync(embed: Embeds.Error($"The specified user (`{playerId}`) could not be found."));
+        await FollowupAsync(embed: Embeds.Error($"The player `{playerId}` could not be found."));
         return;
       }
 
@@ -71,6 +71,33 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
       return;
     }
+    // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
+    else if (!player.IsCalculated)
+    {
+      // Get the queue and check whether the request was successful. If not, notify the user about an internal error.
+      HuisQueue? queue = await _huis.GetQueueAsync();
+      if (queue is null)
+      {
+        await FollowupAsync(embed: Embeds.InternalError("Failed to get the player calculation queue from the Huis API."));
+        return;
+      }
+
+      // Check whether the player is already queued. If so, notify the user.
+      if (queue.Entries!.Any(x => x.UserId == userId && x.ReworkId == rework.Id))
+      {
+        await FollowupAsync(embed: Embeds.Neutral($"The player `{playerId}` is currently being calculated. Please try again later."));
+        return;
+      }
+
+      // Queue the player and notify the user whether it was successful.
+      bool queued = await _huis.QueuePlayerAsync(userId, rework.Id);
+      if (queued)
+        await FollowupAsync(embed: Embeds.Success($"The player `{playerId}` has been added to the calculation queue."));
+      else
+        await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{playerId}`."));
+      return;
+    }
+
 
     // Show the player embed.
     await FollowupAsync(embed: Embeds.Player(player, rework));

@@ -67,10 +67,7 @@ public class HuisApiService
 
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
-      {
-        _logger.LogError("Failed to deserialize the reworks from the Huis API. https://pp-api.huismetbenen.nl/reworks/list");
-        return null;
-      }
+        throw new Exception("Deserialization of JSON returned null.");
 
       // Update the cached reworks and return it.
       _reworks.Value = reworks;
@@ -78,7 +75,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the list of reworks from the Huis API: {Message}", ex.Message);
+      _logger.LogError("Failed to get the list of reworks from the Huis API: {Message} https://pp-api.huismetbenen.nl/reworks/list", ex.Message);
       return null;
     }
   }
@@ -97,10 +94,7 @@ public class HuisApiService
 
       // Check whether the deserialized json is valid.
       if (queue is null || queue.Entries is null)
-      {
-        _logger.LogError("Failed to deserialize the player calculation queue from the Huis API. https://pp-api.huismetbenen.nl/queue/list");
-        return null;
-      }
+        throw new Exception("Deserialization of JSON returned null.");
 
       return queue;
     }
@@ -112,28 +106,58 @@ public class HuisApiService
   }
 
   /// <summary>
+  /// Queues the specified player in the rework with the specified ID.
+  /// </summary>
+  /// <param name="playerId">The osu! user ID.</param>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>Bool whether queuing was successful.</returns>
+  public async Task<bool> QueuePlayerAsync(int playerId, int reworkId)
+  {
+    try
+    {
+      // Send the queue request to the API.
+      var request = new { user_id = playerId, rework = reworkId };
+      HttpResponseMessage response = await _http.PatchAsync("queue/add-to-queue", new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+
+      // Make sure the request was successful by checking whether the json contains the "queue" property.
+      string json = await response.Content.ReadAsStringAsync();
+      if(JsonConvert.DeserializeObject<dynamic>(json)?.queue is null)
+        throw new Exception("No \"queue\" property found in the response.");
+
+      return true;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list", ex.Message);
+      return false;
+    }
+  }
+
+  /// <summary>
   /// Returns the player with the specified id in the specified rework from the API.
   /// </summary>
   /// <param name="playerId">The osu! id of the player.</param>
   /// <param name="playerId">The id of the rework.</param>
-  /// <returns></returns>
+  /// <returns>The player with the specified id in the specified rework.</returns>
   public async Task<HuisPlayer?> GetPlayerAsync(int playerId, int reworkId)
   {
     // TODO: Implement caching
 
     try
     {
-      // Get the player from the API.
+      // Get the json from the API.
       string json = await _http.GetStringAsync($"player/userdata/{playerId}/{reworkId}");
+
+      // Check whether the json matches "{}". If so, no player data is available. In that case, return an uncalculated player object.
+      if (json == "{}")
+        return HuisPlayer.Uncalculated;
+
+      // Otherwise, deserialize the json.
       HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json);
 
       // Check whether the deserialized json is valid.
       if (player is null)
-      {
-        _logger.LogError("Failed to deserialize the player from the Huis API. https://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
-          playerId, reworkId);
-        return null;
-      }
+        throw new Exception("Deserialization of JSON returned null.");
 
       return player;
     }
@@ -163,10 +187,7 @@ public class HuisApiService
 
       // Check whether the deserialized json is valid.
       if (response is null)
-      {
-        _logger.LogError("Failed to deserialize the calculation response from the Huis API.");
-        return null;
-      }
+        throw new Exception("Deserialization of JSON returned null.");
 
       return result;
     }
@@ -194,12 +215,8 @@ public class HuisApiService
       HuisStatistic? statistic = JsonConvert.DeserializeObject<HuisStatistic>(json);
 
       // Check whether the deserialized json is valid.
-      if (statistic is null)
-      {
-        _logger.LogError("Failed to deserialize the statistic response from the Huis API. https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
-          statisticId, reworkId, all ? "all" : "");
-        return null;
-      }
+      if (statistic is null || statistic.Old is null || statistic.New is null || statistic.Difference is null)
+        throw new Exception("Deserialization of JSON returned null.");
 
       return statistic;
     }
