@@ -84,6 +84,34 @@ public class HuisApiService
   }
 
   /// <summary>
+  /// Returns the player calculation queue of all of Huismetbenen from the API.
+  /// </summary>
+  /// <returns>The player calculation queue.</returns>
+  public async Task<HuisQueue?> GetQueueAsync()
+  {
+    try
+    {
+      // Get the reworks from the API.
+      string json = await _http.GetStringAsync("queue/list");
+      HuisQueue? queue = JsonConvert.DeserializeObject<HuisQueue>(json);
+
+      // Check whether the deserialized json is valid.
+      if (queue is null || queue.Entries is null)
+      {
+        _logger.LogError("Failed to deserialize the player calculation queue from the Huis API. https://pp-api.huismetbenen.nl/queue/list");
+        return null;
+      }
+
+      return queue;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list", ex.Message);
+      return null;
+    }
+  }
+
+  /// <summary>
   /// Returns the player with the specified id in the specified rework from the API.
   /// </summary>
   /// <param name="playerId">The osu! id of the player.</param>
@@ -177,7 +205,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the statistic response from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
+      _logger.LogError("Failed to get the statistic response from the Huis API: {Message} https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
         statisticId, reworkId, ex.Message, all ? "all" : "");
       return null;
     }
