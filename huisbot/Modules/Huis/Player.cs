@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
+using huisbot.Models.Utility;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,18 +16,20 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 {
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
+  private readonly OsuDiscordLinkService _links;
 
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis)
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, OsuDiscordLinkService links)
   {
     _osu = osu;
     _huis = huis;
+    _links = links;
   }
 
   [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
   public async Task HandleAsync(
-    [Summary("player", "The osu! ID or name of the player.")] string playerId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId)
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null)
   {
     await DeferAsync();
 
@@ -44,6 +47,21 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     {
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;
+    }
+
+    // If no player identifier was specified, try to get one from a link. If no link was found, notify the user.
+    if (playerId is null)
+    {
+      // Get the link and check whether the request was successful. If not, notify the user.
+      OsuDiscordLink? link = await _links.GetOsuDiscordLinkAsync(Context.User.Id);
+      if (link is null)
+      {
+        await FollowupAsync(embed: Embeds.Error($"You have not linked your osu! account. Please use the `/link` command to link your account."));
+        return;
+      }
+
+      // Set the player identifier to the linked osu! user ID. After that, a player will be retrieved from the osu! API.
+      playerId = link.OsuId.ToString();
     }
 
     // Get the user from the osu! api. If it failed or the user could not be found, notify the user.
