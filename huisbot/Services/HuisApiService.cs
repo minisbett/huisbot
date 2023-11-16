@@ -68,7 +68,7 @@ public class HuisApiService
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
       {
-        _logger.LogError("Failed to deserialize the reworks from the Huis API.\nhttps://pp-api.huismetbenen.nl/reworks/list");
+        _logger.LogError("Failed to deserialize the reworks from the Huis API. https://pp-api.huismetbenen.nl/reworks/list");
         return null;
       }
 
@@ -102,7 +102,7 @@ public class HuisApiService
       // Check whether the deserialized json is valid.
       if (player is null)
       {
-        _logger.LogError("Failed to deserialize the player from the Huis API.\nhttps://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
+        _logger.LogError("Failed to deserialize the player from the Huis API. https://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
           playerId, reworkId);
         return null;
       }
@@ -111,7 +111,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
+      _logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
         ex.Message, playerId, reworkId);
       return null;
     }
@@ -155,7 +155,7 @@ public class HuisApiService
   /// <param name="statisticId">The statistic ID.</param>
   /// <param name="reworkId">The rework ID.</param>
   /// <returns>The statistic.</returns>
-  public async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
+  private async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
   {
     // TODO: Implement caching
 
@@ -168,8 +168,8 @@ public class HuisApiService
       // Check whether the deserialized json is valid.
       if (statistic is null)
       {
-        _logger.LogError("Failed to deserialize the statistic response from the Huis API.\nhttps://pp-api.huismetbenen.nl/statistics/{statisticId}/{reworkId}",
-          statisticId, reworkId);
+        _logger.LogError("Failed to deserialize the statistic response from the Huis API. https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
+          statisticId, reworkId, all ? "all" : "");
         return null;
       }
 
@@ -177,8 +177,8 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the statistic response from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/statistics/{statisticId}/{reworkId}",
-        statisticId, reworkId, ex.Message);
+      _logger.LogError("Failed to get the statistic response from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
+        statisticId, reworkId, ex.Message, all ? "all" : "");
       return null;
     }
   }

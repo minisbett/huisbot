@@ -27,11 +27,13 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId)
   {
+    await DeferAsync();
+
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
-      await RespondAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
 
@@ -39,7 +41,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (rework is null)
     {
-      await RespondAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
+      await FollowupAsync(embed: Embeds.Error($"The specified rework (`{reworkId}`) could not be found."));
       return;
     }
 
@@ -50,12 +52,12 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
       int? id = await _osu.GetUserIdAsync(playerId);
       if (id is null)
       {
-        await RespondAsync(embed: Embeds.InternalError("Failed to resolve the user ID the osu! API."));
+        await FollowupAsync(embed: Embeds.InternalError("Failed to resolve the user ID the osu! API."));
         return;
       }
       else if (id == -1)
       {
-        await RespondAsync(embed: Embeds.Error($"The specified user (`{playerId}`) could not be found."));
+        await FollowupAsync(embed: Embeds.Error($"The specified user (`{playerId}`) could not be found."));
         return;
       }
 
@@ -66,11 +68,11 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     HuisPlayer? player = await _huis.GetPlayerAsync(userId, rework.Id);
     if (player is null)
     {
-      await RespondAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
       return;
     }
 
     // Show the player embed.
-    await RespondAsync(embed: Embeds.Player(player, rework));
+    await FollowupAsync(embed: Embeds.Player(player, rework));
   }
 }

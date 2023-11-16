@@ -22,11 +22,13 @@ public class ReworksCommandModule : InteractionModuleBase<SocketInteractionConte
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
   {
+    await DeferAsync();
+
     // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
-      await RespondAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
 
@@ -38,7 +40,7 @@ public class ReworksCommandModule : InteractionModuleBase<SocketInteractionConte
       .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReadableReworkType()})", null, false)).ToList());
 
     // Show the live "rework" by default and add the select menu to the reply.
-    await RespondAsync(embed: Embeds.Rework(reworks.First(x => x.Code == "live")), components: new ComponentBuilder().WithSelectMenu(selectMenu).Build());
+    await FollowupAsync(embed: Embeds.Rework(reworks.First(x => x.Code == "live")), components: new ComponentBuilder().WithSelectMenu(selectMenu).Build());
   }
 }
 
@@ -67,18 +69,11 @@ public class ReworksComponentModule : InteractionModuleBase<SocketInteractionCon
     HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
     {
-      await interaction.UpdateAsync(msg =>
-      {
-        msg.Embed = Embeds.InternalError("Failed to get the reworks from the Huis API.");
-        msg.Components = null; // Remove the select menu if an error occured.
-      });
+      await interaction.UpdateAsync(msg => msg.Embed = Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
 
     // Show the selected rework.
-    await interaction.UpdateAsync(msg =>
-    {
-      msg.Embed = Embeds.Rework(reworks.First(x => x.Code == code));
-    });
+    await interaction.UpdateAsync(msg => msg.Embed = Embeds.Rework(reworks.First(x => x.Code == code)));
   }
 }
