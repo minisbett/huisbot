@@ -29,7 +29,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
 
   [SlashCommand("calculate", "Calculates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
-    [Summary("beatmapId", "The ID of the beatmap.")] int beatmapId,
+    [Summary("beatmap", "The ID of the beatmap.")] int beatmapId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,

@@ -1,4 +1,5 @@
-﻿using huisbot.Models.Huis;
+﻿using Discord.Net;
+using huisbot.Models.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -120,7 +121,7 @@ public class HuisApiService
   /// Calculates the specified score via the Huis API and returns the result.
   /// </summary>
   /// <param name="request">The score request.</param>
-  /// <returns>The result.</returns>
+  /// <returns>The calculation result.</returns>
   public async Task<HuisCalculationResult?> CalculateAsync(HuisCalculationRequest request)
   {
     // TODO: Implement caching
@@ -147,4 +148,52 @@ public class HuisApiService
       return null;
     }
   }
+
+  /// <summary>
+  /// Returns the statistic with the specified ID in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="statisticId">The statistic ID.</param>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>The statistic.</returns>
+  public async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
+  {
+    // TODO: Implement caching
+
+    try
+    {
+      // Get the statistic data from the API.
+      string json = await _http.GetStringAsync($"/statistics/{statisticId}/{reworkId}{(all ? "/all" : "")}");
+      HuisStatistic? statistic = JsonConvert.DeserializeObject<HuisStatistic>(json);
+
+      // Check whether the deserialized json is valid.
+      if (statistic is null)
+      {
+        _logger.LogError("Failed to deserialize the statistic response from the Huis API.\nhttps://pp-api.huismetbenen.nl/statistics/{statisticId}/{reworkId}",
+          statisticId, reworkId);
+        return null;
+      }
+
+      return statistic;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the statistic response from the Huis API: {Message}\nhttps://pp-api.huismetbenen.nl/statistics/{statisticId}/{reworkId}",
+        statisticId, reworkId, ex.Message);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Returns the top-player statistic in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>The top-player statistic in the specified rework.</returns>
+  public Task<HuisStatistic?> GetTopPlayerStatisticAsync(int reworkId) => GetStatisticAsync("topplayers", reworkId);
+
+  /// <summary>
+  /// Returns the top-scores statistic in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>The top-scores statistic in the specified rework.</returns>
+  public Task<HuisStatistic?> GetTopScoresStatisticAsync(int reworkId) => GetStatisticAsync("topscores", reworkId, true);
 }

@@ -36,6 +36,8 @@ internal static class ReworkExtensions
       "LIVE" => "Live",
       "REWORK_PUBLIC_ACTIVE" => "Active Public Rework",
       "REWORK_PUBLIC_INACTIVE" => "Inactive Public Rework",
+      "REWORK_PRIVATE_ACTIVE" => "Active Private Rework",
+      "REWORK_PRIVATE_INACTIVE" => "Inactive Private Rework",
       "HISTORIC" => "Historic",
       "MASTER" => "Confirmed for next deploy",
       _ => rework.ReworkType ?? "null"
