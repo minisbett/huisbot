@@ -17,6 +17,8 @@ namespace huisbot.Services;
 /// </summary>
 public class OsuApiService
 {
+  // TODO: Migrate GetValue<string>("OSU_API_KEY") to a DI'd options object
+
   private readonly HttpClient _http;
   private readonly IConfiguration _config;
   private readonly ILogger<OsuApiService> _logger;
