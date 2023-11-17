@@ -68,7 +68,8 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting and order for the scores.  Defaults to sort by Local PP Descending.")]
-    [Autocomplete(typeof(ScoreSortAutocompleteHandler))] string sortId = "local_pp_desc")
+    [Autocomplete(typeof(ScoreSortAutocompleteHandler))] string sortId = "local_pp_desc",
+    [Summary("page", "The page of the scores. 1 page displays 10 scores.")] [MinValue(1)] int page = 1)
   {
     await DeferAsync();
 
@@ -103,6 +104,7 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
     }
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, 1));
+    int pageSize = 10;
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip(page * pageSize).Take(pageSize).ToArray(), rework, page * pageSize + 1));
   }
 }

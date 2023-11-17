@@ -207,7 +207,7 @@ internal static class Embeds
   }
 
   /// <summary>
-  /// Returns an embed for displaying the score rankings in the specified rework with the specified scores, supporting up to 10.
+  /// Returns an embed for displaying the score rankings in the specified rework with the specified scores.
   /// </summary>
   /// <param name="scores">The scores to display.</param>
   /// <param name="rework">The rework.</param>
@@ -215,9 +215,6 @@ internal static class Embeds
   /// <returns>An embed for displaying the score rankings.</returns>
   public static Embed ScoreRankings(HuisScore[] scores, HuisRework rework, int noOffset)
   {
-    // Limit the scores to 10.
-    scores = scores.Take(10).ToArray();
-
     // Generate the embed description.
     List<string> description = new List<string>();
     int i = noOffset;
