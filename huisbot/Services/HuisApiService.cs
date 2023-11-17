@@ -142,8 +142,6 @@ public class HuisApiService
   /// <returns>The player with the specified id in the specified rework.</returns>
   public async Task<HuisPlayer?> GetPlayerAsync(int playerId, int reworkId)
   {
-    // TODO: Implement caching
-
     string url = $"player/userdata/{playerId}/{reworkId}";
     try
     {
@@ -177,8 +175,6 @@ public class HuisApiService
   /// <returns>The calculation result.</returns>
   public async Task<HuisCalculatedScore?> CalculateAsync(HuisCalculationRequest request)
   {
-    // TODO: Implement caching
-
     try
     {
       // Get the player from the API.
@@ -212,8 +208,6 @@ public class HuisApiService
   /// <returns>The statistic comparing the specified rework with the live pp system.</returns>
   private async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
   {
-    // TODO: Implement caching
-
     string url = $"/statistics/{statisticId}/{reworkId}{(all ? "/all" : "")}";
     try
     {
@@ -256,8 +250,6 @@ public class HuisApiService
   /// <returns>The global score leaderboard in the specified rework.</returns>
   public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
   {
-    // TODO: Implement caching
-
     string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
     {
@@ -289,8 +281,6 @@ public class HuisApiService
   /// <returns>The global player leaderboard in the specified rework.</returns>
   public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
   {
-    // TODO: Implement caching
-
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}&onlyUpToDate={onlyUpToDate}&hideUnranked={hideUnranked}";
     try
     {
