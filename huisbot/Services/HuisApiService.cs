@@ -130,7 +130,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list", ex.Message);
+      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message}", ex.Message);
       return false;
     }
   }
@@ -145,10 +145,11 @@ public class HuisApiService
   {
     // TODO: Implement caching
 
+    string url = $"player/userdata/{playerId}/{reworkId}";
     try
     {
       // Get the json from the API.
-      string json = await _http.GetStringAsync($"player/userdata/{playerId}/{reworkId}");
+      string json = await _http.GetStringAsync(url);
 
       // Check whether the json matches "{}". If so, no player data is available. In that case, return an uncalculated player object.
       if (json == "{}")
@@ -165,8 +166,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl/player/userdata/{playerId}/{reworkId}",
-        ex.Message, playerId, reworkId);
+      _logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -210,10 +210,11 @@ public class HuisApiService
   {
     // TODO: Implement caching
 
+    string url = $"/statistics/{statisticId}/{reworkId}{(all ? "/all" : "")}";
     try
     {
       // Get the statistic data from the API.
-      string json = await _http.GetStringAsync($"/statistics/{statisticId}/{reworkId}{(all ? "/all" : "")}");
+      string json = await _http.GetStringAsync(url);
       HuisStatistic? statistic = JsonConvert.DeserializeObject<HuisStatistic>(json);
 
       // Check whether the deserialized json is valid.
@@ -224,8 +225,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl/statistics/{StatisticId}/{ReworkId}{All}",
-        statisticId, reworkId, ex.Message, all ? "all" : "");
+      _logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -254,10 +254,11 @@ public class HuisApiService
   {
     // TODO: Implement caching
 
+    string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
     {
       // Get the leaderboard data from the API.
-      string json = await _http.GetStringAsync($"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "desc" : "asc")}");
+      string json = await _http.GetStringAsync(url);
       HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
 
       // Check whether the deserialized json is valid.
@@ -268,9 +269,40 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} " +
-                      "https://pp-api.huismetbenen.nl/rankings/topscores/{ReworkId}?sort={Sort}&order={Order}",
-        ex.Message, reworkId, sort.Code, sort.IsAscending ? "desc" : "asc");
+      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+        ex.Message, url);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Returns the global player leaderboard in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <param name="sort">The sort options.</param>
+  /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
+  /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
+  /// <returns>The global player leaderboard in the specified rework.</returns>
+  public async Task<HuisPlayer[]?> GetPlayerLeaderboardAsync(int reworkId, HuisPlayerLeaderboardSort sort, bool onlyUpToDate, bool hideUnranked)
+  {
+    // TODO: Implement caching
+    
+    string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}&onlyUpToDate={onlyUpToDate}&hideUnranked={hideUnranked}";
+    try
+    {
+      // Get the leaderboard data from the API.
+      string json = await _http.GetStringAsync(url);
+      HuisPlayer[]? players = JsonConvert.DeserializeObject<HuisPlayer[]>(json);
+
+      // Check whether the deserialized json is valid.
+      if (players is null)
+        throw new Exception("Deserialization of JSON returned null.");
+
+      return players;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }

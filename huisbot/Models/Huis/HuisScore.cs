@@ -153,6 +153,6 @@ public class HuisScore
   public override string ToString()
   {
     return $"**{Username}** | {Artist} - {Title} ({Mapper}) [{Version}]{(string.IsNullOrEmpty(Mods) ? "" : "+" + Mods!.Replace("CL", "").Replace(", ", ""))} " +
-           $"{Accuracy}% {MaxCombo}x {LivePP}->{LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
+           $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
   }
 }

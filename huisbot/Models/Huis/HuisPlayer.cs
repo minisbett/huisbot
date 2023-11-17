@@ -78,4 +78,9 @@ public class HuisPlayer
   /// The last time the player got updated on Huismetbenen.
   /// </summary>
   public DateTime LastUpdated { get; private set; }
+
+  public override string ToString()
+  {
+    return $"{Id} {Name} - {OldPP} -> {NewPP}pp (Aim: {WeightedAimPP}, Tap: {WeightedTapPP}, Acc: {WeightedAccPP}, FL: {WeightedFLPP})";
+  }
 }
