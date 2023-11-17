@@ -55,6 +55,11 @@ public class HuisRework
   [JsonProperty("banner_text")]
   public string? Description { get; private set; }
 
+  /// <summary>
+  /// Bool whether the rework is the live pp system.
+  /// </summary>
+  public bool IsLive => Id == 1;
+
   public override string ToString()
   {
     return $"{Id} {Name} ({Code})";

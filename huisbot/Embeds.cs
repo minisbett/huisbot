@@ -121,10 +121,11 @@ internal static class Embeds
   /// </summary>
   /// <param name="local">Bool whether the local score finished calculating.</param>
   /// <param name="live">Bool whether the live score finished calculating.</param>
+  /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
   /// <returns>An embed for displaying the score calculation progress.</returns>
-  public static Embed Calculating(bool local, bool live) => BaseEmbed
-    .WithDescription($"*{(local ? live ? "Finalizing" : "Calculating live score" : "Calculating local score")}...*\n\n" +
-                     $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
+  public static Embed Calculating(bool local, bool live, bool liveOnly) => BaseEmbed
+    .WithDescription($"*{(local || liveOnly ? live ? "Finalizing" : "Calculating live score" : "Calculating local score")}...*\n\n" +
+                     $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
     .Build();
 
   /// <summary>
@@ -153,15 +154,18 @@ internal static class Embeds
     string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
-    string mods = local.Mods.Replace("CL", "") == "" ? "" : $"+{local.Mods.Replace(", ", "").Replace("CL", "")}";
+    string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
+    string mods = modsStr == "" ? "" : $"+{modsStr}";
+    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}**";
+    string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
     string links = $"[map visualizer](https://osu.direct/preview?b={beatmapId}) • [osu! page](https://osu.ppy.sh/b/{beatmapId}) • " +
                    $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{artist} - {title} [{version}] {mods}")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {aim}\n▸ **Acc**: {aim}\n▸ **FL**: {fl}\n{links}", true)
-      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n{hits}", true)
+      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n{links}", true)
+      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)

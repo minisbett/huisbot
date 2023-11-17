@@ -1,4 +1,5 @@
 ﻿using Discord.Interactions;
+using huisbot.Modules.Autocompletes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,11 @@ public class LeaderboardCommandModule : InteractionModuleBase<SocketInteractionC
   }
 
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
-  public async Task HandleScoreAsync()
+  public async Task HandleScoreAsync(
+    [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Summary("sort", "The sorting and order for the scores.")] string sort)
+    //[Choice string sort)
   {
 
   }

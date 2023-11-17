@@ -185,11 +185,16 @@ public class HuisApiService
       // Get the player from the API.
       HttpResponseMessage response = await _http.PatchAsync("calculate-score", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisCalculatedScore? result = JsonConvert.DeserializeObject<HuisCalculatedScore>(await response.Content.ReadAsStringAsync());
+      HuisCalculatedScore? result = JsonConvert.DeserializeObject<HuisCalculatedScore>(json);
 
       // Check whether the deserialized json is valid.
-      if (response is null)
+      if (result is null)
         throw new Exception("Deserialization of JSON returned null.");
+
+      // Check whether the json contains an error.
+      string? error = JsonConvert.DeserializeObject<dynamic>(json)?.error;
+      if (error is not null)
+        throw new Exception($"API returned {error}");
 
       return result;
     }

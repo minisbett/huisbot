@@ -4,6 +4,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
+using huisbot.Utils.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +68,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
     };
 
     // Display the calculation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, false));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, false, rework.IsLive));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisCalculatedScore? local = await _huis.CalculateAsync(request);
@@ -77,20 +78,25 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
       return;
     }
 
-    // Switch the branch of the request to the live "rework" and update the calculation progress embed.
-    request.ReworkCode = "live";
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
-
-    // Get the live result from the Huis API and check whether it was successful.
-    HuisCalculatedScore? live = await _huis.CalculateAsync(request);
-    if (live is null)
+    // If the requested rework is the live rework, the calculation is done here, therefore set the live score to the local one.
+    HuisCalculatedScore? live = local;
+    if (!rework.IsLive)
     {
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));
-      return;
+      // Switch the branch of the request to the live "rework" and update the calculation progress embed.
+      request.ReworkCode = "live";
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false, false));
+
+      // Get the live result from the Huis API and check whether it was successful.
+      live = await _huis.CalculateAsync(request);
+      if (live is null)
+      {
+        await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));
+        return;
+      }
     }
 
     // Update the calculation progress embed again.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, true));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, true, rework.IsLive));
 
     // Get the beatmap from the osu! api and check whether it was successful.
     OsuBeatmap? beatmap = await _osu.GetBeatmapAsync(beatmapId);
