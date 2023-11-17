@@ -281,7 +281,8 @@ public class HuisApiService
   /// <returns>The global player leaderboard in the specified rework.</returns>
   public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
   {
-    string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}&onlyUpToDate={onlyUpToDate}&hideUnranked={hideUnranked}";
+    string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}" +
+                 $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={onlyUpToDate.ToString().ToLower()}";
     try
     {
       // Get the leaderboard data from the API.
