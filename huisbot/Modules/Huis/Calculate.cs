@@ -58,7 +58,7 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
     }
 
     // Construct the HuisCalculationRequest.
-    HuisCalculationRequest request = new HuisCalculationRequest(beatmapId, reworkId)
+    HuisCalculationRequest request = new HuisCalculationRequest(beatmapId, rework.Code)
     {
       Combo = combo,
       Count100 = count100,
