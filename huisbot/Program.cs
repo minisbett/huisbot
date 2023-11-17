@@ -2,7 +2,6 @@
 using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using dotenv.net;
-using huisbot.Models.Huis;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.EntityFrameworkCore;
