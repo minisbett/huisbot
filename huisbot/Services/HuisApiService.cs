@@ -1,5 +1,6 @@
 ﻿using huisbot.Enums;
 using huisbot.Models.Huis;
+using huisbot.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -56,7 +57,7 @@ public class HuisApiService
   public async Task<HuisRework[]?> GetReworksAsync()
   {
     // If the cached reworks are not expired, return them.
-    if (!_reworks.IsExpired)
+    if (_reworks.IsValid)
       return _reworks.Value;
 
     try
