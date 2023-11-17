@@ -105,6 +105,6 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
 
     // Return the embed to the user.
     int pageSize = 10;
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip(page * pageSize).Take(pageSize).ToArray(), rework, page * pageSize + 1));
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rework, (page - 1) * pageSize + 1));
   }
 }

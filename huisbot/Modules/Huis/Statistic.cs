@@ -24,10 +24,11 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
 
   [SlashCommand("statistic", "Displays the specific top-statistic in the specified rework.")]
   public async Task HandleAsync(
-    [Summary("statistic", "The top-statistic to display.")] [Choice("Top Scores", "topscores")] [Choice("Top Players", "topplayers")]
-    string statisticId,
-    [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")] [Autocomplete(typeof(ReworkAutocompleteHandler))]
-    string reworkId)
+    [Summary("statistic", "The top-statistic to display.")]
+    [Choice("Top Scores", "topscores")] [Choice("Top Players", "topplayers")] string statisticId,
+    [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Summary("amount", "Amount of entries to include, up to 500. Default is 500.") ][MinValue(1)] [MaxValue(500)] int amount = 500)
   {
     await DeferAsync();
     bool topscores = statisticId == "topscores"; // True = topscores, False = topplayers
@@ -71,12 +72,17 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     legend.OutlineColor = Color.Transparent;
     legend.ShadowColor = Color.Transparent;
 
+    // Get the old, new and difference values and limit them to the amount requested.
+    double[] oldValues = statistic.Old!.Take(amount).ToArray();
+    double[] newValues = statistic.New!.Take(amount).ToArray();
+    double[] difference = statistic.Difference!.Take(amount).ToArray();
+
     // Add the scatter lines of the old and new values and the difference.
-    double[] xs = Enumerable.Range(0, statistic.Old!.Length).Select(x => (double)x).ToArray();
-    ScatterPlot diff = liveLocal.AddScatterLines(xs, statistic.Difference, Color.FromArgb(103, 106, 106), 1, LineStyle.Solid, "Difference");
+    double[] xs = Enumerable.Range(0, oldValues.Length).Select(x => (double)x).ToArray();
+    ScatterPlot diff = liveLocal.AddScatterLines(xs, difference, Color.FromArgb(103, 106, 106), 1, LineStyle.Solid, "Difference");
     diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
-    liveLocal.AddScatterLines(xs, statistic.Old, Color.FromArgb(244, 122, 31), 2, LineStyle.Solid, "Live");
-    liveLocal.AddScatterLines(xs, statistic.New, Color.FromArgb(0, 124, 195), 2, LineStyle.Solid, "Local");
+    liveLocal.AddScatterLines(xs, oldValues, Color.FromArgb(244, 122, 31), 2, LineStyle.Solid, "Live");
+    liveLocal.AddScatterLines(xs, newValues, Color.FromArgb(0, 124, 195), 2, LineStyle.Solid, "Local");
 
     // Render the plot to a bitmap and send it.
     using MemoryStream ms1 = new MemoryStream();
