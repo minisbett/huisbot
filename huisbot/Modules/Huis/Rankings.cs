@@ -26,8 +26,8 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting and order for the players. Defaults to sort by New PP Descending.")]
     [Autocomplete(typeof(PlayerSortAutocompleteHandler))] string sortId = "new_pp_incl_bonus_desc",
-    [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to false.")] bool onlyUpToDate = false,
-    [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to false.")] bool hideUnranked = false,
+    [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to true.")] bool onlyUpToDate = true,
+    [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to true.")] bool hideUnranked = true,
     [Summary("page", "The page of the players. 1 page displays 10 players.")] [MinValue(1)] int page = 1)
   {
     await DeferAsync();
