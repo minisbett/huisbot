@@ -84,8 +84,8 @@ internal static class Embeds
   public static Embed Player(HuisPlayer player, HuisRework rework)
   {
     string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*\n(inclusive {player.BonusPP:N2}pp bonus pp)";
-    string weightedpp1 = $"**Acc** {player.WeightedAccPP:N2}pp | **Aim** {player.WeightedAimPP:N2}pp";
-    string weightedpp2 = $"**Tap** {player.WeightedTapPP:N2}pp | **Accuracy** {player.WeightedAccPP:N2}pp";
+    string weightedpp1 = $"**Aim** {player.WeightedAimPP:N2}pp | **Acc** {player.WeightedAccPP:N2}pp";
+    string weightedpp2 = $"**Tap** {player.WeightedTapPP:N2}pp | **FL** {player.WeightedFLPP:N2}pp";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code})";
 

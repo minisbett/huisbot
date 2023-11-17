@@ -56,6 +56,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
 
   private readonly IServiceProvider _provider;
   private readonly IConfiguration _config;
+  private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
   public CSharpReplModule(IServiceProvider provider, IConfiguration config, HuisApiService huis)
@@ -100,6 +101,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       Guild = Context.Guild,
       ServiceProvider = _provider,
       Config = _config,
+      Osu = _osu,
       Huis = _huis,
     };
 

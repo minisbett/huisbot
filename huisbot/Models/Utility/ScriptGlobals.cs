@@ -35,12 +35,17 @@ public class ScriptGlobals
   public required IServiceProvider ServiceProvider { get; init; }
 
   /// <summary>
-  /// The Huis api service.
-  /// </summary>
-  public required HuisApiService Huis { get; init; }
-
-  /// <summary>
   /// The configuration of the application.
   /// </summary>
   public required IConfiguration Config { get; init; }
+
+  /// <summary>
+  /// The osu! API service.
+  /// </summary>
+  public required OsuApiService Osu { get; init; }
+
+  /// <summary>
+  /// The Huis API service.
+  /// </summary>
+  public required HuisApiService Huis { get; init; }
 }
