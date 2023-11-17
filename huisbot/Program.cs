@@ -64,7 +64,7 @@ public class Program
         config.LogLevel = LogSeverity.Verbose;
         config.UseCompiledLambda = true;
       })
-      
+
       // Configure further services necessary in the application's lifetime.
       .ConfigureServices((context, services) =>
       {
@@ -85,7 +85,11 @@ public class Program
         {
           client.BaseAddress = new Uri("https://pp-api.huismetbenen.nl/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
-          client.DefaultRequestHeaders.Add("x-onion-key", context.Configuration.GetValue<string>("HUIS_ONION_KEY"));
+
+          // The onion key is optional, allowing access to onion-level reworks.
+          string? onionKey = context.Configuration["HUIS_ONION_KEY"];
+          if (onionKey is not null)
+            client.DefaultRequestHeaders.Add("x-onion-key", onionKey);
         });
 
         // Add an http client for communicating with the osu! v1 API.
@@ -110,7 +114,7 @@ public class Program
     // Try to initially load the reworks for a faster use after startup.
     HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
     await huisApi.GetReworksAsync();
-    
+
 
     // Run the host.
     await host.RunAsync();
