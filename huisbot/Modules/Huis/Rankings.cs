@@ -102,6 +102,7 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
       return;
     }
 
-    await FollowupAsync($"yes yes very cool the best score is {scores.First().Username} on {scores.First().Title}");
+    // Return the embed to the user.
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, 1));
   }
 }

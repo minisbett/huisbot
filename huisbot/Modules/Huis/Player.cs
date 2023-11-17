@@ -30,6 +30,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null)
   {
     await DeferAsync();
+
     // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
     HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
@@ -109,6 +110,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 
 
     // Show the player embed.
+    // TODO: Include weighted pp changes to live in the embed
     await FollowupAsync(embed: Embeds.Player(player, rework));
   }
 }

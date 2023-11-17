@@ -3,6 +3,8 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Utils.Extensions;
+using System.ComponentModel.Design;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Emoji = huisbot.Models.Utility.Emoji;
 
@@ -83,20 +85,21 @@ internal static class Embeds
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
   public static Embed Player(HuisPlayer player, HuisRework rework)
   {
-    string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*\n(inclusive {player.BonusPP:N2}pp bonus pp)";
-    string weightedpp1 = $"**Aim** {player.WeightedAimPP:N2}pp | **Acc** {player.WeightedAccPP:N2}pp";
-    string weightedpp2 = $"**Tap** {player.WeightedTapPP:N2}pp | **FL** {player.WeightedFLPP:N2}pp";
+    string total = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
+    string aim = $"{player.WeightedAimPP:N2}pp";
+    string tap = $"{player.WeightedTapPP:N2}pp";
+    string acc = $"{player.WeightedAccPP:N2}pp";
+    string fl = $"{player.WeightedFLPP:N2}pp";
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{player.Id})";
-    string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code})";
+    string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string github = $"[Source Code]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
       .WithAuthor($"{player.Name} on {rework.Name}", $"https://a.ppy.sh/{player.Id}", $"https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code}")
-      .AddField("Comparison of Total PP", pp, true)
-      .AddField("Weighted PP", $"{weightedpp1}\n{weightedpp2}", true)
-      .AddField("**Useful Links**", $"{osuProfile} • {huisRework} • {huisProfile} • {github}")
+      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}", true)
+      .AddField("Useful Links", $"▸ {osuProfile}\n▸ {huisProfile}\n▸ {huisRework}\n▸ {github}", true)
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(player.LastUpdated)
       .Build();
@@ -127,7 +130,8 @@ internal static class Embeds
   /// <returns>An embed for displaying the score calculation progress.</returns>
   public static Embed Calculating(bool local, bool live, bool liveOnly) => BaseEmbed
     .WithDescription($"*{(local || liveOnly ? live ? "Finalizing" : "Calculating live score" : "Calculating local score")}...*\n\n" +
-                     $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
+                     $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}" +
+                     $"{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
     .Build();
 
   /// <summary>
@@ -145,7 +149,6 @@ internal static class Embeds
     string beatmapId = match.Groups[1].Value;
     string artist = match.Groups[2].Value;
     string title = match.Groups[3].Value;
-    string creator = match.Groups[4].Value;
     string version = match.Groups[5].Value;
 
     // Construct some strings for the embed.
@@ -199,7 +202,45 @@ internal static class Embeds
 
     return BaseEmbed
       .WithTitle("List of all beatmap aliases")
-      .WithDescription($"*These aliases can be in place of a beatmap ID in order to access those beatmaps more easily.*\n\n{aliasesStr}")
+      .WithDescription($"*These aliases can be in place of where you'd specify a beatmap ID in order to access those beatmaps more easily.*\n\n{aliasesStr}")
+      .Build();
+  }
+
+  /// <summary>
+  /// Returns an embed for displaying the score rankings in the specified rework with the specified scores, supporting up to 10.
+  /// </summary>
+  /// <param name="scores">The scores to display.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="noOffset">The offset of the first score, so that the score no. can be displayed properly.</param>
+  /// <returns>An embed for displaying the score rankings.</returns>
+  public static Embed ScoreRankings(HuisScore[] scores, HuisRework rework, int noOffset)
+  {
+    // Limit the scores to 10.
+    scores = scores.Take(10).ToArray();
+
+    // Generate the embed description.
+    List<string> description = new List<string>();
+    int i = noOffset;
+    foreach (HuisScore score in scores)
+    {
+      // Trim the version if title + version is too long. If it's still too long, trim title as well.
+      string title = score.Title ?? "";
+      string version = score.Version ?? "";
+      if ($"{title} [{version}]".Length > 70)
+        version = $"{version.Substring(0, 32)}...";
+      if ($"{title} [{version}]".Length > 70)
+        title = $"{title.Substring(0, 32)}...";
+
+      // Add the info to the description lines.
+      description.Add($"**#{i++}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
+                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"▸ {score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)* " +
+                      $"▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+    }
+
+    return BaseEmbed
+      .WithTitle($"Score Rankings on {rework.Name}")
+      .WithDescription(string.Join("\n", description))
       .Build();
   }
 
