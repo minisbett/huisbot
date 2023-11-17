@@ -45,7 +45,7 @@ public class HuisCalculatedScore
   /// <summary>
   /// The 100s/oks of the score.
   /// </summary>
-  [JsonProperty("oks")]
+  [JsonProperty("ok")]
   public int Count100 { get; set; }
 
   /// <summary>
