@@ -86,15 +86,17 @@ internal static class Embeds
     string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*\n(inclusive {player.BonusPP:N2}pp bonus pp)";
     string weightedpp1 = $"**Aim** {player.WeightedAimPP:N2}pp | **Acc** {player.WeightedAccPP:N2}pp";
     string weightedpp2 = $"**Tap** {player.WeightedTapPP:N2}pp | **FL** {player.WeightedFLPP:N2}pp";
+    string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{player.Id})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code})";
+    string github = $"[Source Code]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
       .WithAuthor($"{player.Name} on {rework.Name}", $"https://a.ppy.sh/{player.Id}", $"https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code}")
       .AddField("Comparison of Total PP", pp, true)
       .AddField("Weighted PP", $"{weightedpp1}\n{weightedpp2}", true)
-      .AddField("**Useful Links**", $"[osu! profile](https://osu.ppy.sh/u/{player.Id}) • {huisRework} • {huisProfile} • [Source Code]({rework.GetCommitUrl()})")
+      .AddField("**Useful Links**", $"{osuProfile} • {huisRework} • {huisProfile} • {github}")
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(player.LastUpdated)
       .Build();
