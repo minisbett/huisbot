@@ -53,25 +53,25 @@ public class HuisPlayer
   /// <summary>
   /// The weighted accuracy pp of the player in the rework the player object is from.
   /// </summary>
-  public double WeightedAccPP { get; private set; }
+  public double AccPP { get; private set; }
 
   [JsonProperty("weighted_aim_pp")]
   /// <summary>
   /// The weighted aim pp of the player in the rework the player object is from.
   /// </summary>
-  public double WeightedAimPP { get; private set; }
+  public double AimPP { get; private set; }
 
   [JsonProperty("weighted_tap_pp")]
   /// <summary>
   /// The weighted tapping pp of the player in the rework the player object is from.
   /// </summary>
-  public double WeightedTapPP { get; private set; }
+  public double TapPP { get; private set; }
 
   [JsonProperty("weighted_fl_pp")]
   /// <summary>
   /// The weighted flashlight pp of the player in the rework the player object is from.
   /// </summary>
-  public double WeightedFLPP { get; private set; }
+  public double FLPP { get; private set; }
 
   [JsonProperty("last_updated")]
   /// <summary>
@@ -81,6 +81,6 @@ public class HuisPlayer
 
   public override string ToString()
   {
-    return $"{Id} {Name} - {OldPP} -> {NewPP}pp (Aim: {WeightedAimPP}, Tap: {WeightedTapPP}, Acc: {WeightedAccPP}, FL: {WeightedFLPP})";
+    return $"{Id} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
   }
 }

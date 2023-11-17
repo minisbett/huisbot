@@ -80,28 +80,28 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the specified player in the specified rework.
   /// </summary>
-  /// <param name="player">The player to display.</param>
+  /// <param name="local">The player to display.</param>
   /// <param name="rework">The rework.</param>
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
-  public static Embed Player(HuisPlayer player, HuisRework rework)
+  public static Embed Player(HuisPlayer local, HuisPlayer live, HuisRework rework)
   {
-    string total = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
-    string aim = $"{player.WeightedAimPP:N2}pp";
-    string tap = $"{player.WeightedTapPP:N2}pp";
-    string acc = $"{player.WeightedAccPP:N2}pp";
-    string fl = $"{player.WeightedFLPP:N2}pp";
-    string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{player.Id})";
-    string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code})";
+    string total = $"{local.OldPP:N2} → **{local.NewPP:N2}pp** *({local.NewPP - local.OldPP:+#,##0.00;-#,##0.00}pp)*";
+    string aim = live.AimPP == local.AimPP ? $"{local.AimPP:N2}pp" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
+    string tap = live.TapPP == local.TapPP ? $"{local.TapPP:N2}pp" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
+    string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
+    string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string github = $"[Source Code]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
-      .WithAuthor($"{player.Name} on {rework.Name}", $"https://a.ppy.sh/{player.Id}", $"https://pp.huismetbenen.nl/player/{player.Id}/{rework.Code}")
+      .WithAuthor($"{local.Name} on {rework.Name}", $"https://a.ppy.sh/{local.Id}", $"https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code}")
       .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}", true)
       .AddField("Useful Links", $"▸ {osuProfile}\n▸ {huisProfile}\n▸ {huisRework}\n▸ {github}", true)
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
-      .WithTimestamp(player.LastUpdated)
+      .WithTimestamp(local.LastUpdated)
       .Build();
   }
 
@@ -117,7 +117,7 @@ internal static class Embeds
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
                      "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
     .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source Code](https://github.com/minisbett/huisbot)", true)
-    .AddField("API Status", $"osu! {new Discord.Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Discord.Emoji(osuAvailable ? "✅" : "❌")}", true)
+    .AddField("API Status", $"osu! {new Discord.Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Discord.Emoji(huisAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
 
@@ -154,8 +154,8 @@ internal static class Embeds
     // Construct some strings for the embed.
     string total = $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
     string aim = live.AimPP == local.AimPP ? $"{local.AimPP:N2}pp" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
     string tap = live.TapPP == local.TapPP ? $"{local.TapPP:N2}pp" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
     string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";

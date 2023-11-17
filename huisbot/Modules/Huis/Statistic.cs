@@ -85,8 +85,8 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     liveLocal.AddScatterLines(xs, newValues, Color.FromArgb(0, 124, 195), 2, LineStyle.Solid, "Local");
 
     // Render the plot to a bitmap and send it.
-    using MemoryStream ms1 = new MemoryStream();
-    liveLocal.Render().Save(ms1, ImageFormat.Png);
-    await FollowupWithFileAsync(ms1, "plot.png");
+    using MemoryStream ms = new MemoryStream();
+    liveLocal.Render().Save(ms, ImageFormat.Png);
+    await FollowupWithFileAsync(ms, "plot.png");
   }
 }

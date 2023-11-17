@@ -73,44 +73,52 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
       return;
     }
 
-    // Get the player from the specified rework and check whether the request was successful. If not, notify the user about an internal error.
-    HuisPlayer? player = await _huis.GetPlayerAsync(user.Id, rework.Id);
-    if (player is null)
+    // Loop through the following logic once with local = true and local = false, getting the player in both the local and the live rework.
+    // Then check whether the player is currently calculated/up-to-date. If not, the player will be queued and the user notified.
+    // Otherwise, the players will be stored in the list below, which's two items are then being passed to the embed builder.
+    List<HuisPlayer> players = new List<HuisPlayer>();
+    foreach (bool local in new bool[] { true, false })
     {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the player from the Huis API."));
-      return;
-    }
-    // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
-    else if (!player.IsCalculated)
-    {
-      // Get the queue and check whether the request was successful. If not, notify the user about an internal error.
-      HuisQueue? queue = await _huis.GetQueueAsync();
-      if (queue is null)
+      HuisPlayer? player = await _huis.GetPlayerAsync(user.Id, local ? rework.Id : HuisRework.LiveId);
+      if (player is null)
       {
-        await FollowupAsync(embed: Embeds.InternalError("Failed to get the player calculation queue from the Huis API."));
+        await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(local ? "local" : "live")} player from the Huis API."));
+        return;
+      }
+      // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
+      else if (!player.IsCalculated)
+      {
+        // Get the queue and check whether the request was successful. If not, notify the user.
+        HuisQueue? queue = await _huis.GetQueueAsync();
+        if (queue is null)
+        {
+          await FollowupAsync(embed: Embeds.InternalError("Failed to get the player calculation queue from the Huis API."));
+          return;
+        }
+
+        // Check whether the player is already queued. If so, notify the user.
+        if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == (local ? rework.Id : HuisRework.LiveId)))
+        {
+          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the {(local ? "local" : "live")} " +
+                                                    $"rework. Please try again later."));
+          return;
+        }
+
+        // Queue the player and notify the user whether it was successful.
+        bool queued = await _huis.QueuePlayerAsync(user.Id, rework.Id);
+        if (queued)
+          await FollowupAsync(embed: Embeds.Success($"The player `{user.Name}` has been added to the {(local ? "local" : "live")} calculation queue."));
+        else
+          await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{user.Name}` in the {(local ? "local" : "live")} rework."));
+
         return;
       }
 
-      // Check whether the player is already queued. If so, notify the user.
-      if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == rework.Id))
-      {
-        await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated. Please try again later."));
-        return;
-      }
-
-      // Queue the player and notify the user whether it was successful.
-      bool queued = await _huis.QueuePlayerAsync(user.Id, rework.Id);
-      if (queued)
-        await FollowupAsync(embed: Embeds.Success($"The player `{user.Name}` has been added to the calculation queue."));
-      else
-        await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{user.Name}`."));
-
-      return;
+      // If the plyer is calculated, add it to the players list.
+      players.Add(player);
     }
-
 
     // Show the player embed.
-    // TODO: Include weighted pp changes to live in the embed
-    await FollowupAsync(embed: Embeds.Player(player, rework));
+    await FollowupAsync(embed: Embeds.Player(players[0], players[1], rework));
   }
 }

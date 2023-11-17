@@ -8,7 +8,7 @@ namespace huisbot.Models.Huis;
 public class HuisRework
 {
   /// <summary>
-  /// The internal id of the rework. 1 is always the current live changes.
+  /// The internal id of the rework. 1 is always the live pp system.
   /// </summary>
   [JsonProperty("id")]
   public int Id { get; private set; }
@@ -58,7 +58,12 @@ public class HuisRework
   /// <summary>
   /// Bool whether the rework is the live pp system.
   /// </summary>
-  public bool IsLive => Id == 1;
+  public bool IsLive => Id == LiveId;
+
+  /// <summary>
+  /// The rework ID of the live pp system.
+  /// </summary>
+  public static int LiveId => 1;
 
   public override string ToString()
   {
