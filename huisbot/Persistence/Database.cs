@@ -13,5 +13,10 @@ public class Database : DbContext
   /// </summary>
   public DbSet<OsuDiscordLink> OsuDiscordLinks { get; set; }
 
+  /// <summary>
+  /// The table containing aliases for beatmap IDs, providing easier access.
+  /// </summary>
+  public DbSet<BeatmapAlias> BeatmapAliases { get; set; }
+
   public Database(DbContextOptions<Database> options) : base(options) { }
 }

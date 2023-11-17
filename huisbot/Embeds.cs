@@ -1,6 +1,7 @@
 ﻿using Discord;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
+using huisbot.Models.Utility;
 using huisbot.Utils.Extensions;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -175,7 +176,7 @@ internal static class Embeds
   }
 
   /// <summary>
-  /// returns an embed for displaying a successful link between a Discord and an osu! account.
+  /// Returns an embed for displaying a successful link between a Discord and an osu! account.
   /// </summary>
   /// <param name="user">The osu! user that was linked.</param>
   /// <returns>An embed for displaying a successful link between a Discord and an osu! account.</returns>
@@ -184,6 +185,24 @@ internal static class Embeds
     .WithDescription($"Your Discord account was successfully linked to the osu! account `{user.Name}`.")
     .WithThumbnailUrl($"https://a.ppy.sh/{user.Id}")
     .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying all beatmap aliases.
+  /// </summary>
+  /// <param name="aliases">The beatmap aliases.</param>
+  /// <returns>An embed for displaying the beatmap aliases.</returns>
+  public static Embed Aliases(BeatmapAlias[] aliases)
+  {
+    // Build the alias string.
+    string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
+    if (aliases.Length > 0)
+      aliasesStr = string.Join("\n", aliases.Select(x => $"▸ `{x.Alias}` ▸ [Link](https://osu.ppy.sh/b/{x.Id}"));
+
+    return BaseEmbed
+      .WithTitle("List of all beatmap aliases")
+      .WithDescription($"*These aliases can be in place of a beatmap ID in order to access those beatmaps more easily.*\n\n{aliasesStr}")
+      .Build();
+}
 
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.

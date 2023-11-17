@@ -51,4 +51,13 @@ public class PersistenceService
     _database.OsuDiscordLinks.Add(new OsuDiscordLink(discordId, osuId));
     await _database.SaveChangesAsync();
   }
+
+  /// <summary>
+  /// Returns all beatmap aliases.
+  /// </summary>
+  /// <returns>The beatmap aliases.</returns>
+  public async Task<BeatmapAlias[]> GetBeatmapAliasesAsync()
+  {
+    return await _database.BeatmapAliases.ToArrayAsync();
+  }
 }
