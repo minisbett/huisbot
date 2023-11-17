@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 namespace huisbot.Services;
 
 /// <summary>
-/// The osu-discord link service is responsible for managing the links between osu! users and Discord users.
+/// The persistence service is responsible for managing the access to the persistence database.
 /// </summary>
-public class OsuDiscordLinkService
+public class PersistenceService
 {
   private readonly Database _database;
 
-  public OsuDiscordLinkService(Database database)
+  public PersistenceService(Database database)
   {
     _database = database;
   }
@@ -37,7 +37,7 @@ public class OsuDiscordLinkService
   /// </summary>
   /// <param name="discordId">The discord ID of the user.</param>
   /// <param name="osuId">The osu! user ID of the user.</param>
-  public async Task SetLinkAsync(ulong discordId, int osuId)
+  public async Task SetOsuDiscordLinkAsync(ulong discordId, int osuId)
   {
     // Check whether the link already exists. If it does, update it.
     if (await GetOsuDiscordLinkAsync(discordId) is OsuDiscordLink link)

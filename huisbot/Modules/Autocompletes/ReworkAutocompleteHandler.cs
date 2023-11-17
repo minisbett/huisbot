@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace huisbot.Modules.Autocompletes;
 
 /// <summary>
-/// Autocomplete for the player command.
+/// Autocomplete for the rework parameters on commands.
 /// </summary>
 public class ReworkAutocompleteHandler : AutocompleteHandler
 {

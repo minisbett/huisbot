@@ -16,9 +16,9 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 {
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
-  private readonly OsuDiscordLinkService _links;
+  private readonly PersistenceService _links;
 
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, OsuDiscordLinkService links)
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService links)
   {
     _osu = osu;
     _huis = huis;
@@ -32,18 +32,15 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null)
   {
     await DeferAsync();
-
-    // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
+    // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
+    HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (reworks is null)
     {
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
-
-    // Try to get the specified rework by the specified identifier. If it doesn't exist, notify the user.
-    HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    if (rework is null)
+    else if (rework is null)
     {
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;

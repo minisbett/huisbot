@@ -77,8 +77,8 @@ public class Program
         // Add the Huis API service for communicating with the Huis API.
         services.AddSingleton<HuisApiService>();
 
-        // Register the osu!-discord link service, responsible for providing logic for linking osu! accounts to Discord accounts.
-        services.AddScoped<OsuDiscordLinkService>();
+        // Register the persistence service, responsible for providing logic for accessing the persistence database.
+        services.AddScoped<PersistenceService>();
 
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>

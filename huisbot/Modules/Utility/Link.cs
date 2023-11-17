@@ -15,9 +15,9 @@ namespace huisbot.Modules.Utility;
 public class LinkCommandModule : InteractionModuleBase<SocketInteractionContext>
 {
   private readonly OsuApiService _osu;
-  private readonly OsuDiscordLinkService _links;
+  private readonly PersistenceService _links;
 
-  public LinkCommandModule(OsuApiService osuApi, OsuDiscordLinkService links)
+  public LinkCommandModule(OsuApiService osuApi, PersistenceService links)
   {
     _osu = osuApi;
     _links = links;
@@ -43,7 +43,7 @@ public class LinkCommandModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     // Otherwise add/update the link in the database and notify the user about the change.
-    await _links.SetLinkAsync(Context.User.Id, user.Id);
+    await _links.SetOsuDiscordLinkAsync(Context.User.Id, user.Id);
     await FollowupAsync(embed: Embeds.LinkSuccessful(user));
   }
 }

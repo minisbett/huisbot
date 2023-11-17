@@ -35,24 +35,22 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     await DeferAsync();
     bool topscores = statisticId == "topscores"; // True = topscores, False = topplayers
 
-    // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
+    // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
+    HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (reworks is null)
     {
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
-
-    // Try to find the specified rework by the specified identifier. If it doesn't exist, notify the user.
-    HuisRework? rework = reworks.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    if (rework is null)
+    else if (rework is null)
     {
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
       return;
     }
 
     // Get the statistic from the Huis API and check whether the request was successful. If not, notify the user.
-    HuisStatistic? statistic = await (topscores ? _huis.GetTopScoresStatisticAsync(rework.Id) : _huis.GetTopPlayerStatisticAsync(rework.Id));
+    HuisStatistic? statistic = await (topscores ? _huis.GetTopScoresStatisticAsync(rework.Id) : _huis.GetTopPlayersStatisticAsync(rework.Id));
     if (statistic is null)
     {
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the statistic `{statisticId}` from the Huis API."));

@@ -236,11 +236,11 @@ public class HuisApiService
   }
 
   /// <summary>
-  /// Returns the top-player statistic in the specified rework from the Huis API.
+  /// Returns the top-players statistic in the specified rework from the Huis API.
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
   /// <returns>The top-player statistic in the specified rework.</returns>
-  public Task<HuisStatistic?> GetTopPlayerStatisticAsync(int reworkId) => GetStatisticAsync("topplayers", reworkId);
+  public Task<HuisStatistic?> GetTopPlayersStatisticAsync(int reworkId) => GetStatisticAsync("topplayers", reworkId);
 
   /// <summary>
   /// Returns the top-scores statistic in the specified rework from the Huis API.
@@ -255,7 +255,7 @@ public class HuisApiService
   /// <param name="reworkId">The rework ID.</param>
   /// <param name="sort">The sort options.</param>
   /// <returns>The global score leaderboard in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetScoreLeaderboardAsync(int reworkId, HuisScoreLeaderboardSort sort)
+  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
   {
     // TODO: Implement caching
 
@@ -288,7 +288,7 @@ public class HuisApiService
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
   /// <returns>The global player leaderboard in the specified rework.</returns>
-  public async Task<HuisPlayer[]?> GetPlayerLeaderboardAsync(int reworkId, HuisPlayerLeaderboardSort sort, bool onlyUpToDate, bool hideUnranked)
+  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
   {
     // TODO: Implement caching
     
