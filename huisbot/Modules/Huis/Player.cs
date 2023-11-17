@@ -16,13 +16,13 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
 {
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
-  private readonly PersistenceService _links;
+  private readonly PersistenceService _persistence;
 
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService links)
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence)
   {
     _osu = osu;
     _huis = huis;
-    _links = links;
+    _persistence = persistence;
   }
 
   [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
@@ -50,7 +50,7 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
     if (playerId is null)
     {
       // Get the link and check whether the request was successful. If not, notify the user.
-      OsuDiscordLink? link = await _links.GetOsuDiscordLinkAsync(Context.User.Id);
+      OsuDiscordLink? link = await _persistence.GetOsuDiscordLinkAsync(Context.User.Id);
       if (link is null)
       {
         await FollowupAsync(embed: Embeds.Error($"You have not linked your osu! account. Please use the `/link` command to link your account."));
