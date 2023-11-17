@@ -1,11 +1,9 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace huisbot.Modules.Huis;
 

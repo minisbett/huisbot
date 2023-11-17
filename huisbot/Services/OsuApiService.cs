@@ -1,14 +1,8 @@
-﻿using huisbot.Models.Huis;
-using huisbot.Models.Osu;
+﻿using huisbot.Models.Osu;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace huisbot.Services;
 

@@ -1,11 +1,4 @@
-﻿using huisbot.Modules.Huis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Enums;
+﻿namespace huisbot.Enums;
 
 /// <summary>
 /// A "fake enum" representing the sorting and order options for the global score rankings returned by the Huis API.

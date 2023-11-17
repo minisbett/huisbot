@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Models.Utility;
+﻿namespace huisbot.Models.Utility;
 
 /// <summary>
 /// Represents a Discord emoji with a name and ID.

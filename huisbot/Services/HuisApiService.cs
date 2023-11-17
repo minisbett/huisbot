@@ -1,7 +1,5 @@
-﻿using Discord.Net;
-using huisbot.Enums;
+﻿using huisbot.Enums;
 using huisbot.Models.Huis;
-using huisbot.Modules.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -123,7 +121,7 @@ public class HuisApiService
 
       // Make sure the request was successful by checking whether the json contains the "queue" property.
       string json = await response.Content.ReadAsStringAsync();
-      if(JsonConvert.DeserializeObject<dynamic>(json)?.queue is null)
+      if (JsonConvert.DeserializeObject<dynamic>(json)?.queue is null)
         throw new Exception("No \"queue\" property found in the response.");
 
       return true;
@@ -291,7 +289,7 @@ public class HuisApiService
   public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
   {
     // TODO: Implement caching
-    
+
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}&onlyUpToDate={onlyUpToDate}&hideUnranked={hideUnranked}";
     try
     {

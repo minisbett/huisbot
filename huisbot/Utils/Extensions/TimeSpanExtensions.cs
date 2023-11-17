@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Utils.Extensions;
+﻿namespace huisbot.Utils.Extensions;
 
 /// <summary>
 /// Provides extension methods for the <see cref="TimeSpan"/> class.

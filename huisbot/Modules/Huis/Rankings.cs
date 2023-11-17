@@ -3,11 +3,6 @@ using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace huisbot.Modules.Huis;
 
@@ -59,7 +54,7 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
 
     // Get the player rankings in the rework and check whether the request was successful. If not, notify the user.
     HuisPlayer[]? players = await _huis.GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked);
-    if(players is null)
+    if (players is null)
     {
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the player rankings."));
       return;

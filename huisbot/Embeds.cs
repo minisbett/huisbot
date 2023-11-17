@@ -4,7 +4,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Utils.Extensions;
 using System.Text.RegularExpressions;
-using System.Web;
 using Emoji = huisbot.Models.Utility.Emoji;
 
 namespace huisbot;
@@ -202,7 +201,7 @@ internal static class Embeds
       .WithTitle("List of all beatmap aliases")
       .WithDescription($"*These aliases can be in place of a beatmap ID in order to access those beatmaps more easily.*\n\n{aliasesStr}")
       .Build();
-}
+  }
 
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.

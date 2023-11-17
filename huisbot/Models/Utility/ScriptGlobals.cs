@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Models.Utility;
 

@@ -1,13 +1,10 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
-using System.Drawing;
-using System.Drawing.Imaging;
 using Color = System.Drawing.Color;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 

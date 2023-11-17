@@ -1,13 +1,5 @@
-﻿using Discord.Interactions;
-using Discord;
-using huisbot.Models.Huis;
-using huisbot.Services;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Enums;
 
 namespace huisbot.Modules.Autocompletes;

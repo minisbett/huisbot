@@ -4,13 +4,6 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using huisbot.Utils.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace huisbot.Modules.Huis;
 
