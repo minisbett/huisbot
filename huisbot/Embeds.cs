@@ -6,6 +6,7 @@ using huisbot.Utils.Extensions;
 using System.ComponentModel.Design;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using static System.Formats.Asn1.AsnWriter;
 using Emoji = huisbot.Models.Utility.Emoji;
 
 namespace huisbot;
@@ -163,13 +164,16 @@ internal static class Embeds
     string mods = modsStr == "" ? "" : $"+{modsStr}";
     string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}**";
     string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
-    string links = $"[map visualizer](https://osu.direct/preview?b={beatmapId}) • [osu! page](https://osu.ppy.sh/b/{beatmapId}) • " +
-                   $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
+    string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmapId})";
+    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmapId})";
+    string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
+    string github = $"[Source Code]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{artist} - {title} [{version}] {mods}")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n{links}", true)
+      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
+               $"{visualizer} • {osu} • {huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
@@ -211,13 +215,14 @@ internal static class Embeds
   /// </summary>
   /// <param name="scores">The scores to display.</param>
   /// <param name="rework">The rework.</param>
-  /// <param name="noOffset">The offset of the first score, so that the score no. can be displayed properly.</param>
+  /// <param name="page">The page being displayed.</param>
   /// <returns>An embed for displaying the score rankings.</returns>
-  public static Embed ScoreRankings(HuisScore[] scores, HuisRework rework, int noOffset)
+  public static Embed ScoreRankings(HuisScore[] scores, HuisRework rework, int page)
   {
     // Generate the embed description.
-    List<string> description = new List<string>();
-    int i = noOffset;
+    List<string> description = new List<string>()
+    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})" };
+    int offset = (page - 1) * 10;
     foreach (HuisScore score in scores)
     {
       // Trim the version if title + version is too long. If it's still too long, trim title as well.
@@ -229,14 +234,45 @@ internal static class Embeds
         title = $"{title.Substring(0, 32)}...";
 
       // Add the info to the description lines.
-      description.Add($"**#{i++}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
+      description.Add($"**#{offset++}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)* " +
                       $"▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
+    // Add hyperlinks to useful urls.
+    description.Add($"\n*Displaying a total of {scores.Length} scores on page {page} of 50.*");
+
     return BaseEmbed
       .WithTitle($"Score Rankings on {rework.Name}")
+      .WithDescription(string.Join("\n", description))
+      .Build();
+  }
+
+  /// <summary>
+  /// Returns an embed for displaying the player rankings in the specified rework with the specified players.
+  /// </summary>
+  /// <param name="players">The players to display.</param>
+  /// <param name="rework">The rework.</param>
+  /// <returns>An embed for displaying the player rankings.</returns>
+  public static Embed PlayerRankings(HuisPlayer[] players, HuisRework rework, int page)
+  {
+    // Generate the embed description.
+    List<string> description = new List<string>()
+    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})\n" };
+    foreach (HuisPlayer player in players)
+    {
+      string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
+
+      // Add the info to the description lines.
+      description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {pp} ▸ " +
+                      $"[Huis Profile](https://pp.huismetbenen.nl/player{player.Id}/{rework.Code})");
+    }
+
+    description.Add($"\n*Displaying a total of {players.Length} players on page {page} of 25.*");
+
+    return BaseEmbed
+      .WithTitle($"Player Rankings on {rework.Name}")
       .WithDescription(string.Join("\n", description))
       .Build();
   }

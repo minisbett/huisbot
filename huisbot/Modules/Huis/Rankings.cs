@@ -3,6 +3,7 @@ using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace huisbot.Modules.Huis;
 
@@ -24,9 +25,10 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting and order for the players. Defaults to sort by New PP Descending.")]
-    [Autocomplete(typeof(PlayerSortAutocompleteHandler))] string sortId = "new_pp_desc",
+    [Autocomplete(typeof(PlayerSortAutocompleteHandler))] string sortId = "new_pp_incl_bonus_desc",
     [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to false.")] bool onlyUpToDate = false,
-    [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to false.")] bool hideUnranked = false)
+    [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to false.")] bool hideUnranked = false,
+    [Summary("page", "The page of the players. 1 page displays 10 players.")] [MinValue(1)] int page = 1)
   {
     await DeferAsync();
 
@@ -60,7 +62,9 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
       return;
     }
 
-    await FollowupAsync($"yes yes very cool the best player is {players.First().Name} with {players.First().NewPP}pp");
+    // Return the embed to the user.
+    int pageSize = 20;
+    await FollowupAsync(embed: Embeds.PlayerRankings(players.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rework, page));
   }
 
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
@@ -104,7 +108,6 @@ public class RankingsCommandModule : InteractionModuleBase<SocketInteractionCont
     }
 
     // Return the embed to the user.
-    int pageSize = 10;
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rework, (page - 1) * pageSize + 1));
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip((page - 1) * 10).Take(10).ToArray(), rework, page));
   }
 }

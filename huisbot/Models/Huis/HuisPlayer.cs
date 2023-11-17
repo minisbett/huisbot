@@ -79,8 +79,15 @@ public class HuisPlayer
   /// </summary>
   public DateTime LastUpdated { get; private set; }
 
+  [JsonProperty("global_rank_real")]
+  /// <summary>
+  /// The actual rank of the player.
+  /// Might be null, indiucating the rank is not known.
+  /// </summary>
+  public int? Rank { get; private set; }
+
   public override string ToString()
   {
-    return $"{Id} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
+    return $"{Id} #{Rank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
   }
 }
