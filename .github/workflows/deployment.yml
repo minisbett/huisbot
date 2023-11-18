@@ -30,8 +30,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          echo "$HUIS_BOT_ENV_FILE" > /root/test.txt
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
           docker stop huisbot
           docker rm huisbot
-          docker run -d --env-file "$HUIS_BOT_ENV_FILE" --name huisbot ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
+          docker run -d --env-file "/root/huisbot/.env" --name huisbot ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest

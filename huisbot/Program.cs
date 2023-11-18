@@ -29,7 +29,7 @@ public class Program
 
   public static async Task Main(string[] args)
   {
-    // Load the .env file.
+    // Load the .env file. (Only useful when debugging locally, not when running it via e.g. Docker)
     DotEnv.Load();
 
     // Ensure a consistent culture for parsing & formatting.

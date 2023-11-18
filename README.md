@@ -9,9 +9,9 @@ The bot uses an onion-key in order to gain onion-level access to [Huismetbenen](
 
 The current release of this bot (found in the release branch) is automatically being deployed into a Docker image which can be found [here](https://hub.docker.com/repository/docker/minisbett/huisbot/general). Therefore, you'll need to install the Docker Engine onto your system.
 
-In order to setup the bot, you will need to copy the `huisbot/.env.example` file onto your system. After filling out the required environment variables, create an environment variable `HUIS_BOT_ENV_FILE` which contains the absolute path to your .env file. This causes the Docker image to load the environment variables inside into the shell environment before starting the bot.
+In order to setup the bot, you will need to copy the `huisbot/.env.example` file onto your system. You will then pass a path to that file when running the docker container. Consider creating a script to automate the following commands.
 
-Here's an example of what the commands can look like:
+Here's how you can download and run the bot:
 ```sh
 # Pulls the latest Huisbot Docker image from Docker Hub.
 docker pull minisbett/huisbot:latest
@@ -21,7 +21,7 @@ docker stop huisbot
 docker docker rm huisbot
 
 # Runs the docker container.
-docker run -d --env-file "$HUIS_BOT_ENV_FILE" --name huisbot minisbett/huisbot:latest
+docker run -d --env-file "/path/to/.env" --name huisbot minisbett/huisbot:latest
 ```
 
 If you wish to access the console, you can do that with `docker logs huisbot`.
