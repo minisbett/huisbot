@@ -24,7 +24,7 @@ public class AliasCommandModule : HuisModuleBase
     await DeferAsync();
 
     // Return the list of aliases in an embed.
-    await FollowupAsync(embed: Embeds.Aliases(await _persistence.GetBeatmapAliasesAsync()));
+    await FollowupAsync(embed: Embeds.Aliases((await _persistence.GetBeatmapAliasesAsync()).OrderBy(x => x.Alias).ToArray()));
   }
 
   [SlashCommand("add", "Adds an alias.")]
