@@ -132,7 +132,7 @@ internal static class Embeds
   public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
     .WithDescription($"*{(local || liveOnly ? "Calculating live score" : "Calculating local score")}...*\n\n" +
                      $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}" +
-                     $"{new Discord.Emoji(local ?  "⏳" : "🕐")} Live")
+                     $"{new Discord.Emoji(local ? "⏳" : "🕐")} Live")
     .Build();
 
   /// <summary>
@@ -202,7 +202,7 @@ internal static class Embeds
     // Build the alias string.
     string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
     if (aliases.Length > 0)
-      aliasesStr = string.Join("\n", aliases.Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Id}) ▸ `{x.Alias}`"));
+      aliasesStr = string.Join("\n", aliases.GroupBy(x => x.Id).Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Key}) ▸ {string.Join(", ", x.Select(j => $"`{j}"))}"));
 
     return BaseEmbed
       .WithTitle("List of all beatmap aliases")
