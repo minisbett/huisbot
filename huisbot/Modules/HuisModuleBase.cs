@@ -237,4 +237,30 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
 
     return queued;
   }
+
+  /// <summary>
+  /// Returns the beatmap by the specified identifier. (Beatmap ID or alias)
+  /// </summary>
+  /// <param name="beatmapId">An identifier for the beatmap. (Beatmap ID or alias)</param>
+  /// <returns>The beatmap.</returns>
+  public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
+  {
+    // If the identifier is not a number, try to find an alias.
+    if(!beatmapId.All(char.IsDigit))
+    {
+      // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
+      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
+      if (alias is null)
+        await FollowupAsync(embed: Embeds.Error($"Alias `{beatmapId}` could not be found."));
+      else
+        beatmapId = alias.Id.ToString();
+    }
+
+    // Get the beatmap from the osu! api and check whether it was successful. If not, notify the user.
+    OsuBeatmap? beatmap = await _osu.GetBeatmapAsync(int.Parse(beatmapId));
+    if (beatmap is null)
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
+
+    return beatmap;
+  }
 }

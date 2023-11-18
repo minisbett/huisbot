@@ -80,8 +80,26 @@ public class OsuBeatmap
   public double DrainRate { get; private set; }
 
   /// <summary>
+  /// The artist of the song of the beatmap.
+  /// </summary>
+  [JsonProperty("artist")]
+  public string? Artist { get; private set; }
+
+  /// <summary>
+  /// The title of the song of the beatmap.
+  /// </summary>
+  [JsonProperty("title")]
+  public string? Title { get; private set; }
+
+  /// <summary>
+  /// The dififculty name of the beatmap.
+  /// </summary>
+  [JsonProperty("version")]
+  public string? Version { get; private set; }
+
+  /// <summary>
   /// The creator of the beatmap.
   /// </summary>
   [JsonProperty("creator")]
-  public string Creator { get; private set; }
+  public string? Mapper { get; private set; }
 }

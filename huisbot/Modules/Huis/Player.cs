@@ -12,12 +12,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 public class PlayerCommandModule : HuisModuleBase
 {
-  private readonly HuisApiService _huis;
-
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence)
-  {
-    _huis = huis;
-  }
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
 
   [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
   public async Task HandleAsync(

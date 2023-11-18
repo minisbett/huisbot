@@ -129,10 +129,10 @@ internal static class Embeds
   /// <param name="live">Bool whether the live score finished calculating.</param>
   /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
   /// <returns>An embed for displaying the score calculation progress.</returns>
-  public static Embed Calculating(bool local, bool live, bool liveOnly) => BaseEmbed
-    .WithDescription($"*{(local || liveOnly ? live ? "Finalizing" : "Calculating live score" : "Calculating local score")}...*\n\n" +
+  public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
+    .WithDescription($"*{(local || liveOnly ? "Calculating live score" : "Calculating local score")}...*\n\n" +
                      $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}" +
-                     $"{new Discord.Emoji(local ? live ? "✅" : "⏳" : "🕐")} Live")
+                     $"{new Discord.Emoji(local ?  "⏳" : "🕐")} Live")
     .Build();
 
   /// <summary>
@@ -202,7 +202,7 @@ internal static class Embeds
     // Build the alias string.
     string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
     if (aliases.Length > 0)
-      aliasesStr = string.Join("\n", aliases.Select(x => $"▸ `{x.Alias}` ▸ [Link](https://osu.ppy.sh/b/{x.Id}"));
+      aliasesStr = string.Join("\n", aliases.Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Id}) ▸ `{x.Alias}`"));
 
     return BaseEmbed
       .WithTitle("List of all beatmap aliases")

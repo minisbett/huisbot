@@ -12,18 +12,16 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 public class CalculateCommandModule : HuisModuleBase
 {
-  private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
-  public CalculateCommandModule(OsuApiService osu, HuisApiService huis) : base(huis)
+  public CalculateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence)
   {
-    _osu = osu;
     _huis = huis;
   }
 
   [SlashCommand("calculate", "Calculates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
-    [Summary("beatmap", "The ID of the beatmap.")] int beatmapId,
+    [Summary("beatmap", "The ID or alias of the beatmap.")] string beatmapId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
@@ -39,8 +37,16 @@ public class CalculateCommandModule : HuisModuleBase
     if (rework is null)
       return;
 
+    // Get the beatmap from the osu! api and check whether it was successful. If not, notify the user.
+    OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
+    if (beatmap is null)
+    {
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
+      return;
+    }
+
     // Construct the HuisCalculationRequest.
-    HuisCalculationRequest request = new HuisCalculationRequest(beatmapId, rework.Code!)
+    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.BeatmapId, rework.Code!)
     {
       Combo = combo,
       Count100 = count100,
@@ -50,7 +56,7 @@ public class CalculateCommandModule : HuisModuleBase
     };
 
     // Display the calculation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, false, rework.IsLive));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, rework.IsLive));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisCalculatedScore? local = await _huis.CalculateAsync(request);
@@ -66,7 +72,7 @@ public class CalculateCommandModule : HuisModuleBase
     {
       // Switch the branch of the request to the live "rework" and update the calculation progress embed.
       request.ReworkCode = "live";
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false, false));
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
 
       // Get the live result from the Huis API and check whether it was successful.
       live = await _huis.CalculateAsync(request);
@@ -75,17 +81,6 @@ public class CalculateCommandModule : HuisModuleBase
         await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));
         return;
       }
-    }
-
-    // Update the calculation progress embed again.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, true, rework.IsLive));
-
-    // Get the beatmap from the osu! api and check whether it was successful.
-    OsuBeatmap? beatmap = await _osu.GetBeatmapAsync(beatmapId);
-    if (beatmap is null)
-    {
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
-      return;
     }
 
     // Send the result in an embed to the user.
