@@ -6,7 +6,7 @@ RUN dotnet restore
 RUN dotnet publish -c Release -o out
 
 # Run
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/runtime:7.0
 WORKDIR /app
 COPY --from=build /app/out .
 CMD dotnet huisbot.dll
