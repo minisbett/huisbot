@@ -202,7 +202,10 @@ internal static class Embeds
     // Build the alias string.
     string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
     if (aliases.Length > 0)
-      aliasesStr = string.Join("\n", aliases.GroupBy(x => x.Id).Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Key}) ▸ {string.Join(", ", x.Select(j => $"`{j}"))}"));
+    {
+      IGrouping<int, BeatmapAlias>[] aliasGroups = aliases.GroupBy(x => x.Id).ToArray();
+      aliasesStr = string.Join("\n", aliasGroups.Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Key}) ▸ {string.Join(", ", x.Select(j => $"`{j.Alias}`"))}"));
+    }
 
     return BaseEmbed
       .WithTitle("List of all beatmap aliases")
