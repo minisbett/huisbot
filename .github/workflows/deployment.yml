@@ -29,6 +29,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
+        envs: HUIS_BOT_ENV_FILE
         script: |
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
           docker stop huisbot
