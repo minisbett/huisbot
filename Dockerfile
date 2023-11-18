@@ -9,5 +9,5 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/runtime:7.0
 CMD [ -f "$HUIS_BOT_ENV_FILE" ] && export $(grep -v '^#' "$HUIS_BOT_ENV_FILE" | xargs) || echo "Error: HUIS_BOT_ENV_FILE ('$HUIS_BOT_ENV_FILE') not found."
 WORKDIR /app
-COPY --from=build /app/out .c
+COPY --from=build /app/out .
 CMD dotnet huisbot.dll
