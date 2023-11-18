@@ -221,27 +221,27 @@ internal static class Embeds
   {
     // Generate the embed description.
     List<string> description = new List<string>()
-    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})" };
+    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})\n" };
     int offset = (page - 1) * 10;
     foreach (HuisScore score in scores)
     {
       // Trim the version if title + version is too long. If it's still too long, trim title as well.
       string title = score.Title ?? "";
       string version = score.Version ?? "";
-      if ($"{title} [{version}]".Length > 70)
-        version = $"{version.Substring(0, 32)}...";
-      if ($"{title} [{version}]".Length > 70)
-        title = $"{title.Substring(0, 32)}...";
+      if ($"{title} [{version}]".Length > 60)
+        version = $"{version.Substring(0, 27)}...";
+      if ($"{title} [{version}]".Length > 60)
+        title = $"{title.Substring(0, 27)}...";
 
       // Add the info to the description lines.
-      description.Add($"**#{offset++}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
+      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)* " +
                       $"▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying a total of {scores.Length} scores on page {page} of 50.*");
+    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10 - 10 + scores.Length} on page {page} of 50.*");
 
     return BaseEmbed
       .WithTitle($"Score Rankings on {rework.Name}")
@@ -269,7 +269,7 @@ internal static class Embeds
                       $"[Huis Profile](https://pp.huismetbenen.nl/player{player.Id}/{rework.Code})");
     }
 
-    description.Add($"\n*Displaying a total of {players.Length} players on page {page} of 25.*");
+    description.Add($"\n*Displaying players {page * 20 - 19}-{page * 20 - 20 + players.Length} on page {page} of 25.*");
 
     return BaseEmbed
       .WithTitle($"Player Rankings on {rework.Name}")
