@@ -54,7 +54,7 @@ public class Program
           GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
         };
 
-        config.Token = context.Configuration.GetValue<string>("BOT_TOKEN")
+        config.Token = context.Configuration["BOT_TOKEN"]
           ?? throw new InvalidOperationException("The environment variable 'BOT_TOKEN' is not set.");
       })
 

@@ -11,16 +11,14 @@ namespace huisbot.Services;
 /// </summary>
 public class OsuApiService
 {
-  // TODO: Migrate GetValue<string>("OSU_API_KEY") to a DI'd options object
-
   private readonly HttpClient _http;
-  private readonly IConfiguration _config;
+  private readonly string _apikey;
   private readonly ILogger<OsuApiService> _logger;
 
   public OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
   {
     _http = httpClientFactory.CreateClient("osuapi");
-    _config = config;
+    _apikey = config["OSU_API_KEY"] ?? throw new InvalidOperationException("The environment variable 'OSU_API_KEY' is not set.");
     _logger = logger;
   }
 
@@ -58,7 +56,7 @@ public class OsuApiService
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"get_user?u={identifier}&k={_config.GetValue<string>("OSU_API_KEY")}");
+      string json = await _http.GetStringAsync($"get_user?u={identifier}&k={_apikey}");
       OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
 
       // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
@@ -83,7 +81,7 @@ public class OsuApiService
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"get_beatmaps?b={id}&k={_config.GetValue<string>("OSU_API_KEY")}");
+      string json = await _http.GetStringAsync($"get_beatmaps?b={id}&k={_apikey}");
       OsuBeatmap? map = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.BeatmapId == id);
 
       // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
