@@ -10,51 +10,40 @@ namespace huisbot.Modules;
 /// <summary>
 /// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
-public class ReworksCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class ReworksCommandModule : HuisModuleBase
 {
-  private readonly HuisApiService _huis;
-
-  public ReworksCommandModule(HuisApiService huis)
-  {
-    _huis = huis;
-  }
+  public ReworksCommandModule(HuisApiService huis) : base(huis) { }
 
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
   {
     await DeferAsync();
 
-    // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
-    HuisRework[]? reworks = await _huis.GetReworksAsync();
+    // Get all available reworks from the Huis API.
+    HuisRework[]? reworks = await GetReworksAsync();
     if (reworks is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
-    }
 
-    // Construct the select menu for selecting a rework.
-    SelectMenuBuilder selectMenu = new SelectMenuBuilder()
-      .WithCustomId("rework")
-      .WithPlaceholder("Select a rework...")
-      .WithMaxValues(1)
-      .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReadableReworkType()})", null, false)).ToList());
+    // Construct the component for selecting a rework.
+    MessageComponent component = new ComponentBuilder()
+      .WithSelectMenu(new SelectMenuBuilder()
+        .WithCustomId("rework")
+        .WithPlaceholder("Select a rework...")
+        .WithMaxValues(1)
+        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReadableReworkType()})", null, false)).ToList()))
+      .Build();
 
     // Show the live "rework" by default and add the select menu to the reply.
-    await FollowupAsync(embed: Embeds.Rework(reworks.First(x => x.Code == "live")), components: new ComponentBuilder().WithSelectMenu(selectMenu).Build());
+    await FollowupAsync(embed: Embeds.Rework(reworks.First(x => x.Code == "live")), components: component);
   }
 }
 
 /// <summary>
 /// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule : InteractionModuleBase<SocketInteractionContext>
+public class ReworksComponentModule : HuisModuleBase
 {
-  private readonly HuisApiService _huis;
-
-  public ReworksComponentModule(HuisApiService huis)
-  {
-    _huis = huis;
-  }
+  public ReworksComponentModule(HuisApiService huis) : base(huis) { }
 
   /// <summary>
   /// Callback for interactions with the "rework" select menu from the <see cref="ReworksAsync"/> command.
@@ -65,8 +54,8 @@ public class ReworksComponentModule : InteractionModuleBase<SocketInteractionCon
   {
     SocketMessageComponent interaction = (SocketMessageComponent)Context.Interaction;
 
-    // Get all reworks and check whether the request was successful. If not, notify the user about an internal error.
-    HuisRework[]? reworks = await _huis.GetReworksAsync();
+    // Get all reworks and check whether the request was successful. If not, notify the user.
+    HuisRework[]? reworks = await GetReworksAsync(false);
     if (reworks is null)
     {
       await interaction.UpdateAsync(msg => msg.Embed = Embeds.InternalError("Failed to get the reworks from the Huis API."));

@@ -10,17 +10,13 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the player command, displaying info about a player in a rework.
 /// </summary>
-public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class PlayerCommandModule : HuisModuleBase
 {
-  private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
-  private readonly PersistenceService _persistence;
 
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence)
+  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence)
   {
-    _osu = osu;
     _huis = huis;
-    _persistence = persistence;
   }
 
   [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
@@ -31,86 +27,57 @@ public class PlayerCommandModule : InteractionModuleBase<SocketInteractionContex
   {
     await DeferAsync();
 
-    // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
-    HuisRework[]? reworks = await _huis.GetReworksAsync();
-    HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    if (reworks is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+    // Get the matching rework for the specified rework identifier.
+    HuisRework? rework = await GetReworkAsync(reworkId);
+    if (rework is null)
       return;
-    }
-    else if (rework is null)
-    {
-      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
-      return;
-    }
 
-    // If no player identifier was specified, try to get one from a link. If no link was found, notify the user.
+    // If no player identifier was specified, try to get one from a link.
     if (playerId is null)
     {
-      // Get the link and check whether the request was successful. If not, notify the user.
-      OsuDiscordLink? link = await _persistence.GetOsuDiscordLinkAsync(Context.User.Id);
+      // Get the link and check whether the request was successful.
+      OsuDiscordLink? link = await GetOsuDiscordLinkAsync();
       if (link is null)
-      {
-        await FollowupAsync(embed: Embeds.Error($"You have not linked your osu! account. Please use the `/link` command to link your account."));
         return;
-      }
 
       // Set the player identifier to the linked osu! user ID. After that, a player will be retrieved from the osu! API.
       playerId = link.OsuId.ToString();
     }
 
-    // Get the user from the osu! api. If it failed or the user could not be found, notify the user.
-    OsuUser? user = await _osu.GetUserAsync(playerId);
+    // Get the osu! user.
+    OsuUser? user = await GetOsuUserAsync(playerId);
     if (user is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to resolve the user from the osu! API."));
       return;
-    }
-    else if (!user.WasFound)
-    {
-      await FollowupAsync(embed: Embeds.Error($"No player with identifier `{playerId}` could not be found."));
-      return;
-    }
 
     // Loop through the following logic once with local = true and local = false, getting the player in both the local and the live rework.
     // Then check whether the player is currently calculated/up-to-date. If not, the player will be queued and the user notified.
     // Otherwise, the players will be stored in the list below, which's two items are then being passed to the embed builder.
     List<HuisPlayer> players = new List<HuisPlayer>();
-    foreach (bool local in new bool[] { true, false })
+    foreach (int _reworkId in new int[] { rework.Id, HuisRework.LiveId })
     {
-      HuisPlayer? player = await _huis.GetPlayerAsync(user.Id, local ? rework.Id : HuisRework.LiveId);
+      // Get the player in the current rework.
+      HuisPlayer? player = await GetHuisPlayerAsync(user.Id, _reworkId);
       if (player is null)
-      {
-        await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(local ? "local" : "live")} player from the Huis API."));
         return;
-      }
+
       // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
       else if (!player.IsCalculated)
       {
-        // Get the queue and check whether the request was successful. If not, notify the user.
-        HuisQueue? queue = await _huis.GetQueueAsync();
+        // Get the calculation queue.
+        HuisQueue? queue = await GetHuisQueueAsync();
         if (queue is null)
-        {
-          await FollowupAsync(embed: Embeds.InternalError("Failed to get the player calculation queue from the Huis API."));
           return;
-        }
 
         // Check whether the player is already queued. If so, notify the user.
-        if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == (local ? rework.Id : HuisRework.LiveId)))
+        if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == _reworkId))
         {
-          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the {(local ? "local" : "live")} " +
+          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the {(_reworkId == 1 ? "live" : "local")} " +
                                                     $"rework. Please try again later."));
           return;
         }
 
-        // Queue the player and notify the user whether it was successful.
-        bool queued = await _huis.QueuePlayerAsync(user.Id, rework.Id);
-        if (queued)
-          await FollowupAsync(embed: Embeds.Success($"The player `{user.Name}` has been added to the {(local ? "local" : "live")} calculation queue."));
-        else
-          await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{user.Name}` in the {(local ? "local" : "live")} rework."));
-
+        // Queue the player.
+        await QueuePlayerAsync(user, rework.Id);
         return;
       }
 

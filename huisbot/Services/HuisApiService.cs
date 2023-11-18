@@ -206,9 +206,9 @@ public class HuisApiService
   /// <param name="statisticId">The statistic ID.</param>
   /// <param name="reworkId">The rework ID.</param>
   /// <returns>The statistic comparing the specified rework with the live pp system.</returns>
-  private async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId, bool all = false)
+  public async Task<HuisStatistic?> GetStatisticAsync(string statisticId, int reworkId)
   {
-    string url = $"/statistics/{statisticId}/{reworkId}{(all ? "/all" : "")}";
+    string url = $"/statistics/{statisticId}/{reworkId}{(statisticId == "topscores" ? "/all" : "")}";
     try
     {
       // Get the statistic data from the API.
@@ -229,31 +229,17 @@ public class HuisApiService
   }
 
   /// <summary>
-  /// Returns the top-players statistic in the specified rework from the Huis API.
-  /// </summary>
-  /// <param name="reworkId">The rework ID.</param>
-  /// <returns>The top-player statistic in the specified rework.</returns>
-  public Task<HuisStatistic?> GetTopPlayersStatisticAsync(int reworkId) => GetStatisticAsync("topplayers", reworkId);
-
-  /// <summary>
-  /// Returns the top-scores statistic in the specified rework from the Huis API.
-  /// </summary>
-  /// <param name="reworkId">The rework ID.</param>
-  /// <returns>The top-scores statistic in the specified rework.</returns>
-  public Task<HuisStatistic?> GetTopScoresStatisticAsync(int reworkId) => GetStatisticAsync("topscores", reworkId, true);
-
-  /// <summary>
   /// Returns the global score leaderboard in the specified rework from the Huis API.
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
   /// <param name="sort">The sort options.</param>
-  /// <returns>The global score leaderboard in the specified rework.</returns>
+  /// <returns>The global score ranings in the specified rework.</returns>
   public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
   {
     string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
     {
-      // Get the leaderboard data from the API.
+      // Get the ranking data from the API.
       string json = await _http.GetStringAsync(url);
       HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
 
@@ -275,17 +261,17 @@ public class HuisApiService
   /// Returns the global player leaderboard in the specified rework from the Huis API.
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
-  /// <param name="sort">The sort options.</param>
+  /// <param name="sort">The sorting options.</param>
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
-  /// <returns>The global player leaderboard in the specified rework.</returns>
+  /// <returns>The global player rankings in the specified rework.</returns>
   public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
   {
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}" +
                  $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={onlyUpToDate.ToString().ToLower()}";
     try
     {
-      // Get the leaderboard data from the API.
+      // Get the ranking data from the API.
       string json = await _http.GetStringAsync(url);
       HuisPlayer[]? players = JsonConvert.DeserializeObject<HuisPlayer[]>(json);
 

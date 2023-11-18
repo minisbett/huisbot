@@ -10,12 +10,12 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the calculate command, calculating the score of a player in a rework.
 /// </summary>
-public class CalculateCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class CalculateCommandModule : HuisModuleBase
 {
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
-  public CalculateCommandModule(OsuApiService osu, HuisApiService huis)
+  public CalculateCommandModule(OsuApiService osu, HuisApiService huis) : base(huis)
   {
     _osu = osu;
     _huis = huis;
@@ -34,19 +34,10 @@ public class CalculateCommandModule : InteractionModuleBase<SocketInteractionCon
   {
     await DeferAsync();
 
-    // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
-    HuisRework[]? reworks = await _huis.GetReworksAsync();
-    HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    if (reworks is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+    // Get the matching rework for the specified rework identifier.
+    HuisRework? rework = await GetReworkAsync(reworkId);
+    if (rework is null)
       return;
-    }
-    else if (rework is null)
-    {
-      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
-      return;
-    }
 
     // Construct the HuisCalculationRequest.
     HuisCalculationRequest request = new HuisCalculationRequest(beatmapId, rework.Code!)

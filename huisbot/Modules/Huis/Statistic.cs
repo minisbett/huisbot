@@ -13,14 +13,9 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the statistic command, displaying graphs for the top-statistics of a rework.
 /// </summary>
-public class StatisticCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class StatisticCommandModule : HuisModuleBase
 {
-  private readonly HuisApiService _huis;
-
-  public StatisticCommandModule(HuisApiService huis)
-  {
-    _huis = huis;
-  }
+  public StatisticCommandModule(HuisApiService huis) : base(huis) { }
 
   [SlashCommand("statistic", "Displays the specific top-statistic in the specified rework.")]
   public async Task HandleAsync(
@@ -33,27 +28,15 @@ public class StatisticCommandModule : InteractionModuleBase<SocketInteractionCon
     await DeferAsync();
     bool topscores = statisticId == "topscores"; // True = topscores, False = topplayers
 
-    // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
-    HuisRework[]? reworks = await _huis.GetReworksAsync();
-    HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    if (reworks is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+    // Get the matching rework for the specified rework identifier.
+    HuisRework? rework = await GetReworkAsync(reworkId);
+    if (rework is null)
       return;
-    }
-    else if (rework is null)
-    {
-      await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
-      return;
-    }
 
-    // Get the statistic from the Huis API and check whether the request was successful. If not, notify the user.
-    HuisStatistic? statistic = await (topscores ? _huis.GetTopScoresStatisticAsync(rework.Id) : _huis.GetTopPlayersStatisticAsync(rework.Id));
+    // Get the statistic.
+    HuisStatistic? statistic = await GetStatisticAsync(statisticId, rework.Id);
     if (statistic is null)
-    {
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the statistic `{statisticId}` from the Huis API."));
       return;
-    }
 
     // Configure the plot with a size of 1000x600, colors, a legend in the upper center, the axis labels and an extra axis on the right for the difference.
     Plot liveLocal = new Plot(1000, 600);
