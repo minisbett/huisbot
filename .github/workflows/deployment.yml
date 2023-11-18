@@ -31,6 +31,6 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
-          docker stop huisbot || true
-          docker rm huisbot || true
-          docker run -d --name huisbot ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
+          docker stop huisbot
+          docker rm huisbot
+          docker run -d --env-file "$HUIS_BOT_ENV_FILE" --name huisbot ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest

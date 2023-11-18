@@ -18,7 +18,7 @@ docker pull minisbett/huisbot:latest
 
 # Cleans up the old container if you want to update the bot.
 docker stop huisbot
-docker docker rm huisbot || true
+docker docker rm huisbot
 
 # Runs the docker container.
 docker run -d --name huisbot minisbett/huisbot:latest
