@@ -29,7 +29,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
-        script: 
+        script: |
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
           docker stop huisbot || true
           docker rm huisbot || true
