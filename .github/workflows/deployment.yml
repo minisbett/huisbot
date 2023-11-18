@@ -23,7 +23,7 @@ jobs:
     - name: Push the image to Docker Hub
       run: docker push minisbett/huisbot
 
-    - name: Pull the image to VM
+    - name: Deploy the image on production server
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.SSH_HOST }}
