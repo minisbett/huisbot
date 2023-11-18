@@ -54,4 +54,38 @@ public class PersistenceService
   {
     return await _database.BeatmapAliases.ToArrayAsync();
   }
+
+  /// <summary>
+  /// Returns the beatmap alias by the specified alias text.
+  /// </summary>
+  /// <param name="alias">The alias text.</param>
+  /// <returns>The beatmap alias.</returns>
+  public async Task<BeatmapAlias?> GetBeatmapAliasAsync(string alias)
+  {
+    // Get all beatmap aliases and try to find the specified one.
+    return await _database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == alias);
+  }
+
+  /// <summary>
+  /// Adds the specified beatmap alias with the specified ID to the database.
+  /// </summary>
+  /// <param name="alias">The alias text.</param>
+  /// <param name="beatmapId">The ID of the beatmap.</param>
+  public async Task AddBeatmapAliasAsync(string alias, int beatmapId)
+  {
+    // Add the beatmap alias to the database.
+    _database.BeatmapAliases.Add(new BeatmapAlias(alias, beatmapId));
+    await _database.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Removes the specified beatmap alias from the database.
+  /// </summary>
+  /// <param name="alias">The alias.</param>
+  public async Task RemoveBeatmapAliasAsync(BeatmapAlias alias)
+  {
+    // Remove the beatmap alias from the database.
+    _database.BeatmapAliases.Remove(alias);
+    await _database.SaveChangesAsync();
+  }
 }
