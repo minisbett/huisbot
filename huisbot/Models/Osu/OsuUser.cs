@@ -28,5 +28,5 @@ public class OsuUser
   /// The name of the user.
   /// </summary>
   [JsonProperty("username")]
-  public string Name { get; private set; }
+  public string? Name { get; private set; }
 }

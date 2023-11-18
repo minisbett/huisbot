@@ -59,10 +59,11 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
-  public CSharpReplModule(IServiceProvider provider, IConfiguration config, HuisApiService huis)
+  public CSharpReplModule(IServiceProvider provider, IConfiguration config, OsuApiService osu, HuisApiService huis)
   {
     _provider = provider;
     _config = config;
+    _osu = osu;
     _huis = huis;
   }
 

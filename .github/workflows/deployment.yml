@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Build the Docker image
-      working-directory: .
+      working-directory: huisbot
       run: docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
 
     - name: Log into Docker Hub
