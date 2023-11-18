@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using huisbot.Services;
 
 namespace huisbot.Models.Osu;
 
@@ -7,6 +8,17 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuBeatmap
 {
+  /// <summary>
+  /// Returns a beatmap object representing no beatmap was found.
+  /// </summary>
+  public static OsuBeatmap NotFound => new OsuBeatmap() { WasFound = false };
+
+  /// <summary>
+  /// Bool whether the beatmap could be found or not. This property is used in <see cref="OsuApiService.GetBeatmapAsync(string)"/>, which returns
+  /// an object where this is false in order to report that the request was successful, but no beatmap was found back to the caller.
+  /// </summary>
+  public bool WasFound { get; init; } = true;
+
   /// <summary>
   /// The ID of the beatmap set the beatmap belongs to.
   /// </summary>

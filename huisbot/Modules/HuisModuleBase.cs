@@ -256,10 +256,12 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
         beatmapId = alias.Id.ToString();
     }
 
-    // Get the beatmap from the osu! api and check whether it was successful. If not, notify the user.
+    // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
     OsuBeatmap? beatmap = await _osu.GetBeatmapAsync(int.Parse(beatmapId));
     if (beatmap is null)
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
+    else if (!beatmap.WasFound)
+      await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could not be found."));
 
     return beatmap;
   }

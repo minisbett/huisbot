@@ -82,13 +82,13 @@ public class OsuApiService
     {
       // Get the user from the API.
       string json = await _http.GetStringAsync($"get_beatmaps?b={id}&k={_apikey}");
-      OsuBeatmap? map = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.BeatmapId == id);
+      OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.BeatmapId == id);
 
-      // Check whether the deserialized json is null. If so, the user could not be found. The API returns "[]" when the user could not be found.
-      if (map is null)
-        throw new Exception("Deserialization of JSON returned null.");
+      // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
+      if (beatmap is null)
+        return OsuBeatmap.NotFound;
 
-      return map;
+      return beatmap;
     }
     catch (Exception ex)
     {
