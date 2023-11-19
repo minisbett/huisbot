@@ -37,16 +37,18 @@ public class CalculateCommandModule : HuisModuleBase
     if (rework is null)
       return;
 
-    // Get the beatmap from the osu! api and check whether it was successful. If not, notify the user.
+    // Get the beatmap from the identifier.
     OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
     if (beatmap is null)
-    {
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
       return;
-    }
+
+    // Get the difficulty rating of the beatmap.
+    double? difficultyRating = await GetDifficultyRatingAsync(rework.RulesetId, beatmap.Id, mods);
+    if (difficultyRating is null)
+      return;
 
     // Construct the HuisCalculationRequest.
-    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.BeatmapId, rework.Code!)
+    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.Id, rework.Code!)
     {
       Combo = combo,
       Count100 = count100,
@@ -84,6 +86,6 @@ public class CalculateCommandModule : HuisModuleBase
     }
 
     // Send the result in an embed to the user.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(local, live, rework, beatmap));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(local, live, rework, beatmap, difficultyRating.Value));
   }
 }

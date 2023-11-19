@@ -155,16 +155,10 @@ internal static class Embeds
   /// <param name="live">The score on the live servers.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
+  /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap)
+  public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
   {
-    // Split the map name into it's components using regex.
-    Match match = Regex.Match(local.MapName ?? "", @"^(\d+) - (.+) - (.+) \((.+)\) \[(.+)\]$");
-    string beatmapId = match.Groups[1].Value;
-    string artist = match.Groups[2].Value;
-    string title = match.Groups[3].Value;
-    string version = match.Groups[5].Value;
-
     // Construct some strings for the embed.
     string total = Math.Abs(local.TotalPP - live.TotalPP) < 0.01 ? $"**{local.TotalPP:N2}pp**" : $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
     string aim = Math.Abs(live.AimPP - local.AimPP) < 0.01 ? $"**{local.AimPP:N2}pp**" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
@@ -175,21 +169,21 @@ internal static class Embeds
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
     string mods = modsStr == "" ? "" : $"+{modsStr}";
-    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}**";
+    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.BPM:0.###}** BPM";
     string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
-    string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmapId})";
-    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmapId})";
+    string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmap.Id})";
+    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string github = $"[Source]({rework.GetCommitUrl()})";
-
+    
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{artist} - {title} [{version}] {mods}")
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] {mods} [{difficultyRating:N2}★]")
       .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
                $"{visualizer} • {osu} • {huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}", true)
-      .WithUrl($"https://osu.ppy.sh/b/{beatmapId}")
-      .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.BeatmapSetId}/covers/slimcover@2x.jpg")
+      .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
+      .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }

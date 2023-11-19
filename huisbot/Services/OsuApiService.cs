@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text;
 
 namespace huisbot.Services;
 
@@ -82,7 +83,7 @@ public class OsuApiService
     {
       // Get the user from the API.
       string json = await _http.GetStringAsync($"get_beatmaps?b={id}&k={_apikey}");
-      OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.BeatmapId == id);
+      OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.Id == id);
 
       // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
       if (beatmap is null)
@@ -93,6 +94,38 @@ public class OsuApiService
     catch (Exception ex)
     {
       _logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.
+  /// </summary>
+  /// <param name="rulesetId">The ruleset ID.</param>
+  /// <param name="beatmapId">The beatmap ID.</param>
+  /// <param name="mods">The mods.</param>
+  /// <returns>The difficulty rating.</returns>
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  {
+    try
+    {
+      // Get the difficulty rating from the API.
+      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = mods.Select(x => $"{{\"acronym\": \"{x}\"}}") };
+      string s = JsonConvert.SerializeObject(request);
+      HttpResponseMessage response = await _http.PostAsync($"https://osu.ppy.sh/difficulty-rating",
+        new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+
+      // Try to parse the difficulty rating from the response.
+      string result = await response.Content.ReadAsStringAsync();
+      if (!double.TryParse(result, out double rating))
+        throw new Exception("Failed to parse the difficulty rating from the response.");
+
+      return rating;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the difficulty rating for beatmap in ruleset {Ruleset} with ID {Id} and mods {Mods} from the osu! API: {Message}",
+        rulesetId, beatmapId, mods, ex.Message);
       return null;
     }
   }

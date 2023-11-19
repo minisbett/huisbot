@@ -5,11 +5,13 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace huisbot.Modules;
 
@@ -247,7 +249,7 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
   public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
   {
     // If the identifier is not a number, try to find an alias.
-    if(!beatmapId.All(char.IsDigit))
+    if (!beatmapId.All(char.IsDigit))
     {
       // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
       BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
@@ -282,5 +284,23 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{player.Name}`."));
 
     return scores;
+  }
+
+  /// <summary>
+  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="rulesetId">The ruleset ID.</param>
+  /// <param name="beatmapId">The beatmap ID.</param>
+  /// <param name="mods">The mods.</param>
+  /// <returns>The difficulty rating.</returns>
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  {
+    // Get the difficulty rating and check whether the request was successful. If not, notify the user.
+    double? rating = await _osu.GetDifficultyRatingAsync(rulesetId, beatmapId, mods);
+    if (rating is null)
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the difficulty rating for the beatmap."));
+
+    return rating;
   }
 }

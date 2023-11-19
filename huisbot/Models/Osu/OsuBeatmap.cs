@@ -23,13 +23,13 @@ public class OsuBeatmap
   /// The ID of the beatmap set the beatmap belongs to.
   /// </summary>
   [JsonProperty("beatmapset_id")]
-  public int BeatmapSetId { get; private set; }
+  public int SetId { get; private set; }
 
   /// <summary>
   /// The ID of the beatmap.
   /// </summary>
   [JsonProperty("beatmap_id")]
-  public int BeatmapId { get; private set; }
+  public int Id { get; private set; }
 
   /// <summary>
   /// The maximum combo of the beatmap.
