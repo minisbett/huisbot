@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 
@@ -67,6 +68,7 @@ public class Program
         {
           options.TimestampFormat = "[HH:mm:ss] ";
           options.UseUtcTimestamp = true;
+          options.ColorBehavior = LoggerColorBehavior.Enabled;
         });
       })
 
