@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 
 public class Program
@@ -29,6 +31,21 @@ public class Program
 
   public static async Task Main(string[] args)
   {
+    // Run the host in a try-catch block to catch any unhandled exceptions.
+    try
+    {
+      await MainAsync(args);
+    }
+    catch (Exception ex)
+    {
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine(ex);
+      Environment.ExitCode = 727;
+    }
+  }
+
+  public static async Task MainAsync(string[] args)
+  {
     // Load the .env file. (Only useful when debugging locally, not when running it via e.g. Docker)
     DotEnv.Load();
 
@@ -42,6 +59,16 @@ public class Program
     IHost host = Host.CreateDefaultBuilder()
       // Configure the host to use environment variables for the config.
       .ConfigureHostConfiguration(config => config.AddEnvironmentVariables())
+
+      // Configure the logging to have timestamps.
+      .ConfigureLogging(logging =>
+      {
+        logging.AddSimpleConsole(options =>
+        {
+          options.TimestampFormat = "[HH:mm:ss] ";
+          options.UseUtcTimestamp = true;
+        });
+      })
 
       // Configure the Discord host (bot token, log level, bot behavior etc.)
       .ConfigureDiscordHost((context, config) =>
