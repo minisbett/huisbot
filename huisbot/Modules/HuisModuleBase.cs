@@ -265,4 +265,21 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
 
     return beatmap;
   }
+
+  /// <summary>
+  /// Returns the top plays of the specified player in the specified rework from the Huis API.
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="player">The player.</param>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>The top plays of the specified player in the specified rework.</returns>
+  public async Task<HuisScore[]?> GetTopPlaysAsync(OsuUser player, int reworkId)
+  {
+    // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
+    HuisScore[]? scores = await _huis.GetTopPlaysAsync(player.Id, reworkId);
+    if (scores is null)
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{player.Name}`."));
+
+    return scores;
+  }
 }

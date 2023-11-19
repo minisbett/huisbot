@@ -43,8 +43,7 @@ public class RankingsCommandModule : HuisModuleBase
       return;
 
     // Return the embed to the user.
-    int pageSize = 20;
-    await FollowupAsync(embed: Embeds.PlayerRankings(players.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rework, page));
+    await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, page));
   }
 
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
@@ -73,6 +72,6 @@ public class RankingsCommandModule : HuisModuleBase
       return;
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores.Skip((page - 1) * 10).Take(10).ToArray(), rework, page));
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, page));
   }
 }

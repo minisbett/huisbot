@@ -35,13 +35,13 @@ public class HuisPlayer
   /// <summary>
   /// The live pp of the player.
   /// </summary>
-  public double? OldPP { get; private set; }
+  public double OldPP { get; private set; }
 
   [JsonProperty("new_pp_incl_bonus")]
   /// <summary>
   /// The pp of the player in the rework the player object is from.
   /// </summary>
-  public double? NewPP { get; private set; }
+  public double NewPP { get; private set; }
 
   [JsonProperty("bonus_pp")]
   /// <summary>

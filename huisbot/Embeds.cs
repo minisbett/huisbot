@@ -86,11 +86,11 @@ internal static class Embeds
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
   public static Embed Player(HuisPlayer local, HuisPlayer live, HuisRework rework)
   {
-    string total = $"{local.OldPP:N2} → **{local.NewPP:N2}pp** *({local.NewPP - local.OldPP:+#,##0.00;-#,##0.00}pp)*";
-    string aim = live.AimPP == local.AimPP ? $"{local.AimPP:N2}pp" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string tap = live.TapPP == local.TapPP ? $"{local.TapPP:N2}pp" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
-    string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string total = Math.Abs(local.NewPP - local.OldPP) < 0.01 ? $"**{local.NewPP:N2}pp**" : $"{live.OldPP:N2} → **{local.NewPP:N2}pp** *({local.NewPP - live.OldPP:+#,##0.00;-#,##0.00}pp)*";
+    string aim = Math.Abs(live.AimPP - local.AimPP) < 0.01 ? $"**{local.AimPP:N2}pp**" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
+    string tap = Math.Abs(live.TapPP - local.TapPP) < 0.01 ? $"**{local.TapPP:N2}pp**" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = Math.Abs(live.AccPP - local.AccPP) < 0.01 ? $"**{local.AccPP:N2}pp**" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
+    string fl = Math.Abs(live.FLPP - local.FLPP) < 0.01 ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -153,11 +153,11 @@ internal static class Embeds
     string version = match.Groups[5].Value;
 
     // Construct some strings for the embed.
-    string total = $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
-    string aim = live.AimPP == local.AimPP ? $"{local.AimPP:N2}pp" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string tap = live.TapPP == local.TapPP ? $"{local.TapPP:N2}pp" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = live.AccPP == local.AccPP ? $"{local.AccPP:N2}pp" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
-    string fl = live.FLPP == local.FLPP ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string total = Math.Abs(local.TotalPP - live.TotalPP) < 0.01 ? $"**{local.TotalPP:N2}pp**" : $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
+    string aim = Math.Abs(live.AimPP - local.AimPP) < 0.01 ? $"**{local.AimPP:N2}pp**" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
+    string tap = Math.Abs(live.TapPP - local.TapPP) < 0.01 ? $"**{local.TapPP:N2}pp**" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
+    string acc = Math.Abs(live.AccPP - local.AccPP) < 0.01 ? $"**{local.AccPP:N2}pp**" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
+    string fl = Math.Abs(live.FLPP - local.FLPP) < 0.01 ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
@@ -216,35 +216,45 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the score rankings in the specified rework with the specified scores.
   /// </summary>
-  /// <param name="scores">The scores to display.</param>
+  /// <param name="allScores">All scores, including the ones to display.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="page">The page being displayed.</param>
   /// <returns>An embed for displaying the score rankings.</returns>
-  public static Embed ScoreRankings(HuisScore[] scores, HuisRework rework, int page)
+  public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, int page)
   {
+    // Get the scores to be displayed.
+    HuisScore[] scores = allScores.Skip((page - 1) * 10).Take(10).ToArray();
+
     // Generate the embed description.
     List<string> description = new List<string>()
-    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})\n" };
+    {
+      $"*{rework.Name}*",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})",
+      ""
+    };
+
     int offset = (page - 1) * 10;
     foreach (HuisScore score in scores)
     {
       // Trim the version if title + version is too long. If it's still too long, trim title as well.
       string title = score.Title ?? "";
       string version = score.Version ?? "";
-      if ($"{title} [{version}]".Length > 60)
+      if ($"{title} [{version}]".Length > 60 && version.Length > 27)
         version = $"{version.Substring(0, 27)}...";
-      if ($"{title} [{version}]".Length > 60)
+      if ($"{title} [{version}]".Length > 60 && title.Length > 27)
         title = $"{title.Substring(0, 27)}...";
 
+      string pp = score.LivePP == score.LocalPP ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+      
       // Add the info to the description lines.
       description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId})");
-      description.Add($"▸ {score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)* " +
-                      $"▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10 - 10 + scores.Length} on page {page} of 50.*");
+    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of " +
+                    $"{Math.Ceiling(allScores.Length / 10d)}.*");
 
     return BaseEmbed
       .WithTitle($"Score Rankings on {rework.Name}")
@@ -253,26 +263,79 @@ internal static class Embeds
   }
 
   /// <summary>
+  /// Returns an embed for displaying the top plays of the specified player in the specified rework.
+  /// </summary>
+  /// <param name="user">The player.</param>
+  /// <param name="allScores">All scores, including the ones to display.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="page">The page being displayed.</param>
+  /// <returns>An embed for displaying the top plays.</returns>
+  public static Embed TopPlays(OsuUser user, HuisScore[] allScores, HuisRework rework, int page)
+  {
+    // Get the scores to be displayed.
+    HuisScore[] scores = allScores.Skip((page - 1) * 10).Take(10).ToArray();
+
+    // Generate the embed description.
+    List<string> description = new List<string>()
+    { 
+      $"*{rework.Name}*",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})",
+      ""
+    };
+
+    int offset = (page - 1) * 10;
+    foreach (HuisScore score in scores)
+    {
+      // Trim the version if title + version is too long. If it's still too long, trim title as well.
+      string title = score.Title ?? "";
+      string version = score.Version ?? "";
+      if ($"{title} [{version}]".Length > 80 && version.Length > 37)
+        version = $"{version.Substring(0, 37)}...";
+      if ($"{title} [{version}]".Length > 80 && title.Length > 37)
+        title = $"{title.Substring(0, 37)}...";
+
+      string pp = Math.Abs(score.LocalPP - score.LivePP) < 0.01 ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+
+      // Add the info to the description lines.
+      description.Add($"**#{++offset}** [{title} [{version}]]" +
+                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+    }
+
+    // Add hyperlinks to useful urls.
+    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of " +
+                    $"{Math.Ceiling(allScores.Length / 10d)}.*");
+
+    return BaseEmbed
+      .WithTitle($"Top Plays of {user.Name}")
+      .WithDescription(string.Join("\n", description))
+      .Build();
+  }
+
+  /// <summary>
   /// Returns an embed for displaying the player rankings in the specified rework with the specified players.
   /// </summary>
-  /// <param name="players">The players to display.</param>
+  /// <param name="allPlayers">All players, including the ones to display.</param>
   /// <param name="rework">The rework.</param>
   /// <returns>An embed for displaying the player rankings.</returns>
-  public static Embed PlayerRankings(HuisPlayer[] players, HuisRework rework, int page)
+  public static Embed PlayerRankings(HuisPlayer[] allPlayers, HuisRework rework, int page)
   {
+    // Get the players to be displayed.
+    HuisPlayer[] players = allPlayers.Skip((page - 1) * 20).Take(20).ToArray();
+
     // Generate the embed description.
     List<string> description = new List<string>()
     { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})\n" };
     foreach (HuisPlayer player in players)
     {
-      string pp = $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
+      string pp = Math.Abs(player.NewPP - player.OldPP) < 0.01 ? $"**{player.NewPP:N2}pp**" : $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
 
       // Add the info to the description lines.
       description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {pp} ▸ " +
                       $"[Huis Profile](https://pp.huismetbenen.nl/player{player.Id}/{rework.Code})");
     }
 
-    description.Add($"\n*Displaying players {page * 20 - 19}-{page * 20 - 20 + players.Length} on page {page} of 25.*");
+    description.Add($"\n*Displaying players {page * 20 - 19}-{page * 20} on page {page} of {Math.Ceiling(allPlayers.Length / 20d)}.*");
 
     return BaseEmbed
       .WithTitle($"Player Rankings on {rework.Name}")

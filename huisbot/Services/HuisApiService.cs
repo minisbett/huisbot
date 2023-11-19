@@ -233,7 +233,7 @@ public class HuisApiService
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
   /// <param name="sort">The sort options.</param>
-  /// <returns>The global score ranings in the specified rework.</returns>
+  /// <returns>The global score rankings in the specified rework.</returns>
   public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
   {
     string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
@@ -251,8 +251,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
-        ex.Message, url);
+      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -284,6 +283,34 @@ public class HuisApiService
     catch (Exception ex)
     {
       _logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      return null;
+    }
+  }
+
+  /// <summary>
+  /// Returns the top plays of the specified player in the specified rework from the Huis API.
+  /// </summary>
+  /// <param name="playerId">The player ID.</param>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <returns>The top plays of the specified player in the specified rework.</returns>
+  public async Task<HuisScore[]?> GetTopPlaysAsync(int playerId, int reworkId)
+  {
+    string url = $"/player/topscores/{playerId}/{reworkId}";
+    try
+    {
+      // Get the top plays data from the API.
+      string json = await _http.GetStringAsync(url);
+      HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
+
+      // Check whether the deserialized json is valid.
+      if (scores is null)
+        throw new Exception("Deserialization of JSON returned null.");
+
+      return scores;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError("Failed to get the top plays from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
