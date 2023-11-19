@@ -110,7 +110,7 @@ public class OsuApiService
     try
     {
       // Get the difficulty rating from the API.
-      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = mods.Chunk(2).Select(x => $"{{\"acronym\": \"{x}\"}}") };
+      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = mods.Chunk(2).Select(x => $"{{\"acronym\": \"{new string(x)}\"}}") };
       string s = JsonConvert.SerializeObject(request);
       HttpResponseMessage response = await _http.PostAsync($"https://osu.ppy.sh/difficulty-rating",
         new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
