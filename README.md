@@ -18,13 +18,13 @@ docker pull minisbett/huisbot:latest
 
 # Cleans up the old container if you want to update the bot.
 docker stop huisbot
-docker docker rm huisbot
+docker rm huisbot
 
 # Runs the docker container.
 docker run -d --env-file "/path/to/.env" --name huisbot minisbett/huisbot:latest
 ```
 
-If you wish to access the console, you can do that with `docker logs huisbot`.
+If you wish to access the logs of the container, you can do that with `docker logs huisbot`.
 
 # Setup for development
 
