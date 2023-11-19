@@ -69,14 +69,27 @@ internal static class Embeds
   /// </summary>
   /// <param name="rework">The rework to display.</param>
   /// <returns>The embed for displaying the specified rework.</returns>
-  public static Embed Rework(HuisRework rework) => BaseEmbed
+  public static Embed Rework(HuisRework rework)
+  {
+    // Divide the description in multiple parts due to the 1024 character limit.
+    string[] descriptionParts = (rework.Description ?? "") != "" ? rework.Description!.Split("\n\n") : new string[] { "*No description available.*" };
+
+    EmbedBuilder embed = BaseEmbed
     .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
     .WithUrl($"https://pp.huismetbenen.nl/rankings/info/{rework.Code}")
-    .AddField("Description", (rework.Description ?? "") == "" ? "*No description available.*" : rework.Description)
-    .AddField("Ruleset", rework.GetReadableRuleset(), true)
-    .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})", true)
-    .AddField("Status", rework.GetReadableReworkType(), true)
-    .Build();
+    .AddField("Description", descriptionParts[0]);
+
+    // Add the description parts to the embed.
+    foreach(string part in descriptionParts.Skip(1))
+      embed = embed.AddField("\u200B", part);
+
+    embed = embed
+      .AddField("Ruleset", rework.GetReadableRuleset(), true)
+      .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})", true)
+      .AddField("Status", rework.GetReworkStatus(), true);
+
+    return embed.Build();
+  }
 
   /// <summary>
   /// Returns an embed for displaying the specified player in the specified rework.
@@ -94,7 +107,7 @@ internal static class Embeds
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = $"[Source Code]({rework.GetCommitUrl()})";
+    string github = $"[Source]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
@@ -117,7 +130,7 @@ internal static class Embeds
     .WithTitle($"Information about Huisbot {Program.VERSION}")
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
                      "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
-    .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source Code](https://github.com/minisbett/huisbot)", true)
+    .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source](https://github.com/minisbett/huisbot)", true)
     .AddField("API Status", $"osu! {new Discord.Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Discord.Emoji(huisAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
@@ -167,7 +180,7 @@ internal static class Embeds
     string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmapId})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmapId})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = $"[Source Code]({rework.GetCommitUrl()})";
+    string github = $"[Source]({rework.GetCommitUrl()})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
@@ -229,7 +242,7 @@ internal static class Embeds
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
       ""
     };
 
@@ -279,7 +292,7 @@ internal static class Embeds
     List<string> description = new List<string>()
     { 
       $"*{rework.Name}*",
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
       ""
     };
 
@@ -325,7 +338,7 @@ internal static class Embeds
 
     // Generate the embed description.
     List<string> description = new List<string>()
-    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source Code]({rework.GetCommitUrl()})\n" };
+    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})\n" };
     foreach (HuisPlayer player in players)
     {
       string pp = Math.Abs(player.NewPP - player.OldPP) < 0.01 ? $"**{player.NewPP:N2}pp**" : $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";

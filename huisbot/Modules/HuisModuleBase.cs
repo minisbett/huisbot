@@ -40,6 +40,7 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
   {
     // Get all reworks and check whether the request was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
+    reworks = reworks?.OrderBy(x => !x.IsLive).ThenBy(x => x.IsConfirmed).ThenBy(x => x.IsHistoric).ThenBy(x => !x.IsActive).ThenBy(x => !x.IsPublic).ToArray();
     if (reworks is null && showError)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
 

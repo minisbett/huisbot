@@ -30,7 +30,7 @@ public class ReworksCommandModule : HuisModuleBase
         .WithCustomId("rework")
         .WithPlaceholder("Select a rework...")
         .WithMaxValues(1)
-        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReadableReworkType()})", null, false)).ToList()))
+        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReworkStatus()} )", null, false)).ToList()))
       .Build();
 
     // Show the live "rework" by default and add the select menu to the reply.
