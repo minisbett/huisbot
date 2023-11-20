@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -102,6 +103,7 @@ public class OsuMod
   /// </summary>
   public static OsuMod AutoPilot { get; } = new("AP");
 
+  [JsonProperty("acronym")]
   /// <summary>
   /// The acronym of the osu! mod.
   /// </summary>

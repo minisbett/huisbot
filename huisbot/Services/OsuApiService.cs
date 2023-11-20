@@ -1,4 +1,6 @@
-﻿using huisbot.Models.Osu;
+﻿using huisbot.Enums;
+using huisbot.Models.Osu;
+using huisbot.Utils.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -103,14 +105,17 @@ public class OsuApiService
   /// </summary>
   /// <param name="rulesetId">The ruleset ID.</param>
   /// <param name="beatmapId">The beatmap ID.</param>
-  /// <param name="mods">The mods.</param>
+  /// <param name="modsStr">The mod string.</param>
   /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string modsStr)
   {
+    // Parse the mods for further processing.
+    OsuMod[] mods = OsuMod.Parse(modsStr);
+
     try
     {
       // Get the difficulty rating from the API.
-      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = mods.Chunk(2).Select(x => new { acronym = new string(x)}) };
+      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods };
       string s = JsonConvert.SerializeObject(request);
       HttpResponseMessage response = await _http.PostAsync($"https://osu.ppy.sh/difficulty-rating",
         new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
@@ -125,7 +130,7 @@ public class OsuApiService
     catch (Exception ex)
     {
       _logger.LogError("Failed to get the difficulty rating for beatmap in ruleset {Ruleset} with ID {Id} and mods {Mods} from the osu! API: {Message}",
-        rulesetId, beatmapId, mods, ex.Message);
+        rulesetId, beatmapId, mods.ToModString(), ex.Message);
       return null;
     }
   }

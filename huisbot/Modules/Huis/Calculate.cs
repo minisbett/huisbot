@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Autocompletes;
@@ -54,7 +55,7 @@ public class CalculateCommandModule : HuisModuleBase
       Count100 = count100,
       Count50 = count50,
       Misses = misses,
-      Mods = mods.Chunk(2).Select(x => new string(x)).ToArray()
+      Mods = OsuMod.Parse(mods).Select(x => x.Acronym).ToArray() // Parse them to OsuMods to filter out invalid mods.
     };
 
     // Display the calculation progress in an embed to the user.
