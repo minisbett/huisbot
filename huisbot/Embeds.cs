@@ -80,7 +80,7 @@ internal static class Embeds
     .AddField("Description", descriptionParts[0]);
 
     // Add the description parts to the embed.
-    foreach(string part in descriptionParts.Skip(1))
+    foreach (string part in descriptionParts.Skip(1))
       embed = embed.AddField("\u200B", part);
 
     embed = embed
@@ -175,7 +175,7 @@ internal static class Embeds
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string github = $"[Source]({rework.GetCommitUrl()})";
-    
+
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] {mods} [{difficultyRating:N2}★]")
@@ -206,12 +206,16 @@ internal static class Embeds
   /// <returns>An embed for displaying the beatmap aliases.</returns>
   public static Embed Aliases(BeatmapAlias[] aliases)
   {
+    // Sort the aliases by alphabetical order.
+    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+
     // Build the alias string.
     string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
     if (aliases.Length > 0)
     {
-      IGrouping<int, BeatmapAlias>[] aliasGroups = aliases.GroupBy(x => x.Id).ToArray();
-      aliasesStr = string.Join("\n", aliasGroups.Select(x => $"▸ [Link](https://osu.ppy.sh/b/{x.Key}) ▸ {string.Join(", ", x.Select(j => $"`{j.Alias}`"))}"));
+      aliasesStr = "";
+      foreach (IGrouping<int, BeatmapAlias> group in aliases.GroupBy(x => x.Id))
+        aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}";
     }
 
     return BaseEmbed
@@ -252,7 +256,7 @@ internal static class Embeds
         title = $"{title.Substring(0, 27)}...";
 
       string pp = score.LivePP == score.LocalPP ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
-      
+
       // Add the info to the description lines.
       description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId})");
@@ -284,7 +288,7 @@ internal static class Embeds
 
     // Generate the embed description.
     List<string> description = new List<string>()
-    { 
+    {
       $"*{rework.Name}*",
       $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
       ""

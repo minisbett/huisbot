@@ -67,14 +67,13 @@ public class PersistenceService
   }
 
   /// <summary>
-  /// Adds the specified beatmap alias with the specified ID to the database.
+  /// Adds the specified alias to the database.
   /// </summary>
-  /// <param name="alias">The alias text.</param>
-  /// <param name="beatmapId">The ID of the beatmap.</param>
-  public async Task AddBeatmapAliasAsync(string alias, int beatmapId)
+  /// <param name="alias">The alias.</param>
+  public async Task AddBeatmapAliasAsync(BeatmapAlias alias)
   {
     // Add the beatmap alias to the database.
-    _database.BeatmapAliases.Add(new BeatmapAlias(alias, beatmapId));
+    _database.BeatmapAliases.Add(alias);
     await _database.SaveChangesAsync();
   }
 
