@@ -66,13 +66,13 @@ public class PlayerCommandModule : HuisModuleBase
         // Check whether the player is already queued. If so, notify the user.
         if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == _reworkId))
         {
-          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the {(_reworkId == 1 ? "live" : "local")} " +
+          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the __{(_reworkId == 1 ? "live" : "local")}__ " +
                                                     $"rework. Please try again later."));
           return;
         }
 
         // Queue the player.
-        await QueuePlayerAsync(user, rework.Id);
+        await QueuePlayerAsync(user, _reworkId);
         return;
       }
 
