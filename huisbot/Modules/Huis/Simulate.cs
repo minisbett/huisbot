@@ -9,13 +9,13 @@ using huisbot.Services;
 namespace huisbot.Modules.Huis;
 
 /// <summary>
-/// The interaction module for the calculate command, calculating the score of a player in a rework.
+/// The interaction module for the simulate command, calculating the score of a player in a rework.
 /// </summary>
-public class CalculateCommandModule : HuisModuleBase
+public class SimulateCommandModule : HuisModuleBase
 {
   private readonly HuisApiService _huis;
 
-  public CalculateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence)
+  public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence)
   {
     _huis = huis;
   }

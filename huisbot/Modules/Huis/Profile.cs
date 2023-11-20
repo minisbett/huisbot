@@ -10,9 +10,9 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the player command, displaying info about a player in a rework.
 /// </summary>
-public class PlayerCommandModule : HuisModuleBase
+public class ProfileCommandModule : HuisModuleBase
 {
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
+  public ProfileCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
 
   [SlashCommand("profile", "Displays info about the specified player in the specified rework.")]
   public async Task HandleAsync(
