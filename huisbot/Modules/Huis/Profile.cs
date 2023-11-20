@@ -14,7 +14,7 @@ public class PlayerCommandModule : HuisModuleBase
 {
   public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
 
-  [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
+  [SlashCommand("profile", "Displays info about the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,

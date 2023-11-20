@@ -20,7 +20,7 @@ public class CalculateCommandModule : HuisModuleBase
     _huis = huis;
   }
 
-  [SlashCommand("calculate", "Calculates a score in the specified rework with the specified parameters.")]
+  [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("beatmap", "The ID or alias of the beatmap.")] string beatmapId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
