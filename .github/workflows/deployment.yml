@@ -30,7 +30,5 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
-          docker stop huisbot
-          docker rm huisbot
-          docker run -d --env-file "/root/huisbot/.env" --name huisbot ${{ secrets.DOCKERHUB_USERNAME }}/huisbot:latest
+          chmod +x /root/huisbot/deploy.sh
+          /root/huisbot/deploy.sh
