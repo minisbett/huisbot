@@ -127,13 +127,13 @@ public class OsuMod
   public static OsuMod[] Parse(string modsStr)
   {
     // Allow some variation in the way mods are specified.
-    modsStr = modsStr.ToLower().TrimStart('+').Replace(" ", "");
+    modsStr = modsStr.ToUpper().TrimStart('+').Replace(" ", "");
 
     // Try to parse the mods by chunking the string into 2-character strings and then parsing them.
     List<OsuMod> mods = new List<OsuMod>();
     foreach (string acronym in modsStr.Chunk(2).Select(x => new string(x)))
-      if (OsuMod.All.Any(x => x.Acronym == acronym))
-        mods.Add(OsuMod.All.First(x => x.Acronym == acronym));
+      if (All.Any(x => x.Acronym == acronym))
+        mods.Add(All.First(x => x.Acronym == acronym));
 
     return mods.ToArray();
   }
