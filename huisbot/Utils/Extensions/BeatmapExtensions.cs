@@ -115,12 +115,9 @@ internal static class BeatmapExtensions
     // If Easy, the OD is multiplied by 0.5.
     else if (mods.Contains("EZ"))
       od *= 0.5;
-    // If DoubleTime/Nightcore, the OD is multiplied by 1.5.
-    if (mods.Contains("DT") || mods.Contains("NC"))
-      od *= 1.5;
-    // If HalfTime, the OD is multiplied by 0.75.
-    else if (mods.Contains("HT"))
-      od *= 0.66;
+    // If DoubleTime/Nightcore or HalfTime, the hitwindow is divided by 1.5 and 0.66 respectively.
+    if (mods.Contains("DT") || mods.Contains("NC") || mods.Contains("HT"))
+      od = (-40 + 12 * od) / (27 / (mods.Contains("HT") ? 0.66 : 1.5));
 
     return Math.Min(od, 11.1);
   }
