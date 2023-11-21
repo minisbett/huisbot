@@ -65,7 +65,7 @@ public class HuisScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string? Mods { get; private set; }
+  public string Mods { get; private set; } = "";
 
   /// <summary>
   /// The amount of 300s/greats of the score.

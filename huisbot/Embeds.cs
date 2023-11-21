@@ -256,10 +256,12 @@ internal static class Embeds
         title = $"{title.Substring(0, 27)}...";
 
       string pp = score.LivePP == score.LocalPP ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+      string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
+      string mods = modsStr == "" ? "" : $"+{modsStr}";
 
       // Add the info to the description lines.
       description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
-                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
+                      $"(https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
       description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
@@ -306,10 +308,11 @@ internal static class Embeds
         title = $"{title.Substring(0, 37)}...";
 
       string pp = Math.Abs(score.LocalPP - score.LivePP) < 0.01 ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+      string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
+      string mods = modsStr == "" ? "" : $"+{modsStr}";
 
       // Add the info to the description lines.
-      description.Add($"**#{++offset}** [{title} [{version}]]" +
-                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"**#{++offset}** [{title} [{version}]](https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
       description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
