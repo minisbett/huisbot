@@ -260,8 +260,8 @@ internal static class Embeds
       string mods = modsStr == "" ? "" : $"+{modsStr}";
 
       // Add the info to the description lines.
-      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
-                      $"(https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
+      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}] {mods}]" +
+                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
@@ -312,7 +312,7 @@ internal static class Embeds
       string mods = modsStr == "" ? "" : $"+{modsStr}";
 
       // Add the info to the description lines.
-      description.Add($"**#{++offset}** [{title} [{version}]](https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
+      description.Add($"**#{++offset}** [{title} [{version}] {mods}](https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
