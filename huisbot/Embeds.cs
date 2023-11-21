@@ -262,7 +262,7 @@ internal static class Embeds
       // Add the info to the description lines.
       description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
-      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
@@ -313,7 +313,7 @@ internal static class Embeds
 
       // Add the info to the description lines.
       description.Add($"**#{++offset}** [{title} [{version}]](https://osu.ppy.sh/b/{score.BeatmapId}) {mods}");
-      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
