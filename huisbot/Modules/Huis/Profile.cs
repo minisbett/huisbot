@@ -10,11 +10,11 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the player command, displaying info about a player in a rework.
 /// </summary>
-public class PlayerCommandModule : HuisModuleBase
+public class ProfileCommandModule : HuisModuleBase
 {
-  public PlayerCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
+  public ProfileCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
 
-  [SlashCommand("player", "Displays info about the specified player in the specified rework.")]
+  [SlashCommand("profile", "Displays info about you or the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
@@ -45,38 +45,15 @@ public class PlayerCommandModule : HuisModuleBase
       return;
 
     // Loop through the following logic once with local = true and local = false, getting the player in both the local and the live rework.
-    // Then check whether the player is currently calculated/up-to-date. If not, the player will be queued and the user notified.
-    // Otherwise, the players will be stored in the list below, which's two items are then being passed to the embed builder.
     List<HuisPlayer> players = new List<HuisPlayer>();
     foreach (int _reworkId in new int[] { rework.Id, HuisRework.LiveId })
     {
       // Get the player in the current rework.
-      HuisPlayer? player = await GetHuisPlayerAsync(user.Id, _reworkId);
+      HuisPlayer? player = await GetHuisPlayerAsync(user.Id, _reworkId, user.Name ?? "");
       if (player is null)
         return;
 
-      // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
-      else if (!player.IsCalculated)
-      {
-        // Get the calculation queue.
-        HuisQueue? queue = await GetHuisQueueAsync();
-        if (queue is null)
-          return;
-
-        // Check whether the player is already queued. If so, notify the user.
-        if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == _reworkId))
-        {
-          await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the __{(_reworkId == 1 ? "live" : "local")}__ " +
-                                                    $"rework. Please try again later."));
-          return;
-        }
-
-        // Queue the player.
-        await QueuePlayerAsync(user, _reworkId);
-        return;
-      }
-
-      // If the plyer is calculated, add it to the players list.
+      // Add the player to the list.
       players.Add(player);
     }
 

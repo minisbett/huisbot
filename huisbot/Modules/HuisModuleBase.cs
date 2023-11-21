@@ -192,17 +192,20 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// </summary>
   /// <param name="playerId">The player ID.</param>
   /// <param name="reworkId">The rework ID.</param>
+  /// <param name="name">The name of the user. This is dirty but necessary to display the error.</param>
   /// <returns>The Huis player.</returns>
-  public async Task<HuisPlayer?> GetHuisPlayerAsync(int playerId, int reworkId)
+  public async Task<HuisPlayer?> GetHuisPlayerAsync(int playerId, int reworkId, string name)
   {
-    string type = reworkId == HuisRework.LiveId ? "live" : "local";
-
     // Get the player from the Huis API. If it failed, notify the user.
     HuisPlayer? player = await _huis.GetPlayerAsync(playerId, reworkId);
     if (player is null)
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {type} player from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(reworkId == HuisRework.LiveId ? "live" : "local")} player from the Huis API."));
+    // If the player was successfully received but is uncalculated, notify the user.
+    else if (!player.IsCalculated)
+      await FollowupAsync(embed: Embeds.Error($"`{name}` is not known in the *{(reworkId == HuisRework.LiveId ? "live" : "specified")}* rework.\n" +
+                                              $"Please use the `/queue` command to queue the player."));
 
-    return player;
+    return (player?.IsCalculated ?? false) ? player : null;
   }
 
   /// <summary>
@@ -234,7 +237,7 @@ public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
     // Queue the player and notify the user whether it was successful.
     bool queued = await _huis.QueuePlayerAsync(player.Id, reworkId);
     if (queued)
-      await FollowupAsync(embed: Embeds.Success($"The player `{player.Name}` has been added to the {type} calculation queue."));
+      await FollowupAsync(embed: Embeds.Neutral($"The player `{player.Name}` has been added to the {type} calculation queue."));
     else
       await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{player.Name}` in the {type} rework."));
 
