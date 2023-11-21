@@ -52,7 +52,7 @@ public class TopPlaysCommandModule : ModuleBase
       return;
 
     // Get the player in the current rework.
-    HuisPlayer? player = await GetHuisPlayerAsync(user.Id, rework.Id, user.Name ?? "");
+    HuisPlayer? player = await GetHuisPlayerAsync(user.Id, rework, user.Name ?? "");
     if (player is null)
       return;
 
