@@ -205,7 +205,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
       await FollowupAsync(embed: Embeds.Error($"`{name}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.\n" +
                                               $"Please use the `/queue` command to queue the player."));
 
-    return (player?.IsOutdated ?? false) ? player : null;
+    return (player?.IsOutdated ?? true) ? null : player;
   }
 
   /// <summary>
