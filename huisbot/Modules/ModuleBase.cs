@@ -191,18 +191,18 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="playerId">The player ID.</param>
-  /// <param name="reworkId">The rework ID.</param>
+  /// <param name="rework">The rework.</param>
   /// <param name="name">The name of the user. This is dirty but necessary to display the error.</param>
   /// <returns>The Huis player.</returns>
-  public async Task<HuisPlayer?> GetHuisPlayerAsync(int playerId, int reworkId, string name)
+  public async Task<HuisPlayer?> GetHuisPlayerAsync(int playerId, HuisRework rework, string name)
   {
     // Get the player from the Huis API. If it failed, notify the user.
-    HuisPlayer? player = await _huis.GetPlayerAsync(playerId, reworkId);
+    HuisPlayer? player = await _huis.GetPlayerAsync(playerId, rework);
     if (player is null)
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(reworkId == HuisRework.LiveId ? "live" : "local")} player from the Huis API."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(rework.IsLive ? "live" : "local")} player from the Huis API."));
     // If the player was successfully received but is outdated, notify the user.
     else if (player.IsOutdated)
-      await FollowupAsync(embed: Embeds.Error($"`{name}` is outdated in the *{(reworkId == HuisRework.LiveId ? "live" : "specified")}* rework.\n" +
+      await FollowupAsync(embed: Embeds.Error($"`{name}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.\n" +
                                               $"Please use the `/queue` command to queue the player."));
 
     return (player?.IsOutdated ?? false) ? player : null;
