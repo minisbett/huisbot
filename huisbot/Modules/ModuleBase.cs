@@ -237,9 +237,9 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     // Queue the player and notify the user whether it was successful.
     bool queued = await _huis.QueuePlayerAsync(player.Id, reworkId);
     if (queued)
-      await FollowupAsync(embed: Embeds.Neutral($"The player `{player.Name}` has been added to the {type} calculation queue."));
+      await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
     else
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{player.Name}` in the {type} rework."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{player.Name}`."));
 
     return queued;
   }
