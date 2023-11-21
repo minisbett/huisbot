@@ -11,7 +11,7 @@ namespace huisbot.Modules.Huis;
 /// The interaction module for the rankings group & player and score subcommand, displaying the global leaderboard in a rework.
 /// </summary>
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
-public class RankingsCommandModule : HuisModuleBase
+public class RankingsCommandModule : ModuleBase
 {
   public RankingsCommandModule(HuisApiService huis) : base(huis) { }
 

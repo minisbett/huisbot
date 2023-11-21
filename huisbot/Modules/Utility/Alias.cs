@@ -9,7 +9,7 @@ namespace huisbot.Modules.Utility;
 /// The interaction module for the alias group & add, remove and list subcommand, listing and modifying the beatmap aliases.
 /// </summary>
 [Group("alias", "Commands for adding, removing and listing beatmap aliases.")]
-public class AliasCommandModule : HuisModuleBase
+public class AliasCommandModule : ModuleBase
 {
   private readonly PersistenceService _persistence;
 

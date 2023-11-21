@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the statistic command, displaying graphs for the top-statistics of a rework.
 /// </summary>
-public class StatisticCommandModule : HuisModuleBase
+public class StatisticCommandModule : ModuleBase
 {
   public StatisticCommandModule(HuisApiService huis) : base(huis) { }
 

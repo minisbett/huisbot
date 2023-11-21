@@ -10,7 +10,7 @@ namespace huisbot.Modules;
 /// <summary>
 /// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
-public class ReworksCommandModule : HuisModuleBase
+public class ReworksCommandModule : ModuleBase
 {
   public ReworksCommandModule(HuisApiService huis) : base(huis) { }
 
@@ -41,7 +41,7 @@ public class ReworksCommandModule : HuisModuleBase
 /// <summary>
 /// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule : HuisModuleBase
+public class ReworksComponentModule : ModuleBase
 {
   public ReworksComponentModule(HuisApiService huis) : base(huis) { }
 

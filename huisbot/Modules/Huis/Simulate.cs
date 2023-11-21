@@ -11,7 +11,7 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the simulate command, calculating the score of a player in a rework.
 /// </summary>
-public class SimulateCommandModule : HuisModuleBase
+public class SimulateCommandModule : ModuleBase
 {
   private readonly HuisApiService _huis;
 

@@ -16,7 +16,7 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the topplays command, displaying the top plays of a player in a rework.
 /// </summary>
-public class TopPlaysCommandModule : HuisModuleBase
+public class TopPlaysCommandModule : ModuleBase
 {
   public TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
 

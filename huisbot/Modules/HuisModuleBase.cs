@@ -19,13 +19,13 @@ namespace huisbot.Modules;
 /// A wrapper around the interaction module base for all modules.
 /// This wrapper provides utility methods for parsing parameters like reworks or players.
 /// </summary>
-public class HuisModuleBase : InteractionModuleBase<SocketInteractionContext>
+public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 {
   private readonly HuisApiService _huis;
   private readonly OsuApiService _osu;
   private readonly PersistenceService _persistence;
 
-  public HuisModuleBase(HuisApiService huis, OsuApiService osu = null!, PersistenceService persistence = null!)
+  public ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, PersistenceService persistence = null!)
   {
     _huis = huis;
     _osu = osu;
