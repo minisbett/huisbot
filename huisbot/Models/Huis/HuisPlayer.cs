@@ -9,15 +9,15 @@ namespace huisbot.Models.Huis;
 public class HuisPlayer
 {
   /// <summary>
-  /// Returns a player object representing an uncalculated player.
+  /// Returns a player object representing an outdated player.
   /// </summary>
-  public static HuisPlayer Uncalculated => new HuisPlayer() { IsCalculated = false };
+  public static HuisPlayer Outdated => new HuisPlayer() { IsOutdated = true };
 
   /// <summary>
-  /// Bool whether the player is calculated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, int)"/>, which returns
-  /// an object where this is false in order to report that the request was successful, but no player data was received back to the caller.
+  /// Bool whether the player is outdated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, int)"/>, which returns
+  /// an object where this is true in order to report that the request was successful, but outdated player data was received back to the caller.
   /// </summary>
-  public bool IsCalculated { get; init; } = true;
+  public bool IsOutdated { get; init; } = false;
 
   [JsonProperty("user_id")]
   /// <summary>
@@ -85,6 +85,12 @@ public class HuisPlayer
   /// Might be null, indiucating the rank is not known.
   /// </summary>
   public int? Rank { get; private set; }
+
+  /// <summary>
+  /// The most recent algorithm version the player was calculated in, used to determine whether a player is up-to-date or not.
+  /// </summary>
+  [JsonProperty("pp_version")]
+  public int PPVersion { get; private set; }
 
   public override string ToString()
   {

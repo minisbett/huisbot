@@ -200,12 +200,12 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     HuisPlayer? player = await _huis.GetPlayerAsync(playerId, reworkId);
     if (player is null)
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(reworkId == HuisRework.LiveId ? "live" : "local")} player from the Huis API."));
-    // If the player was successfully received but is uncalculated, notify the user.
-    else if (!player.IsCalculated)
-      await FollowupAsync(embed: Embeds.Error($"`{name}` is not known in the *{(reworkId == HuisRework.LiveId ? "live" : "specified")}* rework.\n" +
+    // If the player was successfully received but is outdated, notify the user.
+    else if (player.IsOutdated)
+      await FollowupAsync(embed: Embeds.Error($"`{name}` is outdated in the *{(reworkId == HuisRework.LiveId ? "live" : "specified")}* rework.\n" +
                                               $"Please use the `/queue` command to queue the player."));
 
-    return (player?.IsCalculated ?? false) ? player : null;
+    return (player?.IsOutdated ?? false) ? player : null;
   }
 
   /// <summary>

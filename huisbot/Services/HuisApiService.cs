@@ -135,22 +135,22 @@ public class HuisApiService
   }
 
   /// <summary>
-  /// Returns the player with the specified id in the specified rework from the API.
+  /// Returns the player with the specified ID in the specified rework from the API.
   /// </summary>
-  /// <param name="playerId">The osu! id of the player.</param>
-  /// <param name="playerId">The id of the rework.</param>
-  /// <returns>The player with the specified id in the specified rework.</returns>
-  public async Task<HuisPlayer?> GetPlayerAsync(int playerId, int reworkId)
+  /// <param name="playerId">The osu! ID of the player.</param>
+  /// <param name="playerId">The the rework.</param>
+  /// <returns>The player with the specified ID in the specified rework.</returns>
+  public async Task<HuisPlayer?> GetPlayerAsync(int playerId, HuisRework rework)
   {
-    string url = $"player/userdata/{playerId}/{reworkId}";
+    string url = $"player/userdata/{playerId}/{rework.Id}";
     try
     {
       // Get the json from the API.
       string json = await _http.GetStringAsync(url);
 
-      // Check whether the json matches "{}". If so, no player data is available. In that case, return an uncalculated player object.
+      // Check whether the json matches "{}". If so, no player data is available. In that case, return an outdated player object.
       if (json == "{}")
-        return HuisPlayer.Uncalculated;
+        return HuisPlayer.Outdated;
 
       // Otherwise, deserialize the json.
       HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json);
@@ -158,6 +158,10 @@ public class HuisApiService
       // Check whether the deserialized json is valid.
       if (player is null)
         throw new Exception("Deserialization of JSON returned null.");
+
+      // Check whether the player is outdated. In that case, return an outdated player object.
+      if (player.PPVersion != rework.PPVersion)
+        return HuisPlayer.Outdated;
 
       return player;
     }

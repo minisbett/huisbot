@@ -56,6 +56,12 @@ public class HuisRework
   public string? Description { get; private set; }
 
   /// <summary>
+  /// The version of the rework, used to determine whether a player is up-to-date or not.
+  /// </summary>
+  [JsonProperty("algorithm_version")]
+  public int PPVersion { get; private set; }
+
+  /// <summary>
   /// Bool whether the rework is the live pp system.
   /// </summary>
   public bool IsLive => Id == LiveId;
