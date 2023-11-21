@@ -215,7 +215,7 @@ internal static class Embeds
     {
       aliasesStr = "";
       foreach (IGrouping<int, BeatmapAlias> group in aliases.GroupBy(x => x.Id))
-        aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}";
+        aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
     }
 
     return BaseEmbed
