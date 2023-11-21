@@ -355,6 +355,31 @@ internal static class Embeds
   }
 
   /// <summary>
+  /// Returns an embed for displaying the effective misscount breakdown of the specified score.
+  /// </summary>
+  /// <param name="combo">The combo of the score.</param>
+  /// <param name="maxCombo">The maximum achievable combo.</param>
+  /// <param name="sliderCount">The amount of sliders.</param>
+  /// <param name="hits">The amount of 100s and 50s combined.</param>
+  /// <param name="misses">The amount of misses.</param>
+  /// <param name="cbmc">The combo-based misscount.</param>
+  /// <param name="fct">The full-combo threshold.</param>
+  /// <param name="emc">The effective misscount.</param>
+  /// <returns>An embed for displaying the effective misscount breakdown.</returns>
+  public static Embed EffMissCount(int combo, int maxCombo, int sliderCount, int hits, int misses, double cbmc, double fct, double emc) => BaseEmbed
+    .WithColor(new Color(0x812E2E))
+    .WithTitle("Effective Misscount Breakdown")
+    .WithDescription($"▸ {combo}/{maxCombo}x ▸ {hits} {_emojis["100"]}{_emojis["50"]} {misses} {_emojis["miss"]} ▸ {sliderCount} {_emojis["sliders"]}\n" +
+                     $"```\n" +
+                     $"combo-based misscount | {cbmc.ToString($"F{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}\n" +
+                     $"full-combo threshold  | {fct.ToString($"F{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}\n" +
+                     $"-------------------------------\n" +
+                     $"effective misscount   | {emc.ToString($"F{Math.Max(0, 6 - ((int)emc).ToString().Length)}")}\n" +
+                     $"```" +
+                     $"*The reference code can be found [here](https://github.com/ppy/osu/blob/3d569850b15ad66b3c95e009f173298d65a8e3de/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L249).*")
+    .Build();
+
+  /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
   /// </summary>
   private static Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
