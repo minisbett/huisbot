@@ -27,6 +27,12 @@ public class ProfileCommandModule : ModuleBase
     if (rework is null)
       return;
 
+    // The live rework is required to be passed to GetHuisPlayerAsync down below, since it
+    // requires information about the pp version to determine whether a player is up-to-date.
+    HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());
+    if (live is null)
+      return;
+
     // If no player identifier was specified, try to get one from a link.
     if (playerId is null)
     {
@@ -46,10 +52,10 @@ public class ProfileCommandModule : ModuleBase
 
     // Loop through the following logic once with local = true and local = false, getting the player in both the local and the live rework.
     List<HuisPlayer> players = new List<HuisPlayer>();
-    foreach (int _reworkId in new int[] { rework.Id, HuisRework.LiveId })
+    foreach (HuisRework _rework in new HuisRework[] { rework, live })
     {
       // Get the player in the current rework.
-      HuisPlayer? player = await GetHuisPlayerAsync(user.Id, _reworkId, user.Name ?? "");
+      HuisPlayer? player = await GetHuisPlayerAsync(user.Id, _rework, user.Name ?? "");
       if (player is null)
         return;
 
