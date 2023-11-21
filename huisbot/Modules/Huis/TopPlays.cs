@@ -20,7 +20,7 @@ public class TopPlaysCommandModule : HuisModuleBase
 {
   public TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
 
-  [SlashCommand("topplays", "Displays the top plays of the specified player in the specified rework.")]
+  [SlashCommand("topplays", "Displays the top plays of you or the specified player in the specified rework.")]
   public async Task HandleScoreAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
@@ -52,29 +52,10 @@ public class TopPlaysCommandModule : HuisModuleBase
       return;
 
     // Get the player in the current rework.
-    HuisPlayer? player = await GetHuisPlayerAsync(user.Id, rework.Id);
+    HuisPlayer? player = await GetHuisPlayerAsync(user.Id, rework.Id, user.Name ?? "");
     if (player is null)
       return;
 
-    // If the player was successfully received but is uncalculated, queue the player if necessary and notify the user.
-    else if (!player.IsCalculated)
-    {
-      // Get the calculation queue.
-      HuisQueue? queue = await GetHuisQueueAsync();
-      if (queue is null)
-        return;
-
-      // Check whether the player is already queued. If so, notify the user.
-      if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == rework.Id))
-      {
-        await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated. Please try again later."));
-        return;
-      }
-
-      // Queue the player.
-      await QueuePlayerAsync(user, rework.Id);
-      return;
-    }
     // Get the top plays of the player.
     HuisScore[]? scores = await GetTopPlaysAsync(user, rework.Id);
     if (scores is null)
