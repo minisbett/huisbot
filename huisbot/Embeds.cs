@@ -169,7 +169,7 @@ internal static class Embeds
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
     string mods = modsStr == "" ? "" : $"+{modsStr}";
-    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.BPM:0.###}** {_emojis["BPM"]}";
+    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.BPM:0.###}** {_emojis["bpm"]}";
     string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
     string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
