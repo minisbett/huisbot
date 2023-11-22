@@ -41,6 +41,7 @@ public class Program
     {
       Console.ForegroundColor = ConsoleColor.Red;
       Console.WriteLine(ex);
+      Console.ForegroundColor = ConsoleColor.Gray;
       Environment.ExitCode = 727;
     }
   }
@@ -100,7 +101,7 @@ public class Program
         // Add the handler for Discord interactions.
         services.AddHostedService<InteractionHandler>();
 
-        // Add the osu! API service for communicating with the osu! v1 API.
+        // Add the osu! API service for communicating with the osu! API.
         services.AddSingleton<OsuApiService>();
 
         // Add the Huis API service for communicating with the Huis API.
@@ -121,10 +122,10 @@ public class Program
             client.DefaultRequestHeaders.Add("x-onion-key", onionKey);
         });
 
-        // Add an http client for communicating with the osu! v1 API.
+        // Add an http client for communicating with the osu! API.
         services.AddHttpClient("osuapi", client =>
         {
-          client.BaseAddress = new Uri("https://osu.ppy.sh/api/");
+          client.BaseAddress = new Uri("https://osu.ppy.sh/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
         });
 
@@ -139,6 +140,17 @@ public class Program
 
     // Run migrations on the database.
     await host.Services.GetRequiredService<Database>().Database.MigrateAsync();
+
+    // Ensure that all APIs are available.
+    OsuApiService osu = host.Services.GetRequiredService<OsuApiService>();
+    HuisApiService huis = host.Services.GetRequiredService<HuisApiService>();
+    if (!await osu.IsV1AvailableAsync())
+      throw new Exception("The osu! v1 API was deemed unavailable at startup.");
+    if (!await osu.IsV2AvailableAsync())
+      throw new Exception("The osu! v2 API was deemed unavailable at startup.");
+    if (!await huis.IsAvailableAsync())
+      throw new Exception("The Huis API was deemed unavailable at startup.");
+
 
     // Try to initially load the reworks for a faster use after startup.
     HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();

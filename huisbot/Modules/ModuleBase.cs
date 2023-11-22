@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
@@ -251,13 +252,16 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>The beatmap.</returns>
   public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
   {
-    // If the identifier is not a number, try to find an alias.
+    // If the identifier is not a number, try to find a beatmap alias.
     if (!beatmapId.All(char.IsDigit))
     {
       // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
-      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
+      IDAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
       if (alias is null)
-        await FollowupAsync(embed: Embeds.Error($"Alias `{beatmapId}` could not be found."));
+      {
+        await FollowupAsync(embed: Embeds.Error($"Beatmap alias `{beatmapId}` could not be found."));
+        return null;
+      }
       else
         beatmapId = alias.Id.ToString();
     }
@@ -267,9 +271,9 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     if (beatmap is null)
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
     else if (!beatmap.WasFound)
-      await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could not be found."));
+      await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could be found."));
 
-    return beatmap;
+    return (beatmap?.WasFound ?? false) ? beatmap : null;
   }
 
   /// <summary>
@@ -305,5 +309,35 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the difficulty rating for the beatmap."));
 
     return rating;
+  }
+
+  /// <summary>
+  /// Returns the score by the specified identifier. (Score ID or alias)
+  /// </summary>
+  /// <param name="scoreId">An identifier for the score. (Score ID or alias)</param>
+  /// <returns>The score.</returns>
+  public async Task<OsuScore?> GetScoreAsync(int rulesetId, string scoreId)
+  {
+    // If the identifier is not a number, try to find a score alias.
+    if (!scoreId.All(char.IsDigit))
+    {
+      // Get the score alias. If none could be found, notify the user. Otherwise replace the identifier.
+      IDAlias? alias = await _persistence.GetScoreAliasAsync(scoreId);
+      if (alias is null)
+      {
+        await FollowupAsync(embed: Embeds.Error($"Score alias `{scoreId}` could not be found."));
+        return null;
+      }
+      else
+        scoreId = alias.Id.ToString();
+    }
+    // Get the score from the osu! API. If it failed or the score was not found, notify the user.
+    OsuScore? score = await _osu.GetScoreAsync(rulesetId, long.Parse(scoreId));
+    if (score is null)
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the score from the osu! API."));
+    else if (!score.WasFound)
+      await FollowupAsync(embed: Embeds.Error($"No score with ID `{scoreId}` could be found."));
+
+    return (score?.WasFound ?? false) ? score : null;
   }
 }

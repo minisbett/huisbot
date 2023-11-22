@@ -16,7 +16,12 @@ public class Database : DbContext
   /// <summary>
   /// The table containing aliases for beatmap IDs, providing easier access.
   /// </summary>
-  public DbSet<BeatmapAlias> BeatmapAliases { get; set; }
+  public DbSet<IDAlias> BeatmapAliases { get; set; }
+
+  /// <summary>
+  /// The table containing aliases for score IDs, providing easier access.
+  /// </summary>
+  public DbSet<IDAlias> ScoreAliases { get; set; }
 
   public Database(DbContextOptions<Database> options) : base(options) { }
 }

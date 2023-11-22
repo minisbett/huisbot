@@ -14,7 +14,7 @@ public class OsuBeatmap
   public static OsuBeatmap NotFound => new OsuBeatmap() { WasFound = false };
 
   /// <summary>
-  /// Bool whether the beatmap could be found or not. This property is used in <see cref="OsuApiService.GetBeatmapAsync(string)"/>, which returns
+  /// Bool whether the beatmap could be found or not. This property is used in <see cref="OsuApiService.GetBeatmapAsync(int)"/>, which returns
   /// an object where this is false in order to report that the request was successful, but no beatmap was found back to the caller.
   /// </summary>
   public bool WasFound { get; init; } = true;

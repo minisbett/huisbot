@@ -22,24 +22,51 @@ public class SimulateCommandModule : ModuleBase
 
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
-    [Summary("beatmap", "The ID or alias of the beatmap.")] string beatmapId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Summary("score", "The ID or alias of a score to base the score attributes off. Can be overriden by other parameters.")] string? scoreId = null,
+    [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
     [Summary("100s", "The amount of 100s/oks in the score.")] int? count100 = null,
     [Summary("50s", "The amount of 50s/mehs in the score.")] int? count50 = null,
     [Summary("misses", "The amount of misses in the score.")] int? misses = null,
-    [Summary("mods", "The mods used in the score.")] string mods = "")
+    [Summary("mods", "The mods used in the score.")] string? mods = null)
   {
     await DeferAsync();
+
+    // Check if either a beatmap ID or a score ID was .
+    if (beatmapId is null && scoreId is null)
+    {
+      await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
+      return;
+    }
 
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
 
+    // If a score ID was specified, get the score and fill the unset parameters with it's attributes.
+    if (scoreId is not null)
+    {
+      OsuScore? score = await GetScoreAsync(rework.RulesetId, scoreId);
+      if (score is null)
+        return;
+
+      // Replace all unset parameters with the attributes of the score.
+      beatmapId = score.Beatmap.Id.ToString();
+      combo ??= score.MaxCombo;
+      count100 ??= score.Statistics.Count100;
+      count50 ??= score.Statistics.Count50;
+      misses ??= score.Statistics.Misses;
+      mods ??= string.Join("", score.Mods);
+    }
+
+    // Default mods to "" if they haven't been initialized by score parsing before.
+    mods ??= "";
+
     // Get the beatmap from the identifier.
-    OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
+    OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId!);
     if (beatmap is null)
       return;
 

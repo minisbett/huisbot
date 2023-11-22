@@ -50,7 +50,7 @@ public class PersistenceService
   /// Returns all beatmap aliases.
   /// </summary>
   /// <returns>The beatmap aliases.</returns>
-  public async Task<BeatmapAlias[]> GetBeatmapAliasesAsync()
+  public async Task<IDAlias[]> GetBeatmapAliasesAsync()
   {
     return await _database.BeatmapAliases.ToArrayAsync();
   }
@@ -60,7 +60,7 @@ public class PersistenceService
   /// </summary>
   /// <param name="alias">The alias text.</param>
   /// <returns>The beatmap alias.</returns>
-  public async Task<BeatmapAlias?> GetBeatmapAliasAsync(string alias)
+  public async Task<IDAlias?> GetBeatmapAliasAsync(string alias)
   {
     // Get all beatmap aliases and try to find the specified one.
     return await _database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == alias);
@@ -70,7 +70,7 @@ public class PersistenceService
   /// Adds the specified alias to the database.
   /// </summary>
   /// <param name="alias">The alias.</param>
-  public async Task AddBeatmapAliasAsync(BeatmapAlias alias)
+  public async Task AddBeatmapAliasAsync(IDAlias alias)
   {
     // Add the beatmap alias to the database.
     _database.BeatmapAliases.Add(alias);
@@ -81,10 +81,52 @@ public class PersistenceService
   /// Removes the specified beatmap alias from the database.
   /// </summary>
   /// <param name="alias">The alias.</param>
-  public async Task RemoveBeatmapAliasAsync(BeatmapAlias alias)
+  public async Task RemoveBeatmapAliasAsync(IDAlias alias)
   {
     // Remove the beatmap alias from the database.
     _database.BeatmapAliases.Remove(alias);
+    await _database.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Returns all score aliases.
+  /// </summary>
+  /// <returns>The score aliases.</returns>
+  public async Task<IDAlias[]> GetScoreAliasesAsync()
+  {
+    return await _database.ScoreAliases.ToArrayAsync();
+  }
+
+  /// <summary>
+  /// Returns the score alias by the specified alias text.
+  /// </summary>
+  /// <param name="alias">The alias text.</param>
+  /// <returns>The score alias.</returns>
+  public async Task<IDAlias?> GetScoreAliasAsync(string alias)
+  {
+    // Get all score aliases and try to find the specified one.
+    return await _database.ScoreAliases.FirstOrDefaultAsync(x => x.Alias == alias);
+  }
+
+  /// <summary>
+  /// Adds the specified score alias to the database.
+  /// </summary>
+  /// <param name="alias">The score alias.</param>
+  public async Task AddScoreAliasAsync(IDAlias alias)
+  {
+    // Add the score alias to the database.
+    _database.ScoreAliases.Add(alias);
+    await _database.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Removes the specified score alias from the database.
+  /// </summary>
+  /// <param name="alias">The score alias.</param>
+  public async Task RemoveScoreAliasAsync(IDAlias alias)
+  {
+    // Remove the score alias from the database.
+    _database.ScoreAliases.Remove(alias);
     await _database.SaveChangesAsync();
   }
 }

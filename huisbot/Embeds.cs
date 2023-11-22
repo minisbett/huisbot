@@ -125,13 +125,14 @@ internal static class Embeds
   /// <param name="osuAvailable">Bool whether the osu! api is available.</param>
   /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
-  public static Embed Info(bool osuAvailable, bool huisAvailable) => BaseEmbed
+  public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
     .WithColor(new Color(0xFFD4A8))
     .WithTitle($"Information about Huisbot {Program.VERSION}")
     .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
                      "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
     .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source](https://github.com/minisbett/huisbot)", true)
-    .AddField("API Status", $"osu! {new Discord.Emoji(osuAvailable ? "✅" : "❌")}\nHuismetbenen {new Discord.Emoji(huisAvailable ? "✅" : "❌")}", true)
+    .AddField("API Status", $"osu!api v1 {new Discord.Emoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new Discord.Emoji(osuV2Available ? "✅" : "❌")}\n" +
+                            $"Huismetbenen {new Discord.Emoji(huisAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
 
@@ -204,23 +205,48 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The beatmap aliases.</param>
   /// <returns>An embed for displaying the beatmap aliases.</returns>
-  public static Embed Aliases(BeatmapAlias[] aliases)
+  public static Embed BeatmapAliases(IDAlias[] aliases)
   {
     // Sort the aliases by alphabetical order.
     aliases = aliases.OrderBy(x => x.Alias).ToArray();
 
     // Build the alias string.
-    string aliasesStr = "*There are no aliases. You can add some via `/alias add`.*";
+    string aliasesStr = "*There are no beatmap aliases. You can add some via `/alias beatmap add`.*";
     if (aliases.Length > 0)
     {
       aliasesStr = "";
-      foreach (IGrouping<int, BeatmapAlias> group in aliases.GroupBy(x => x.Id))
+      foreach (IGrouping<int, IDAlias> group in aliases.GroupBy(x => x.Id))
         aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
     }
 
     return BaseEmbed
       .WithTitle("List of all beatmap aliases")
       .WithDescription($"*These aliases can be in place of where you'd specify a beatmap ID in order to access those beatmaps more easily.*\n\n{aliasesStr}")
+      .Build();
+  }
+
+  /// <summary>
+  /// Returns an embed for displaying all score aliases.
+  /// </summary>
+  /// <param name="aliases">The score aliases.</param>
+  /// <returns>An embed for displaying the score aliases.</returns>
+  public static Embed ScoreAliases(IDAlias[] aliases)
+  {
+    // Sort the aliases by alphabetical order.
+    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+
+    // Build the alias string.
+    string aliasesStr = "*There are no score aliases. You can add some via `/alias score add`.*";
+    if (aliases.Length > 0)
+    {
+      aliasesStr = "";
+      foreach (IGrouping<long, IDAlias> group in aliases.GroupBy(x => x.Id))
+        aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/scores/osu/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
+    }
+
+    return BaseEmbed
+      .WithTitle("List of all score aliases")
+      .WithDescription($"*These aliases can be in place of where you'd specify a score ID in order to access those scores more easily.*\n\n{aliasesStr}")
       .Build();
   }
 
