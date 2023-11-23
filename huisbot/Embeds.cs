@@ -3,6 +3,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Utils.Extensions;
+using ScottPlot.Statistics;
 using System.ComponentModel.Design;
 using System.Numerics;
 using System.Text.RegularExpressions;
@@ -400,12 +401,24 @@ internal static class Embeds
     .WithTitle("Effective Misscount Breakdown")
     .WithDescription($"▸ {combo}/{maxCombo}x ▸ {hits} {_emojis["100"]}{_emojis["50"]} {misses} {_emojis["miss"]} ▸ {sliderCount} {_emojis["sliders"]}\n" +
                      $"```\n" +
-                     $"combo-based misscount | {cbmc.ToString($"F{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}\n" +
-                     $"full-combo threshold  | {fct.ToString($"F{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}\n" +
+                     $"combo-based misscount | {cbmc.ToString($"N{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}\n" +
+                     $"full-combo threshold  | {fct.ToString($"N{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}\n" +
                      $"-------------------------------\n" +
-                     $"effective misscount   | {emc.ToString($"F{Math.Max(0, 6 - ((int)emc).ToString().Length)}")}\n" +
+                     $"effective misscount   | {emc.ToString($"N{Math.Max(0, 6 - ((int)emc).ToString().Length)}")}\n" +
                      $"```" +
                      $"*The reference code can be found [here](https://github.com/ppy/osu/blob/3d569850b15ad66b3c95e009f173298d65a8e3de/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L249).*")
+    .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying the UR estimation breakdown of the specified score.
+  /// </summary>
+  /// <param name="ur">The estimated UR.</param>
+  /// <returns></returns>
+  internal static Embed EstimateUR(double hitWindow300, double hitWindow100, double hitWindow50, double? ur) => BaseEmbed
+    .WithColor(new Color(0x812E2E))
+    .WithTitle("UR estimation Breakdown")
+    .WithDescription($"Estimated UR: {ur?.ToString("N2") ?? "null"}\n" +
+                     $"*The reference code can be found [here](https://github.com/Fr0stium/osu/blob/e09beebe1de2fc64538606495d8597c36f9e3353/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L324).*")
     .Build();
 
   /// <summary>

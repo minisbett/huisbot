@@ -45,7 +45,7 @@ public class OsuScore
   public string[] Mods { get; private set; } = new string[0];
 
   /// <summary>
-  /// The statistics (100s, 50s, misses) of the score.
+  /// The statistics (300s, 100s, 50s, misses) of the score.
   /// </summary>
   [JsonProperty("statistics")]
   public OsuScoreStatistics Statistics { get; private set; } = new OsuScoreStatistics();
@@ -91,6 +91,12 @@ public class OsuScore
   /// </summary>
   public class OsuScoreStatistics
   {
+    /// <summary>
+    /// The amount of 300s in the score.
+    /// </summary>
+    [JsonProperty("count_300")]
+    public int Count300 { get; private set; }
+
     /// <summary>
     /// The amount of 100s in the score.
     /// </summary>
