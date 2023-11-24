@@ -173,9 +173,9 @@ internal static class Embeds
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
     string mods = modsStr == "" ? "" : $"+{modsStr}";
-    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.GetBPM(modsStr):0.###}** {_emojis["bpm"]}";
-    string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
-    string stats3 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    string stats2 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.GetBPM(modsStr):0.###}** {_emojis["bpm"]}";
+    string stats3 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
     string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount, beatmap.SliderCount,
                            beatmap.AdjustedOD(modsStr), ModUtils.GetClockRate(modsStr)):F2}** eUR";
     string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmap.Id})";
