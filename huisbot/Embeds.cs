@@ -2,6 +2,7 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
+using huisbot.Utils;
 using huisbot.Utils.Extensions;
 using ScottPlot.Statistics;
 using System.ComponentModel.Design;
@@ -100,11 +101,12 @@ internal static class Embeds
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
   public static Embed Player(HuisPlayer local, HuisPlayer live, HuisRework rework)
   {
-    string total = Math.Abs(local.NewPP - local.OldPP) < 0.01 ? $"**{local.NewPP:N2}pp**" : $"{live.OldPP:N2} → **{local.NewPP:N2}pp** *({local.NewPP - live.OldPP:+#,##0.00;-#,##0.00}pp)*";
-    string aim = Math.Abs(live.AimPP - local.AimPP) < 0.01 ? $"**{local.AimPP:N2}pp**" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string tap = Math.Abs(live.TapPP - local.TapPP) < 0.01 ? $"**{local.TapPP:N2}pp**" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = Math.Abs(live.AccPP - local.AccPP) < 0.01 ? $"**{local.AccPP:N2}pp**" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
-    string fl = Math.Abs(live.FLPP - local.FLPP) < 0.01 ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    // Construct some strings for the embed.
+    string total = GetPPDifferenceText(local.OldPP, local.NewPP);
+    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
+    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
+    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
+    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -162,17 +164,20 @@ internal static class Embeds
   public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
   {
     // Construct some strings for the embed.
-    string total = Math.Abs(local.TotalPP - live.TotalPP) < 0.01 ? $"**{local.TotalPP:N2}pp**" : $"{live.TotalPP:N2} → **{local.TotalPP:N2}pp** *({local.TotalPP - live.TotalPP:+#,##0.00;-#,##0.00}pp)*";
-    string aim = Math.Abs(live.AimPP - local.AimPP) < 0.01 ? $"**{local.AimPP:N2}pp**" : $"{live.AimPP:N2} → **{local.AimPP:N2}pp** *({local.AimPP - live.AimPP:+#,##0.00;-#,##0.00}pp)*";
-    string tap = Math.Abs(live.TapPP - local.TapPP) < 0.01 ? $"**{local.TapPP:N2}pp**" : $"{live.TapPP:N2} → **{local.TapPP:N2}pp** *({local.TapPP - live.TapPP:+#,##0.00;-#,##0.00}pp)*";
-    string acc = Math.Abs(live.AccPP - local.AccPP) < 0.01 ? $"**{local.AccPP:N2}pp**" : $"{live.AccPP:N2} → **{local.AccPP:N2}pp** *({local.AccPP - live.AccPP:+#,##0.00;-#,##0.00}pp)*";
-    string fl = Math.Abs(live.FLPP - local.FLPP) < 0.01 ? $"{local.FLPP:N2}pp" : $"~~{live.FLPP:N2}~~ {local.FLPP:N2}pp *({local.FLPP - live.FLPP:+#,##0.00;-#,##0.00}pp)*";
+    string total = GetPPDifferenceText(local.TotalPP, local.TotalPP);
+    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
+    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
+    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
+    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
     string mods = modsStr == "" ? "" : $"+{modsStr}";
-    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.BPM:0.###}** {_emojis["bpm"]}";
+    string stats1 = $"CS **{beatmap.AdjustedCS(modsStr):0.#}** AR **{beatmap.AdjustedAR(modsStr):0.#}** ▸ **{beatmap.GetBPM(modsStr):0.###}** {_emojis["bpm"]}";
     string stats2 = $"OD **{beatmap.AdjustedOD(modsStr):0.#}** HP **{beatmap.AdjustedHP(modsStr):0.#}**";
+    string stats3 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount, beatmap.SliderCount,
+                           beatmap.AdjustedOD(modsStr), ModUtils.GetClockRate(modsStr)):F2}** eUR";
     string visualizer = $"[map visualizer](https://osu.direct/preview?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -182,8 +187,8 @@ internal static class Embeds
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] {mods} [{difficultyRating:N2}★]")
       .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
-               $"{visualizer} • {osu} • {huisRework} • {github}", true)
-      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}", true)
+               $"{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
@@ -282,7 +287,7 @@ internal static class Embeds
       if ($"{title} [{version}]".Length > 60 && title.Length > 27)
         title = $"{title.Substring(0, 27)}...";
 
-      string pp = score.LivePP == score.LocalPP ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+      string pp = GetPPDifferenceText(score.LivePP, score.LocalPP);
       string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
       string mods = modsStr == "" ? "" : $"+{modsStr}";
 
@@ -334,7 +339,7 @@ internal static class Embeds
       if ($"{title} [{version}]".Length > 80 && title.Length > 37)
         title = $"{title.Substring(0, 37)}...";
 
-      string pp = Math.Abs(score.LocalPP - score.LivePP) < 0.01 ? $"**{score.LocalPP:N2}pp**" : $"{score.LivePP:N2} → **{score.LocalPP:N2}pp** *({score.LocalPP - score.LivePP:+#,##0.00;-#,##0.00}pp)*";
+      string pp = GetPPDifferenceText(score.LivePP, score.LocalPP);
       string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
       string mods = modsStr == "" ? "" : $"+{modsStr}";
 
@@ -344,8 +349,7 @@ internal static class Embeds
     }
 
     // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of " +
-                    $"{Math.Ceiling(allScores.Length / 10d)}.*");
+    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of {Math.Ceiling(allScores.Length / 10d)}.*");
 
     return BaseEmbed
       .WithTitle($"Top Plays of {user.Name}")
@@ -368,13 +372,9 @@ internal static class Embeds
     List<string> description = new List<string>()
     { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})\n" };
     foreach (HuisPlayer player in players)
-    {
-      string pp = Math.Abs(player.NewPP - player.OldPP) < 0.01 ? $"**{player.NewPP:N2}pp**" : $"{player.OldPP:N2} → **{player.NewPP:N2}pp** *({player.NewPP - player.OldPP:+#,##0.00;-#,##0.00}pp)*";
-
       // Add the info to the description lines.
-      description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {pp} ▸ " +
+      description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {GetPPDifferenceText(player.OldPP, player.NewPP)} ▸ " +
                       $"[Huis Profile](https://pp.huismetbenen.nl/player{player.Id}/{rework.Code})");
-    }
 
     description.Add($"\n*Displaying players {page * 20 - 19}-{page * 20} on page {page} of {Math.Ceiling(allPlayers.Length / 20d)}.*");
 
@@ -410,16 +410,21 @@ internal static class Embeds
     .Build();
 
   /// <summary>
-  /// Returns an embed for displaying the UR estimation breakdown of the specified score.
+  /// Returns a string representing the difference between two PP values, including the old and new PP values.
   /// </summary>
-  /// <param name="ur">The estimated UR.</param>
-  /// <returns></returns>
-  internal static Embed EstimateUR(double hitWindow300, double hitWindow100, double hitWindow50, double? ur) => BaseEmbed
-    .WithColor(new Color(0x812E2E))
-    .WithTitle("UR estimation Breakdown")
-    .WithDescription($"Estimated UR: {ur?.ToString("N2") ?? "null"}\n" +
-                     $"*The reference code can be found [here](https://github.com/Fr0stium/osu/blob/e09beebe1de2fc64538606495d8597c36f9e3353/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L324).*")
-    .Build();
+  /// <param name="oldPP">The old PP.</param>
+  /// <param name="newPP">The new PP.</param>
+  /// <returns>A string representing the difference between two PP values.</returns>
+  private static string GetPPDifferenceText(double oldPP, double newPP)
+  {
+    // Calculate the difference between the two PP values. If it's less than 0.01, the PP values are the same.
+    double difference = newPP - oldPP;
+    if(Math.Abs(difference) < 0.01)
+      return $"**{newPP:N2}pp**";
+
+    // Otherwise return the difference string.
+    return $"{oldPP:N2} → **{newPP:N2}pp** *({difference:+#,##0.00;-#,##0.00}pp)*";
+  }
 
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.

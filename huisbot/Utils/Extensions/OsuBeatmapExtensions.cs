@@ -1,4 +1,5 @@
 ﻿using huisbot.Models.Osu;
+using System;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace huisbot.Utils.Extensions;
@@ -6,7 +7,7 @@ namespace huisbot.Utils.Extensions;
 /// <summary>
 /// Provides extension methods for the <see cref="OsuBeatmap"/> class.
 /// </summary>
-internal static class BeatmapExtensions
+internal static class OsuBeatmapExtensions
 {
   /// <summary>
   /// Returns the length of the beatmap, including clock rate changes through specified mods.
@@ -19,12 +20,8 @@ internal static class BeatmapExtensions
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
     TimeSpan span = TimeSpan.FromSeconds(beatmap.Length);
 
-    // If DoubleTime/Nightcore, the length is divided by 1.5.
-    if (mods.Contains("DT") || mods.Contains("NC"))
-      return span / 1.5;
-    // If HalfTime, the length is multiplied by 1.5.
-    else if (mods.Contains("HT"))
-      return span * 1.5;
+    // Multiply the timespan by the clock rate of the mods.
+    span *= ModUtils.GetClockRate(modsStr);
 
     return span;
   }
@@ -39,14 +36,8 @@ internal static class BeatmapExtensions
   {
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
-    // If DoubleTime/Nightcore, the BPM is multiplied by 1.5.
-    if (mods.Contains("DT") || mods.Contains("NC"))
-      return Math.Round(beatmap.BPM * 1.5, 2);
-    // If HalfTime, the BPM is didided by 1.5.
-    else if (mods.Contains("HT"))
-      return Math.Round(beatmap.BPM / 1.5, 2);
-
-    return beatmap.BPM;
+    // Return the BPM multiplied by the clock rate of the mods.
+    return beatmap.BPM * ModUtils.GetClockRate(modsStr);
   }
 
   /// <summary>
@@ -115,9 +106,9 @@ internal static class BeatmapExtensions
     // If Easy, the OD is multiplied by 0.5.
     else if (mods.Contains("EZ"))
       od *= 0.5;
-    // If DoubleTime/Nightcore or HalfTime, the hitwindow is divided by 1.5 and 0.66 respectively.
+    // If DoubleTime/Nightcore or HalfTime, the hitwindow is divided by 1.3333 or 0.6666 respectively.
     if (mods.Contains("DT") || mods.Contains("NC") || mods.Contains("HT"))
-      od = (-40 + 12 * od) / (27 / (mods.Contains("HT") ? 0.66 : 1.5));
+      od = (80 - (80 - 6 * od) / (mods.Contains("HT") ? 2 / 3d : 3 / 2d)) / 6;
 
     return Math.Min(od, 11.1);
   }

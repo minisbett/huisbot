@@ -5,7 +5,7 @@ namespace huisbot.Utils.Extensions;
 /// <summary>
 /// Provides extension methods for the <see cref="HuisRework"/> class.
 /// </summary>
-internal static class ReworkExtensions
+internal static class HuisReworkExtensions
 {
   /// <summary>
   /// Returns an URL to the commit of the rework.
