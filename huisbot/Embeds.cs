@@ -264,6 +264,8 @@ internal static class Embeds
     HuisScore[] scores = allScores.Skip((page - 1) * 10).Take(10).ToArray();
 
     // Generate the embed description.
+    string osuProfile = $"";
+    string huisProfile = $"";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
@@ -319,6 +321,7 @@ internal static class Embeds
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
+      $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code}) • " +
       $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
       ""
     };
