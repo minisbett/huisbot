@@ -4,11 +4,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Utils;
 using huisbot.Utils.Extensions;
-using ScottPlot.Statistics;
-using System.ComponentModel.Design;
-using System.Numerics;
-using System.Text.RegularExpressions;
-using static System.Formats.Asn1.AsnWriter;
 using Emoji = huisbot.Models.Utility.Emoji;
 
 namespace huisbot;
@@ -164,7 +159,7 @@ internal static class Embeds
   public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
   {
     // Construct some strings for the embed.
-    string total = GetPPDifferenceText(local.TotalPP, local.TotalPP);
+    string total = GetPPDifferenceText(live.TotalPP, local.TotalPP);
     string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
     string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
     string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
