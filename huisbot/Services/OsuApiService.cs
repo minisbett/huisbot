@@ -241,6 +241,10 @@ public class OsuApiService
   /// <returns>The score with the specified ID./returns>
   public async Task<OsuScore?> GetScoreAsync(int rulesetId, long scoreId)
   {
+    // Make sure a valid access token exists. If not, return null.
+    if (!await EnsureAccessTokenAsync())
+      return null;
+
     // Get the string version of the ruleset ID.
     string ruleset = rulesetId switch
     {

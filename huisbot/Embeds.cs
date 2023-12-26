@@ -264,8 +264,6 @@ internal static class Embeds
     HuisScore[] scores = allScores.Skip((page - 1) * 10).Take(10).ToArray();
 
     // Generate the embed description.
-    string osuProfile = $"";
-    string huisProfile = $"";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
