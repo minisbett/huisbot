@@ -19,8 +19,12 @@ public class ReworksCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    if (IsOnionAsync())
-      await FollowupAsync("test");
+    // Make sure the user is an onion.
+    if(!IsOnion)
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // Get all available reworks from the Huis API.
     HuisRework[]? reworks = await GetReworksAsync();

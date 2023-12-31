@@ -22,6 +22,13 @@ public class ProfileCommandModule : ModuleBase
   {
     await DeferAsync();
 
+    // Make sure the user is an onion.
+    if (!IsOnion)
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
+
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)

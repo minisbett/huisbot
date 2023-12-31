@@ -26,7 +26,14 @@ public class StatisticCommandModule : ModuleBase
     [Summary("amount", "Amount of entries to include, up to 500. Default is 500.") ][MinValue(1)] [MaxValue(500)] int amount = 500)
   {
     await DeferAsync();
-    bool topscores = statisticId == "topscores"; // True = topscores, False = topplayers
+    string target = statisticId.Substring(3, 1) + statisticId.Substring(4).TrimEnd('s'); // topscores or topplayers => Score or Player
+
+    // Make sure the user is an onion.
+    if (!IsOnion)
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
@@ -41,11 +48,11 @@ public class StatisticCommandModule : ModuleBase
     // Configure the plot with a size of 1000x600, colors, a legend in the upper center, the axis labels and an extra axis on the right for the difference.
     Plot liveLocal = new Plot(1000, 600);
     liveLocal.Style(Color.FromArgb(63, 66, 66), Color.FromArgb(63, 66, 66), Color.FromArgb(57, 59, 59), null, null, Color.White);
-    liveLocal.Title($"{(topscores ? "Top Scores" : "Top Players")} - Live vs {rework.Name} @ {DateTime.UtcNow.ToShortDateString()} " +
+    liveLocal.Title($"Top {target}s - Live vs {rework.Name} @ {DateTime.UtcNow.ToShortDateString()} " +
                     $"{DateTime.UtcNow.ToLongTimeString()} (commit {rework.Commit})");
     liveLocal.LeftAxis.Label("Performance Points");
     liveLocal.LeftAxis.Color(Color.LightGray);
-    liveLocal.BottomAxis.Label($"No. # Top {(topscores ? "Score" : "Player")}");
+    liveLocal.BottomAxis.Label($"No. # Top {target}");
     liveLocal.BottomAxis.Color(Color.LightGray);
     liveLocal.AddAxis(Edge.Right, 2, "Difference", Color.LightGray);
     Legend legend = liveLocal.Legend(true, Alignment.UpperCenter);
