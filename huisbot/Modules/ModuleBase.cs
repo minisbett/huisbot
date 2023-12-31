@@ -230,8 +230,6 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>Bool whether the queueing was successful or not.</returns>
   public async Task<bool> QueuePlayerAsync(OsuUser player, int reworkId)
   {
-    string type = reworkId == HuisRework.LiveId ? "live" : "local";
-
     // Queue the player and notify the user whether it was successful.
     bool queued = await _huis.QueuePlayerAsync(player.Id, reworkId);
     if (queued)
@@ -253,14 +251,14 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     if (!beatmapId.All(char.IsDigit))
     {
       // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
-      IDAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
+      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(beatmapId);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"Beatmap alias `{beatmapId}` could not be found."));
         return null;
       }
       else
-        beatmapId = alias.Id.ToString();
+        beatmapId = alias.BeatmapId.ToString();
     }
 
     // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
@@ -319,14 +317,14 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     if (!scoreId.All(char.IsDigit))
     {
       // Get the score alias. If none could be found, notify the user. Otherwise replace the identifier.
-      IDAlias? alias = await _persistence.GetScoreAliasAsync(scoreId);
+      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(scoreId);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"Score alias `{scoreId}` could not be found."));
         return null;
       }
       else
-        scoreId = alias.Id.ToString();
+        scoreId = alias.ScoreId.ToString();
     }
     // Get the score from the osu! API. If it failed or the score was not found, notify the user.
     OsuScore? score = await _osu.GetScoreAsync(rulesetId, long.Parse(scoreId));

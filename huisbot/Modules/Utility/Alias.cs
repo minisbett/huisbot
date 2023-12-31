@@ -39,10 +39,10 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the beatmap alias already exists.
-      IDAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is not null)
       {
-        await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{alias.Id})"));
+        await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{alias.BeatmapId})"));
         return;
       }
 
@@ -52,7 +52,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
         return;
 
       // Add the beatmap alias.
-      alias = new IDAlias(aliasText, beatmapId, $"{beatmap.Title} [{beatmap.Version}]");
+      alias = new BeatmapAlias(aliasText, beatmapId, $"{beatmap.Title} [{beatmap.Version}]");
       await _persistence.AddBeatmapAliasAsync(alias);
       await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has successfully added.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{beatmapId})"));
     }
@@ -65,7 +65,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the beatmap alias exists.
-      IDAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` does not exist."));
@@ -87,10 +87,18 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the beatmap alias exists.
-      IDAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await base.FollowupAsync(embed: Embeds.Error($"The beatmap alias `{alias}` does not exist."));
+        return;
+      }
+
+      // Check whether the new name is already taken.
+      BeatmapAlias? _alias = await _persistence.GetBeatmapAliasAsync(newName);
+      if (_alias is not null)
+      {
+        await FollowupAsync(embed: Embeds.Error($"The score alias `{newName}` already exists.\n[{_alias.DisplayName}](https://osu.ppy.sh/b/{_alias.BeatmapId})"));
         return;
       }
 
@@ -130,10 +138,10 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the score alias already exists.
-      IDAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
       if (alias is not null)
       {
-        await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{alias.Id})"));
+        await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{alias.ScoreId})"));
         return;
       }
 
@@ -143,7 +151,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
         return;
 
       // Add the score alias.
-      alias = new IDAlias(aliasText, scoreId, $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]");
+      alias = new ScoreAlias(aliasText, scoreId, $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]");
       await _persistence.AddScoreAliasAsync(alias);
       await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has successfully added.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
     }
@@ -156,7 +164,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the score alias exists.
-      IDAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` does not exist."));
@@ -178,10 +186,18 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Check whether the score alias exists.
-      IDAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
       if (alias is null)
       {
-        await base.FollowupAsync(embed: Embeds.Error($"The score alias `{alias}` does not exist."));
+        await FollowupAsync(embed: Embeds.Error($"The score alias `{alias}` does not exist."));
+        return;
+      }
+
+      // Check whether the new name is already taken.
+      ScoreAlias? _alias = await _persistence.GetScoreAliasAsync(newName);
+      if (_alias is not null)
+      {
+        await FollowupAsync(embed: Embeds.Error($"The score alias `{newName}` already exists.\n[{_alias.DisplayName}](https://osu.ppy.sh/scores/osu/{_alias.ScoreId})"));
         return;
       }
 

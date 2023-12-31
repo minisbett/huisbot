@@ -216,7 +216,7 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The beatmap aliases.</param>
   /// <returns>An embed for displaying the beatmap aliases.</returns>
-  public static Embed BeatmapAliases(IDAlias[] aliases)
+  public static Embed BeatmapAliases(BeatmapAlias[] aliases)
   {
     // Sort the aliases by alphabetical order.
     aliases = aliases.OrderBy(x => x.Alias).ToArray();
@@ -226,7 +226,7 @@ internal static class Embeds
     if (aliases.Length > 0)
     {
       aliasesStr = "";
-      foreach (IGrouping<int, IDAlias> group in aliases.GroupBy(x => x.Id))
+      foreach (IGrouping<long, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
         aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
     }
 
@@ -241,17 +241,17 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The score aliases.</param>
   /// <returns>An embed for displaying the score aliases.</returns>
-  public static Embed ScoreAliases(IDAlias[] aliases)
+  public static Embed ScoreAliases(ScoreAlias[] aliases)
   {
     // Sort the aliases by alphabetical order.
     aliases = aliases.OrderBy(x => x.Alias).ToArray();
 
     // Build the alias string.
     string aliasesStr = "*There are no score aliases. You can add some via `/alias score add`.*";
-    if (aliases.Length > 0)
+    if (aliases.Length > 0) 
     {
       aliasesStr = "";
-      foreach (IGrouping<long, IDAlias> group in aliases.GroupBy(x => x.Id))
+      foreach (IGrouping<long, ScoreAlias> group in aliases.GroupBy(x => x.ScoreId))
         aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/scores/osu/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
     }
 

@@ -10,7 +10,7 @@ using huisbot.Persistence;
 namespace huisbot.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20231122013527_AddScoreAliases")]
+    [Migration("20231231232112_AddScoreAliases")]
     partial class AddScoreAliases
     {
         /// <inheritdoc />
@@ -19,25 +19,25 @@ namespace huisbot.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.13");
 
-            modelBuilder.Entity("huisbot.Models.Utility.IDAlias", b =>
+            modelBuilder.Entity("huisbot.Models.Utility.BeatmapAlias", b =>
                 {
                     b.Property<string>("Alias")
                         .HasColumnType("TEXT")
                         .HasColumnName("alias");
+
+                    b.Property<long>("BeatmapId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("beatmap_id");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("display_name");
 
-                    b.Property<long>("Id")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("id");
-
                     b.HasKey("Alias")
-                        .HasName("pk_id_alias");
+                        .HasName("pk_beatmap_aliases");
 
-                    b.ToTable("id_alias", (string)null);
+                    b.ToTable("beatmap_aliases", (string)null);
                 });
 
             modelBuilder.Entity("huisbot.Models.Utility.OsuDiscordLink", b =>
@@ -55,6 +55,27 @@ namespace huisbot.Migrations
                         .HasName("pk_osu_discord_links");
 
                     b.ToTable("osu_discord_links", (string)null);
+                });
+
+            modelBuilder.Entity("huisbot.Models.Utility.ScoreAlias", b =>
+                {
+                    b.Property<string>("Alias")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("alias");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("display_name");
+
+                    b.Property<long>("ScoreId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("score_id");
+
+                    b.HasKey("Alias")
+                        .HasName("pk_score_aliases");
+
+                    b.ToTable("score_aliases", (string)null);
                 });
 #pragma warning restore 612, 618
         }
