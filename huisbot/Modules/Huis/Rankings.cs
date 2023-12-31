@@ -27,6 +27,13 @@ public class RankingsCommandModule : ModuleBase
   {
     await DeferAsync();
 
+    // Make sure the user is an onion.
+    if (!IsOnion)
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
+
     // Get the sorting options.
     HuisPlayerSort? sort = await GetPlayerSortAsync(sortId);
     if (sort is null)

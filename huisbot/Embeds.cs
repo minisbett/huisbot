@@ -62,6 +62,15 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an embed notifying the user that they lack Onion permissions.
+  /// </summary>
+  public static Embed NotOnion => BaseEmbed
+    .WithColor(Color.Red)
+    .WithTitle("Insufficient permissions.")
+    .WithDescription("You need Onion permissions in order to use this command.\nYou can apply for the Onion role here:\n[PP Discord](https://discord.gg/aqPCnXu) • <#1020389783110955008>")
+    .Build();
+
+  /// <summary>
   /// Returns an embed with the specified rework.
   /// </summary>
   /// <param name="rework">The rework to display.</param>

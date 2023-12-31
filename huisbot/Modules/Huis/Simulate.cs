@@ -34,6 +34,13 @@ public class SimulateCommandModule : ModuleBase
   {
     await DeferAsync();
 
+    // Make sure the user is an onion.
+    if (!IsOnion)
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
+
     // Check if either a beatmap ID or a score ID was .
     if (beatmapId is null && scoreId is null)
     {

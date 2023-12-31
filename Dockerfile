@@ -7,6 +7,7 @@ RUN dotnet publish -c Release -o out
 
 # Run
 FROM mcr.microsoft.com/dotnet/runtime:7.0
+RUN apt-get install -y libgdiplus # for scottplot
 WORKDIR /app
 COPY --from=build /app/out .
 CMD dotnet huisbot.dll

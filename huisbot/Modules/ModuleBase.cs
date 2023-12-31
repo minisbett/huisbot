@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
@@ -31,6 +32,26 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     _huis = huis;
     _osu = osu;
     _persistence = persistence;
+  }
+
+  /// <summary>
+  /// Bool whether the user has the Onion role on the PP Discord, making them eligible to use Huis commands.
+  /// </summary>
+  public bool IsOnion
+  {
+    get
+    {
+#if DEBUG
+      return true;
+#endif
+
+      // Get the PP Discord guild.
+      SocketGuild guild = Context.Client.GetGuild(546120878908506119);
+
+      // Check whether the user is in that guild and has the Onion role.
+      SocketGuildUser user = guild.GetUser(284725640777695232);
+      return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
+    }
   }
 
   /// <summary>
