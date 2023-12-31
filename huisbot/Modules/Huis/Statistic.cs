@@ -22,7 +22,7 @@ public class StatisticCommandModule : ModuleBase
     [Summary("statistic", "The top-statistic to display.")]
     [Choice("Top Scores", "topscores")] [Choice("Top Players", "topplayers")] string statisticId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
     [Summary("amount", "Amount of entries to include, up to 500. Default is 500.")][MinValue(1)][MaxValue(500)] int amount = 500)
   {
     await DeferAsync();
@@ -58,7 +58,7 @@ public class StatisticCommandModule : ModuleBase
     liveLocal.BottomAxis.Color(Color.LightGray);
     liveLocal.RightAxis.Label("Difference");
     liveLocal.RightAxis.Color(Color.LightGray);
-    liveLocal.RightAxis.AxisTicks.IsVisible = true;
+    liveLocal.RightAxis.Ticks(true);
 
     // Configure the legend.
     Legend legend = liveLocal.Legend(true, Alignment.UpperCenter);

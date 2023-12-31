@@ -1,4 +1,5 @@
 ﻿using Discord.Interactions;
+using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
@@ -17,9 +18,11 @@ public class TopPlaysCommandModule : ModuleBase
   [SlashCommand("topplays", "Displays the top plays of you or the specified player in the specified rework.")]
   public async Task HandleScoreAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null,
-    [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1)
+    [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1,
+    [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
+    [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp")
   {
     await DeferAsync();
 
@@ -29,6 +32,11 @@ public class TopPlaysCommandModule : ModuleBase
       await FollowupAsync(embed: Embeds.NotOnion);
       return;
     }
+
+    // Get the sorting option.
+    Sort? sort = await GetSortAsync(sortId, Sort.ProfileScores);
+    if (sort is null)
+      return;
 
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
@@ -63,6 +71,6 @@ public class TopPlaysCommandModule : ModuleBase
       return;
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.TopPlays(user, scores, rework, page));
+    await FollowupAsync(embed: Embeds.TopPlays(user, scores, rework, sort, page));
   }
 }

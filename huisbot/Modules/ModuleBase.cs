@@ -83,47 +83,32 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the player sorting options based on the specified identifier. This can be the ID or display name.
+  /// Returns the sorting option based on the specified identifier (this can be the ID or display name) and list of sorts.
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="sortId">The identifier for the player sorting options. (ID or display name)</param>
-  /// <returns>The player sorting options.</returns>
-  public async Task<HuisPlayerRankingSort?> GetPlayerSortAsync(string sortId)
+  /// <param name="sortId">The list of sorting options available.</param>
+  /// <returns>The sorting option.</returns>
+  public async Task<Sort?> GetSortAsync(string sortId, Sort[] allSorts)
   {
     // Try to find the specified sort by the specified identifier. If it doesn't exist, notify the user.
-    HuisPlayerRankingSort? sort = HuisPlayerRankingSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
+    Sort? sort = allSorts.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
     if (sort is null)
-      await FollowupAsync(embed: Embeds.Error($"Invalid sort type `{sortId}`."));
+      await FollowupAsync(embed: Embeds.Error($"Invalid sort option `{sortId}`."));
 
     return sort;
   }
 
   /// <summary>
-  /// Returns the score sorting options based on the specified identifier. This can be the ID or display name.
-  /// If it failed, the user will automatically be notified. In this case, this method returns null.
-  /// </summary>
-  /// <param name="sortId">The identifier for the player sorting options. (ID or display name)</param>
-  /// <returns>The score sorting options.</returns>
-  public async Task<HuisScoreRankingSort?> GetScoreSortAsync(string sortId)
-  {
-    // Try to find the specified sort by the specified identifier. If it doesn't exist, notify the user.
-    HuisScoreRankingSort? sort = HuisScoreRankingSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
-    if (sort is null)
-      await FollowupAsync(embed: Embeds.Error($"Invalid sort type `{sortId}`."));
-
-    return sort;
-  }
-
-  /// <summary>
-  /// Returns the player rankings of the specified rework with the specified sorting options and filters.
+  /// Returns the player rankings of the specified rework with the specified sorting option and filters.
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="reworkId">The ID of the rework.</param>
-  /// <param name="sort">The sorting options.</param>
+  /// <param name="sort">The sorting option.</param>
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
   /// <returns>The global player rankings in the specified rework.</returns>
-  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerRankingSort sort, bool onlyUpToDate, bool hideUnranked)
+  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, Sort sort, bool onlyUpToDate, bool hideUnranked)
   {
     // Get the player rankings in the rework and check whether the request was successful. If not, notify the user.
     HuisPlayer[]? players = await _huis.GetPlayerRankingsAsync(reworkId, sort, onlyUpToDate, hideUnranked);
@@ -134,13 +119,13 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the score rankings of the specified rework with the specified sorting options and filters.
+  /// Returns the score rankings of the specified rework with the specified sorting option and filters.
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="reworkId">The ID of the rework.</param>
-  /// <param name="sort">The sorting options.</param>
+  /// <param name="sort">The sorting option.</param>
   /// <returns>The global score rankings in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreRankingSort sort)
+  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, Sort sort)
   {
     // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
     HuisScore[]? scores = await _huis.GetScoreRankingsAsync(reworkId, sort);

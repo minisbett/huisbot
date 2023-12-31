@@ -236,9 +236,9 @@ public class HuisApiService
   /// Returns the global score leaderboard in the specified rework from the Huis API.
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
-  /// <param name="sort">The sort options.</param>
+  /// <param name="sort">The sort option.</param>
   /// <returns>The global score rankings in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreRankingSort sort)
+  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, Sort sort)
   {
     string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
@@ -264,11 +264,11 @@ public class HuisApiService
   /// Returns the global player leaderboard in the specified rework from the Huis API.
   /// </summary>
   /// <param name="reworkId">The rework ID.</param>
-  /// <param name="sort">The sorting options.</param>
+  /// <param name="sort">The sorting option.</param>
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
   /// <returns>The global player rankings in the specified rework.</returns>
-  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerRankingSort sort, bool onlyUpToDate, bool hideUnranked)
+  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, Sort sort, bool onlyUpToDate, bool hideUnranked)
   {
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}" +
                  $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={onlyUpToDate.ToString().ToLower()}";

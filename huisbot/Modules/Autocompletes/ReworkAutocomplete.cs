@@ -9,7 +9,7 @@ namespace huisbot.Modules.Autocompletes;
 /// <summary>
 /// Autocomplete for the rework parameters on commands.
 /// </summary>
-public class ReworkAutocompleteHandler : AutocompleteHandler
+public class ReworkAutocomplete : AutocompleteHandler
 {
   public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
     IParameterInfo pInfo, IServiceProvider services)

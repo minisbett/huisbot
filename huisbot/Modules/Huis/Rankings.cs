@@ -17,9 +17,9 @@ public class RankingsCommandModule : ModuleBase
   [SlashCommand("player", "Displays the global player leaderboard of the specified rework.")]
   public async Task HandlePlayerAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
-    [Summary("sort", "The sorting and order for the players. Defaults to sort by New PP Descending.")]
-    [Autocomplete(typeof(PlayerSortAutocompleteHandler))] string sortId = "new_pp_incl_bonus_desc",
+    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Summary("sort", "The sorting for the players. Defaults to sort by Local PP.")]
+    [Autocomplete(typeof(RankingPlayersSortAutocomplete))] string sortId = "new_pp_incl_bonus_desc",
     [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to true.")] bool onlyUpToDate = true,
     [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to true.")] bool hideUnranked = true,
     [Summary("page", "The page of the players. 1 page displays 10 players.")][MinValue(1)] int page = 1)
@@ -33,8 +33,8 @@ public class RankingsCommandModule : ModuleBase
       return;
     }
 
-    // Get the sorting options.
-    HuisPlayerRankingSort? sort = await GetPlayerSortAsync(sortId);
+    // Get the sorting option.
+    Sort? sort = await GetSortAsync(sortId, Sort.RankingPlayers);
     if (sort is null)
       return;
 
@@ -49,21 +49,21 @@ public class RankingsCommandModule : ModuleBase
       return;
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, page));
+    await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, sort, page));
   }
 
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
   public async Task HandleScoreAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
-    [Summary("sort", "The sorting and order for the scores.  Defaults to sort by Local PP Descending.")]
-    [Autocomplete(typeof(ScoreSortAutocompleteHandler))] string sortId = "local_pp_desc",
+    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
+    [Autocomplete(typeof(RankingScoresSortAutocomplete))] string sortId = "local_pp_desc",
     [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1)
   {
     await DeferAsync();
 
-    // Get the sorting options.
-    HuisScoreRankingSort? sort = await GetScoreSortAsync(sortId);
+    // Get the sorting option.
+    Sort? sort = await GetSortAsync(sortId, Sort.RankingScores);
     if (sort is null)
       return;
 
@@ -78,6 +78,6 @@ public class RankingsCommandModule : ModuleBase
       return;
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, page));
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, sort, page));
   }
 }

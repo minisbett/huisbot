@@ -5,14 +5,14 @@ using huisbot.Enums;
 namespace huisbot.Modules.Autocompletes;
 
 /// <summary>
-/// Autocomplete for the sort parameter on the leaderboard player command.
+/// Autocomplete for the sort parameter on the score rankings command.
 /// </summary>
-public class PlayerSortAutocompleteHandler : AutocompleteHandler
+public class RankingScoresSortAutocomplete : AutocompleteHandler
 {
   public override Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
     IParameterInfo pInfo, IServiceProvider services)
   {
     // Return the sorting options.
-    return Task.FromResult(AutocompletionResult.FromSuccess(HuisPlayerRankingSort.All.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
+    return Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingScores.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
   }
 }
