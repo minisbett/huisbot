@@ -18,7 +18,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "1.4.3";
+  public const string VERSION = "1.5.0";
 
   /// <summary>
   /// The startup time of the application.
