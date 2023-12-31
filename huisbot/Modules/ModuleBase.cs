@@ -49,7 +49,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
       SocketGuild guild = Context.Client.GetGuild(546120878908506119);
 
       // Check whether the user is in that guild and has the Onion role.
-      SocketGuildUser user = guild.GetUser(284725640777695232);
+      SocketGuildUser user = guild.GetUser(Context.User.Id);
       return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
     }
   }
