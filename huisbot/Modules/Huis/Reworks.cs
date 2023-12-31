@@ -20,7 +20,7 @@ public class ReworksCommandModule : ModuleBase
     await DeferAsync();
 
     // Make sure the user is an onion.
-    if(!IsOnion)
+    if (!IsOnion)
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return;

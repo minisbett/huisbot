@@ -238,7 +238,7 @@ public class HuisApiService
   /// <param name="reworkId">The rework ID.</param>
   /// <param name="sort">The sort options.</param>
   /// <returns>The global score rankings in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
+  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreRankingSort sort)
   {
     string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
@@ -268,7 +268,7 @@ public class HuisApiService
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
   /// <returns>The global player rankings in the specified rework.</returns>
-  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
+  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerRankingSort sort, bool onlyUpToDate, bool hideUnranked)
   {
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}" +
                  $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={onlyUpToDate.ToString().ToLower()}";

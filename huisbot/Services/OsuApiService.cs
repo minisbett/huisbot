@@ -1,14 +1,11 @@
 ﻿using huisbot.Enums;
 using huisbot.Models.Osu;
-using huisbot.Utils.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 
 namespace huisbot.Services;

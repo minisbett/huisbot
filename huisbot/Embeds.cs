@@ -424,7 +424,7 @@ internal static class Embeds
   {
     // Calculate the difference between the two PP values. If it's less than 0.01, the PP values are the same.
     double difference = newPP - oldPP;
-    if(Math.Abs(difference) < 0.01)
+    if (Math.Abs(difference) < 0.01)
       return $"**{newPP:N2}pp**";
 
     // Otherwise return the difference string.
@@ -434,7 +434,7 @@ internal static class Embeds
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
   /// </summary>
-  private static Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
+  private static readonly Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
   {
     { "XH", new Emoji("rankSSH", 1159888184600170627) },
     { "X", new Emoji("rankSS", 1159888182075207740) },

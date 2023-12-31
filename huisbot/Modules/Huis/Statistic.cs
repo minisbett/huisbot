@@ -23,7 +23,7 @@ public class StatisticCommandModule : ModuleBase
     [Choice("Top Scores", "topscores")] [Choice("Top Players", "topplayers")] string statisticId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
-    [Summary("amount", "Amount of entries to include, up to 500. Default is 500.") ][MinValue(1)] [MaxValue(500)] int amount = 500)
+    [Summary("amount", "Amount of entries to include, up to 500. Default is 500.")][MinValue(1)][MaxValue(500)] int amount = 500)
   {
     await DeferAsync();
     string target = statisticId.Substring(3, 1) + statisticId.Substring(4).TrimEnd('s'); // topscores or topplayers => Score or Player
@@ -45,16 +45,22 @@ public class StatisticCommandModule : ModuleBase
     if (statistic is null)
       return;
 
-    // Configure the plot with a size of 1000x600, colors, a legend in the upper center, the axis labels and an extra axis on the right for the difference.
+    // Configure the plot with a size of 1000x600 and it's colors.
     Plot liveLocal = new Plot(1000, 600);
     liveLocal.Style(Color.FromArgb(63, 66, 66), Color.FromArgb(63, 66, 66), Color.FromArgb(57, 59, 59), null, null, Color.White);
     liveLocal.Title($"Top {target}s - Live vs {rework.Name} @ {DateTime.UtcNow.ToShortDateString()} " +
                     $"{DateTime.UtcNow.ToLongTimeString()} (commit {rework.Commit})");
+
+    // Configure the left, bottom and right axis.
     liveLocal.LeftAxis.Label("Performance Points");
     liveLocal.LeftAxis.Color(Color.LightGray);
     liveLocal.BottomAxis.Label($"No. # Top {target}");
     liveLocal.BottomAxis.Color(Color.LightGray);
-    liveLocal.AddAxis(Edge.Right, 2, "Difference", Color.LightGray);
+    liveLocal.RightAxis.Label("Difference");
+    liveLocal.RightAxis.Color(Color.LightGray);
+    liveLocal.RightAxis.AxisTicks.IsVisible = true;
+
+    // Configure the legend.
     Legend legend = liveLocal.Legend(true, Alignment.UpperCenter);
     legend.Orientation = Orientation.Horizontal;
     legend.FillColor = Color.FromArgb(63, 66, 66);
@@ -66,13 +72,13 @@ public class StatisticCommandModule : ModuleBase
     double[] oldValues = statistic.Old!.Take(amount).ToArray();
     double[] newValues = statistic.New!.Take(amount).ToArray();
     double[] difference = statistic.Difference!.Take(amount).ToArray();
+    double[] xs = Enumerable.Range(0, oldValues.Length).Select(x => (double)x).ToArray();
 
     // Add the scatter lines of the old and new values and the difference.
-    double[] xs = Enumerable.Range(0, oldValues.Length).Select(x => (double)x).ToArray();
     ScatterPlot diff = liveLocal.AddScatterLines(xs, difference, Color.FromArgb(103, 106, 106), 1, LineStyle.Solid, "Difference");
-    diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
     liveLocal.AddScatterLines(xs, oldValues, Color.FromArgb(244, 122, 31), 2, LineStyle.Solid, "Live");
     liveLocal.AddScatterLines(xs, newValues, Color.FromArgb(0, 124, 195), 2, LineStyle.Solid, "Local");
+    diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
 
     // Render the plot to a bitmap and send it.
     using MemoryStream ms = new MemoryStream();

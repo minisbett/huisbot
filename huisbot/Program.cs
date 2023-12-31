@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Microsoft.Extensions.Options;
 using System.Globalization;
 
 public class Program
@@ -81,7 +80,7 @@ public class Program
           LogLevel = LogSeverity.Verbose,
           AlwaysDownloadUsers = true,
           MessageCacheSize = 100,
-          GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+          GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
         };
 
         config.Token = context.Configuration["BOT_TOKEN"]

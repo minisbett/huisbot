@@ -1,19 +1,10 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Services;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
 namespace huisbot.Modules;
 
@@ -97,10 +88,10 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// </summary>
   /// <param name="sortId">The identifier for the player sorting options. (ID or display name)</param>
   /// <returns>The player sorting options.</returns>
-  public async Task<HuisPlayerSort?> GetPlayerSortAsync(string sortId)
+  public async Task<HuisPlayerRankingSort?> GetPlayerSortAsync(string sortId)
   {
     // Try to find the specified sort by the specified identifier. If it doesn't exist, notify the user.
-    HuisPlayerSort? sort = HuisPlayerSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
+    HuisPlayerRankingSort? sort = HuisPlayerRankingSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
     if (sort is null)
       await FollowupAsync(embed: Embeds.Error($"Invalid sort type `{sortId}`."));
 
@@ -113,10 +104,10 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// </summary>
   /// <param name="sortId">The identifier for the player sorting options. (ID or display name)</param>
   /// <returns>The score sorting options.</returns>
-  public async Task<HuisScoreSort?> GetScoreSortAsync(string sortId)
+  public async Task<HuisScoreRankingSort?> GetScoreSortAsync(string sortId)
   {
     // Try to find the specified sort by the specified identifier. If it doesn't exist, notify the user.
-    HuisScoreSort? sort = HuisScoreSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
+    HuisScoreRankingSort? sort = HuisScoreRankingSort.All.FirstOrDefault(x => x.Id == sortId || x.DisplayName == sortId);
     if (sort is null)
       await FollowupAsync(embed: Embeds.Error($"Invalid sort type `{sortId}`."));
 
@@ -132,7 +123,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="onlyUpToDate">Bool whether only calculated, up-to-date players should be included.</param>
   /// <param name="hideUnranked">Bool whether unranked players (inactivity) should be hidden.</param>
   /// <returns>The global player rankings in the specified rework.</returns>
-  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerSort sort, bool onlyUpToDate, bool hideUnranked)
+  public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, HuisPlayerRankingSort sort, bool onlyUpToDate, bool hideUnranked)
   {
     // Get the player rankings in the rework and check whether the request was successful. If not, notify the user.
     HuisPlayer[]? players = await _huis.GetPlayerRankingsAsync(reworkId, sort, onlyUpToDate, hideUnranked);
@@ -149,7 +140,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="reworkId">The ID of the rework.</param>
   /// <param name="sort">The sorting options.</param>
   /// <returns>The global score rankings in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreSort sort)
+  public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, HuisScoreRankingSort sort)
   {
     // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
     HuisScore[]? scores = await _huis.GetScoreRankingsAsync(reworkId, sort);

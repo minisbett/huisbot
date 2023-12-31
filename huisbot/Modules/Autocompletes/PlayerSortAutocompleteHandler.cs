@@ -13,6 +13,6 @@ public class PlayerSortAutocompleteHandler : AutocompleteHandler
     IParameterInfo pInfo, IServiceProvider services)
   {
     // Return the sorting options.
-    return Task.FromResult(AutocompletionResult.FromSuccess(HuisPlayerSort.All.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
+    return Task.FromResult(AutocompletionResult.FromSuccess(HuisPlayerRankingSort.All.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
   }
 }

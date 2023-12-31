@@ -3,7 +3,6 @@ using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace huisbot.Modules.Huis;
 
@@ -23,7 +22,7 @@ public class RankingsCommandModule : ModuleBase
     [Autocomplete(typeof(PlayerSortAutocompleteHandler))] string sortId = "new_pp_incl_bonus_desc",
     [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to true.")] bool onlyUpToDate = true,
     [Summary("hideUnranked", "Bool whether inactive players should be excluded. Defaults to true.")] bool hideUnranked = true,
-    [Summary("page", "The page of the players. 1 page displays 10 players.")] [MinValue(1)] int page = 1)
+    [Summary("page", "The page of the players. 1 page displays 10 players.")][MinValue(1)] int page = 1)
   {
     await DeferAsync();
 
@@ -35,7 +34,7 @@ public class RankingsCommandModule : ModuleBase
     }
 
     // Get the sorting options.
-    HuisPlayerSort? sort = await GetPlayerSortAsync(sortId);
+    HuisPlayerRankingSort? sort = await GetPlayerSortAsync(sortId);
     if (sort is null)
       return;
 
@@ -59,12 +58,12 @@ public class RankingsCommandModule : ModuleBase
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting and order for the scores.  Defaults to sort by Local PP Descending.")]
     [Autocomplete(typeof(ScoreSortAutocompleteHandler))] string sortId = "local_pp_desc",
-    [Summary("page", "The page of the scores. 1 page displays 10 scores.")] [MinValue(1)] int page = 1)
+    [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1)
   {
     await DeferAsync();
 
     // Get the sorting options.
-    HuisScoreSort? sort = await GetScoreSortAsync(sortId);
+    HuisScoreRankingSort? sort = await GetScoreSortAsync(sortId);
     if (sort is null)
       return;
 

@@ -1,6 +1,5 @@
-﻿using Newtonsoft.Json;
-using huisbot.Services;
-using Discord.Commands;
+﻿using huisbot.Services;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
