@@ -248,7 +248,7 @@ internal static class Embeds
 
     // Build the alias string.
     string aliasesStr = "*There are no score aliases. You can add some via `/alias score add`.*";
-    if (aliases.Length > 0) 
+    if (aliases.Length > 0)
     {
       aliasesStr = "";
       foreach (IGrouping<long, ScoreAlias> group in aliases.GroupBy(x => x.ScoreId))
@@ -325,13 +325,14 @@ internal static class Embeds
   public static Embed TopPlays(OsuUser user, HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
     // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
-    HuisScore[] sortedScores = sort switch
+    Func<HuisScore, double> selector = sort.Code switch
     {
-      { Code: "live_pp" } => allScores.OrderBy(x => x.LivePP).ToArray(),
-      { Code: "pp_diff", IsAscending: false } => allScores.OrderByDescending(x => x.LocalPP - x.LivePP).ToArray(),
-      { Code: "pp_diff", IsAscending: true } => allScores.OrderBy(x => x.LocalPP - x.LivePP).ToArray(),
-      _ => allScores.OrderBy(x => x.LocalPP).ToArray()
+      "live_pp" => x => x.LivePP,
+      "pp_diff" => x => x.LocalPP - x.LivePP,
+      _ => x => x.LocalPP
     };
+
+    HuisScore[] sortedScores = (sort.IsAscending ? allScores.OrderBy(selector) : allScores.OrderByDescending(selector)).ToArray();
 
     // Get the scores to be displayed.
     HuisScore[] scores = sortedScores.Skip((page - 1) * 10).Take(10).ToArray();
