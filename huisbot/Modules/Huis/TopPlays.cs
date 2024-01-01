@@ -22,7 +22,7 @@ public class TopPlaysCommandModule : ModuleBase
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null,
     [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1,
     [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
-    [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp")
+    [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp_desc")
   {
     await DeferAsync();
 
