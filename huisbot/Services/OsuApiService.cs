@@ -211,7 +211,7 @@ public class OsuApiService
     try
     {
       // Get the difficulty rating from the API.
-      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = ModUtils.Split(mods).Select(x => new { acryonym = x }) };
+      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = ModUtils.Split(mods).Select(x => new { acronym = x }) };
       string s = JsonConvert.SerializeObject(request);
       HttpResponseMessage response = await _http.PostAsync("difficulty-rating",
         new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
