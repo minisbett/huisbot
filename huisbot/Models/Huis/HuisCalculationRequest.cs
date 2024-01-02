@@ -8,46 +8,46 @@ namespace huisbot.Models.Huis;
 /// </summary>
 public class HuisCalculationRequest
 {
-  [JsonProperty("map_id")]
   /// <summary>
   /// The ID of the beatmap.
   /// </summary>
+  [JsonProperty("map_id")]
   public int BeatmapId { get; }
 
-  [JsonProperty("combo")]
   /// <summary>
   /// The maximum combo of the score.
   /// </summary>
+  [JsonProperty("combo")]
   public int? Combo { get; set; }
 
-  [JsonProperty("ok")]
   /// <summary>
   /// The 100s/oks of the score.
   /// </summary>
+  [JsonProperty("ok")]
   public int? Count100 { get; set; }
 
-  [JsonProperty("meh")]
   /// <summary>
   /// The 50s/mehs of the score.
   /// </summary>
+  [JsonProperty("meh")]
   public int? Count50 { get; set; }
 
-  [JsonProperty("miss")]
   /// <summary>
   /// The misses of the score.
   /// </summary>
+  [JsonProperty("miss")]
   public int? Misses { get; set; }
 
-  [JsonProperty("mods")]
   /// <summary>
   /// The mods of the score.
   /// </summary>
+  [JsonProperty("mods")]
   public string[]? Mods { get; set; }
 
-  [JsonProperty("rework")]
   /// <summary>
   /// The code of the rework.
   /// </summary>
+  [JsonProperty("rework")]
   public string ReworkCode { get; set; }
 
   /// <summary>

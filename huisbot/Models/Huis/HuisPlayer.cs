@@ -14,76 +14,76 @@ public class HuisPlayer
   public static HuisPlayer Outdated => new HuisPlayer() { IsOutdated = true };
 
   /// <summary>
-  /// Bool whether the player is outdated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, int)"/>, which returns
+  /// Bool whether the player is outdated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, HuisRework)"/>, which returns
   /// an object where this is true in order to report that the request was successful, but outdated player data was received back to the caller.
   /// </summary>
   public bool IsOutdated { get; init; } = false;
 
-  [JsonProperty("user_id")]
   /// <summary>
   /// The osu! user id of the player.
   /// </summary>
-  public int Id { get; set; }
+  [JsonProperty("user_id")]
+  public int Id { get; private set; }
 
-  [JsonProperty("name")]
   /// <summary>
   /// The name of the player.
   /// </summary>
+  [JsonProperty("name")]
   public string? Name { get; private set; }
 
-  [JsonProperty("old_pp")]
   /// <summary>
   /// The live pp of the player.
   /// </summary>
+  [JsonProperty("old_pp")]
   public double OldPP { get; private set; }
 
-  [JsonProperty("new_pp_incl_bonus")]
   /// <summary>
   /// The pp of the player in the rework the player object is from.
   /// </summary>
+  [JsonProperty("new_pp_incl_bonus")]
   public double NewPP { get; private set; }
 
-  [JsonProperty("bonus_pp")]
   /// <summary>
   /// The bonus pp of the player.
   /// </summary>
+  [JsonProperty("bonus_pp")]
   public double BonusPP { get; private set; }
 
-  [JsonProperty("weighted_acc_pp")]
   /// <summary>
   /// The weighted accuracy pp of the player in the rework the player object is from.
   /// </summary>
+  [JsonProperty("weighted_acc_pp")]
   public double AccPP { get; private set; }
 
-  [JsonProperty("weighted_aim_pp")]
   /// <summary>
   /// The weighted aim pp of the player in the rework the player object is from.
   /// </summary>
+  [JsonProperty("weighted_aim_pp")]
   public double AimPP { get; private set; }
 
-  [JsonProperty("weighted_tap_pp")]
   /// <summary>
   /// The weighted tapping pp of the player in the rework the player object is from.
   /// </summary>
+  [JsonProperty("weighted_tap_pp")]
   public double TapPP { get; private set; }
 
-  [JsonProperty("weighted_fl_pp")]
   /// <summary>
   /// The weighted flashlight pp of the player in the rework the player object is from.
   /// </summary>
+  [JsonProperty("weighted_fl_pp")]
   public double FLPP { get; private set; }
 
-  [JsonProperty("last_updated")]
   /// <summary>
   /// The last time the player got updated on Huismetbenen.
   /// </summary>
+  [JsonProperty("last_updated")]
   public DateTime LastUpdated { get; private set; }
 
-  [JsonProperty("global_rank_real")]
   /// <summary>
   /// The actual rank of the player.
   /// Might be null, indiucating the rank is not known.
   /// </summary>
+  [JsonProperty("global_rank_real")]
   public int? Rank { get; private set; }
 
   /// <summary>
