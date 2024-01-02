@@ -34,6 +34,7 @@ public class SimulateCommandModule : ModuleBase
     [Summary("mods", "The mods used in the score.")] string? mods = null)
   {
     await DeferAsync();
+    mods = mods?.ToUpper();
 
     // Make sure the user is an onion.
     if (!IsOnion)
