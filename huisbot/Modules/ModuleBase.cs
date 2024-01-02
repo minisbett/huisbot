@@ -52,7 +52,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   public async Task<bool> IsPPTeamAsync()
   {
 #if DEBUG
-    return false;
+    return true;
 #endif
 
     // Check whether the user is the owner of the application.
