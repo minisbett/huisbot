@@ -16,6 +16,6 @@ internal static class ModUtils
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
     // Return the clock rate for the correspondign mod.
-    return !mods.Contains("HT") ? mods.Contains("DT") || mods.Contains("NC") ? 1.5 : 1 : 0.6666666;
+    return !mods.Contains("HT") ? mods.Contains("DT") || mods.Contains("NC") ? 3 / 2d : 1 : 2 / 3d;
   }
 }
