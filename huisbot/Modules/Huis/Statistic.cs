@@ -40,6 +40,13 @@ public class StatisticCommandModule : ModuleBase
     if (rework is null)
       return;
 
+    // Exclude the live rework, as it has no statistics to show.
+    if(rework.Id == HuisRework.LiveId)
+    {
+      await FollowupAsync(embed: Embeds.Error("The live rework has no statistics."));
+      return;
+    }
+
     // Get the statistic.
     HuisStatistic? statistic = await GetStatisticAsync(statisticId, rework.Id);
     if (statistic is null)
