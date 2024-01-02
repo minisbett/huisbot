@@ -16,6 +16,11 @@ public class HuisApiService
   private readonly ILogger<HuisApiService> _logger;
 
   /// <summary>
+  /// The cache for the reworks.
+  /// </summary>
+  private readonly ExpiringValue<HuisRework[]> _reworksCache = new ExpiringValue<HuisRework[]>(TimeSpan.FromMinutes(5));
+
+  /// <summary>
   /// The cache for calculated scores, indefinitely caching scores with the same score parameters, rework and algorithm version.
   /// </summary>
   private readonly DictionaryCache<HuisCalculationRequest, HuisCalculatedScore> _calculatedScoreCache =
@@ -57,6 +62,10 @@ public class HuisApiService
   /// <returns></returns>
   public async Task<HuisRework[]?> GetReworksAsync()
   {
+    // Check whether the cached reworks are still valid.
+    if (_reworksCache.IsValid)
+      return _reworksCache.Value;
+
     try
     {
       // Get the reworks from the API.
@@ -67,7 +76,8 @@ public class HuisApiService
       if (reworks is null || reworks.Length == 0)
         throw new Exception("Deserialization of JSON returned null.");
 
-      // Return the rework.
+      // Cache the reworks and return them.
+      _reworksCache.Value = reworks;
       return reworks;
     }
     catch (Exception ex)
@@ -177,7 +187,7 @@ public class HuisApiService
   {
     // Check whether the score is already cached.
     if (_calculatedScoreCache.Has(request))
-      return _calculatedScoreCache.Get(request);
+      return _calculatedScoreCache[request];
 
     try
     {
@@ -196,7 +206,7 @@ public class HuisApiService
         throw new Exception($"API returned {error}");
 
       // Cache the score and return it.
-      _calculatedScoreCache.Add(request, result);
+      _calculatedScoreCache[request] = result;
       return result;
     }
     catch (Exception ex)
