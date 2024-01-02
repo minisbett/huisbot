@@ -273,15 +273,13 @@ public class OsuApiService
 
     try
     {
-      // Get the score from the API.
-      string json = await _http.GetStringAsync($"api/v2/scores/{ruleset}/{scoreId}");
-      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
-
-      // Check whether the deserialized json has an error property. If so, the score could not be found.
-      if (JObject.Parse(json).TryGetValue("error", out _))
+      // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{ruleset}/{scoreId}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
         return OsuScore.NotFound;
 
-      return score;
+      // Parse the score from the JSON and return it.
+      return JsonConvert.DeserializeObject<OsuScore>(await response.Content.ReadAsStringAsync());
     }
     catch (Exception ex)
     {
