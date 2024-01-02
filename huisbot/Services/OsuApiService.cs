@@ -1,5 +1,6 @@
 ﻿using huisbot.Enums;
 using huisbot.Models.Osu;
+using huisbot.Persistence.Caching;
 using huisbot.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,11 @@ public class OsuApiService
   /// The date when the API v2 access token expires.
   /// </summary>
   private DateTimeOffset _accessTokenExpiresAt = DateTimeOffset.MinValue;
+
+  /// <summary>
+  /// The cache for the difficulty ratings of beatmaps.
+  /// </summary>
+  private readonly DictionaryCache<StringCacheKey, double> _difficultyRatingCache = new DictionaryCache<StringCacheKey, double>();
 
   public OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
   {
@@ -208,19 +214,32 @@ public class OsuApiService
   /// <returns>The difficulty rating.</returns>
   public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
   {
+    // Serialize the JSON string for the request.
+    var requestJson = JsonConvert.SerializeObject(new
+    {
+      ruleset_id = rulesetId,
+      beatmap_id = beatmapId,
+      mods = ModUtils.Split(mods).Select(x => new { acronym = x })
+    });
+
+    // Check whether the difficulty rating is already cached.
+    StringCacheKey key = new StringCacheKey(requestJson);
+    if (_difficultyRatingCache.Has(key))
+      return _difficultyRatingCache[key];
+
     try
     {
       // Get the difficulty rating from the API.
-      var request = new { ruleset_id = rulesetId, beatmap_id = beatmapId, mods = ModUtils.Split(mods).Select(x => new { acronym = x }) };
-      string s = JsonConvert.SerializeObject(request);
       HttpResponseMessage response = await _http.PostAsync("difficulty-rating",
-        new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+        new StringContent(requestJson, Encoding.UTF8, "application/json"));
 
       // Try to parse the difficulty rating from the response.
       string result = await response.Content.ReadAsStringAsync();
       if (!double.TryParse(result, out double rating))
         throw new Exception("Failed to parse the difficulty rating from the response.");
 
+      // Cache the difficulty rating and return it.
+      _difficultyRatingCache[key] = rating;
       return rating;
     }
     catch (Exception ex)

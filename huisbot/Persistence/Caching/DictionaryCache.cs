@@ -1,11 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace huisbot.Persistence;
+namespace huisbot.Persistence.Caching;
 
 /// <summary>
 /// A dictionary cache, caching non-expiring values by their unique ke.

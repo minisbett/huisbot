@@ -1,4 +1,4 @@
-﻿using huisbot.Persistence;
+﻿using huisbot.Persistence.Caching;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
