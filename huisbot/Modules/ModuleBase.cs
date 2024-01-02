@@ -56,7 +56,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 #endif
 
     // Check whether the user is the owner of the application.
-    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == 443192613621858304 /* Rekunan mentioned */)
+    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id)
       return true;
 
     // Get the PP Discord guild.
