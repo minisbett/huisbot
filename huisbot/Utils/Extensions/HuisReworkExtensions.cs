@@ -58,4 +58,16 @@ internal static class HuisReworkExtensions
      3 => "osu!mania",
      _ => "Unknown"
    };
+
+  /// <summary>
+  /// Sorts the reworks by relevancy to the user.
+  /// </summary>
+  /// <param name="reworks">The reworks.</param>
+  /// <returns>The sorted reworks.</returns>
+  public static HuisRework[] OrderByRelevancy(this HuisRework[] reworks)
+  {
+    // Order the reworks.
+    return reworks.OrderBy(x => !x.IsLive).ThenBy(x => x.IsConfirmed).ThenBy(x => x.IsHistoric).ThenBy(x => !x.IsActive)
+                  .ThenBy(x => !x.IsPublic).ToArray();
+  }
 }

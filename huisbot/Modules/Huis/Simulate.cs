@@ -36,13 +36,6 @@ public class SimulateCommandModule : ModuleBase
     await DeferAsync();
     mods = mods?.ToUpper();
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Check if either a beatmap ID or a score ID was specified.
     if (beatmapId is null && scoreId is null)
     {
@@ -54,6 +47,13 @@ public class SimulateCommandModule : ModuleBase
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
+
+    // Disallow non-Onion users to access Onion-level reworks.
+    if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // Get the live rework, since the HuisRework object is required for score calculation.
     HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());

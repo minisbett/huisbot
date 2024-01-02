@@ -5,6 +5,8 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Services;
+using huisbot.Utils;
+using huisbot.Utils.Extensions;
 
 namespace huisbot.Modules;
 
@@ -28,44 +30,12 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <summary>
   /// Bool whether the user has the Onion role on the PP Discord, making them eligible to use Huis commands.
   /// </summary>
-  public async Task<bool> IsOnionAsync()
-  {
-#if DEBUG
-    return true;
-#endif
-
-    // Check whether the user is the owner of the application.
-    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id)
-      return true;
-
-    // Get the PP Discord guild.
-    SocketGuild guild = Context.Client.GetGuild(546120878908506119);
-
-    // Check whether the user is in that guild and has the Onion role.
-    SocketGuildUser user = guild.GetUser(Context.User.Id);
-    return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
-  }
+  public Task<bool> IsOnionAsync() => ModuleBaseUtils.IsOnionAsync(Context);
 
   /// <summary>
   /// Returns whether the user has the PP role on the PP Discord, making them eligible for certain more critical commands.
   /// </summary>
-  public async Task<bool> IsPPTeamAsync()
-  {
-#if DEBUG
-    return true;
-#endif
-
-    // Check whether the user is the owner of the application.
-    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id)
-      return true;
-
-    // Get the PP Discord guild.
-    SocketGuild guild = Context.Client.GetGuild(546120878908506119);
-
-    // Check whether the user is in that guild and has the PP role.
-    SocketGuildUser user = guild.GetUser(Context.User.Id);
-    return user != null && user.Roles.Any(x => x.Id == 975402380411666482);
-  }
+  public Task<bool> IsPPTeamAsync() => ModuleBaseUtils.IsPPTeamAsync(Context);
 
   /// <summary>
   /// Returns all available reworks on Huismetbenen. If it failed, the user will automatically
@@ -77,11 +47,11 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   {
     // Get all reworks and check whether the request was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
-    reworks = reworks?.OrderBy(x => !x.IsLive).ThenBy(x => x.IsConfirmed).ThenBy(x => x.IsHistoric).ThenBy(x => !x.IsActive).ThenBy(x => !x.IsPublic).ToArray();
     if (reworks is null && showError)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
 
-    return reworks;
+    // Order the reworks by relevancy for the user and return them.
+    return reworks?.OrderByRelevancy();
   }
 
   /// <summary>

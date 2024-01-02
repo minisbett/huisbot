@@ -19,17 +19,14 @@ public class ReworksCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get all available reworks from the Huis API.
     HuisRework[]? reworks = await GetReworksAsync();
     if (reworks is null)
       return;
+
+    // If the user does not have Onion-level authorization, remove Onion-level reworks.
+    if (!await IsOnionAsync())
+      reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
 
     // Construct the component for selecting a rework.
     MessageComponent component = new ComponentBuilder()
@@ -62,14 +59,21 @@ public class ReworksComponentModule : ModuleBase
     SocketMessageComponent interaction = (SocketMessageComponent)Context.Interaction;
 
     // Get all reworks and check whether the request was successful. If not, notify the user.
-    HuisRework[]? reworks = await GetReworksAsync(false);
-    if (reworks is null)
+    HuisRework? rework = (await GetReworksAsync(false))?.FirstOrDefault(x => x.Code == code);
+    if (rework is null)
     {
       await interaction.UpdateAsync(msg => msg.Embed = Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
     }
 
+    // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
+    if(rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await Context.Interaction.FollowupAsync(embed: Embeds.NotOnion, ephemeral: true);
+      return;
+    }
+
     // Show the selected rework.
-    await interaction.UpdateAsync(msg => msg.Embed = Embeds.Rework(reworks.First(x => x.Code == code)));
+    await interaction.UpdateAsync(msg => msg.Embed = Embeds.Rework(rework));
   }
 }

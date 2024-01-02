@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
+using huisbot.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace huisbot.Modules.Autocompletes;
@@ -18,6 +19,10 @@ public class ReworkAutocomplete : AutocompleteHandler
     HuisRework[]? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
     if (reworks is null)
       return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
+
+    // If the user does not have Onion-level authorization, strip off all Onion-level reworks.
+    if (!await ModuleBaseUtils.IsOnionAsync((SocketInteractionContext)context))
+      reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
 
     // Get all suggested reworks where the name or code contains the input value.
     string userInput = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";

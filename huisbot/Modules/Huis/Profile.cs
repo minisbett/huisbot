@@ -22,17 +22,17 @@ public class ProfileCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
+
+    // Disallow non-Onion users to access Onion-level reworks.
+    if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // The live rework is required to be passed to GetHuisPlayerAsync down below, since it
     // requires information about the pp version to determine whether a player is up-to-date.

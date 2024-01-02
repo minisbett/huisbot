@@ -62,6 +62,12 @@ public class HuisRework
   public int PPVersion { get; private set; }
 
   /// <summary>
+  /// Bool whether this rework is only accessible with Onion-level authorization.
+  /// </summary>
+  [JsonProperty("for_onions")]
+  public bool IsOnionLevel { get; private set; }
+
+  /// <summary>
   /// Bool whether the rework is the live pp system.
   /// </summary>
   public bool IsLive => Id == LiveId;

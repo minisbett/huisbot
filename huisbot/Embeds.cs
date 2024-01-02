@@ -68,11 +68,11 @@ internal static class Embeds
   public static Embed NotOnion => BaseEmbed
     .WithColor(Color.Red)
     .WithTitle("Insufficient permissions.")
-    .WithDescription("You need **Onion** permissions in order to use this command.\nYou can apply for the Onion role here:\n[PP Discord](https://discord.gg/aqPCnXu) • <#1020389783110955008>")
+    .WithDescription("You need **Onion** permissions in order to access this rework.\nYou can apply for the Onion role here:\n[PP Discord](https://discord.gg/aqPCnXu) • <#1020389783110955008>")
     .Build();
 
   /// <summary>
-  /// Returns an embed notifying the user that they lack Onion permissions.
+  /// Returns an embed notifying the user that they lack PP Team permissions.
   /// </summary>
   public static Embed NotPPTeam => BaseEmbed
     .WithColor(Color.Red)

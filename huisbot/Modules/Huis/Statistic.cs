@@ -28,20 +28,20 @@ public class StatisticCommandModule : ModuleBase
     await DeferAsync();
     string target = statisticId.Substring(3, 1) + statisticId.Substring(4).TrimEnd('s'); // topscores or topplayers => Score or Player
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
 
+    // Disallow non-Onion users to access Onion-level reworks.
+    if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
+
     // Exclude the live rework, as it has no statistics to show.
-    if(rework.Id == HuisRework.LiveId)
+    if (rework.Id == HuisRework.LiveId)
     {
       await FollowupAsync(embed: Embeds.Error("The live rework has no statistics."));
       return;

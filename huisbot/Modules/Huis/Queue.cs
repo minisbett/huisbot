@@ -22,17 +22,17 @@ public class QueueCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
+
+    // Disallow non-Onion users to access Onion-level reworks.
+    if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // If no player identifier was specified, try to get one from a link.
     if (playerId is null)

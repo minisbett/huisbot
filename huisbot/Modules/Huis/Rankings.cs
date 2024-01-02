@@ -26,13 +26,6 @@ public class RankingsCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    // Make sure the user is an onion.
-    if (!await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the sorting option.
     Sort? sort = await GetSortAsync(sortId, Sort.RankingPlayers);
     if (sort is null)
@@ -42,6 +35,13 @@ public class RankingsCommandModule : ModuleBase
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
+
+    // Disallow non-Onion users to access Onion-level reworks.
+    if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return;
+    }
 
     // Get the player rankings.
     HuisPlayer[]? players = await GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked);
