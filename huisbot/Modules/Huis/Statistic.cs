@@ -29,7 +29,7 @@ public class StatisticCommandModule : ModuleBase
     string target = statisticId.Substring(3, 1) + statisticId.Substring(4).TrimEnd('s'); // topscores or topplayers => Score or Player
 
     // Make sure the user is an onion.
-    if (!IsOnion)
+    if (!await IsOnionAsync())
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return;

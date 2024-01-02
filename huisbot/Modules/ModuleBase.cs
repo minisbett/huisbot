@@ -28,21 +28,43 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <summary>
   /// Bool whether the user has the Onion role on the PP Discord, making them eligible to use Huis commands.
   /// </summary>
-  public bool IsOnion
+  public async Task<bool> IsOnionAsync()
   {
-    get
-    {
 #if DEBUG
-      return true;
+    return true;
 #endif
 
-      // Get the PP Discord guild.
-      SocketGuild guild = Context.Client.GetGuild(546120878908506119);
+    // Check whether the user is the owner of the application.
+    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id)
+      return true;
 
-      // Check whether the user is in that guild and has the Onion role.
-      SocketGuildUser user = guild.GetUser(Context.User.Id);
-      return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
-    }
+    // Get the PP Discord guild.
+    SocketGuild guild = Context.Client.GetGuild(546120878908506119);
+
+    // Check whether the user is in that guild and has the Onion role.
+    SocketGuildUser user = guild.GetUser(Context.User.Id);
+    return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
+  }
+
+  /// <summary>
+  /// Returns whether the user has the PP role on the PP Discord, making them eligible for certain more critical commands.
+  /// </summary>
+  public async Task<bool> IsPPTeamAsync()
+  {
+#if DEBUG
+    return false;
+#endif
+
+    // Check whether the user is the owner of the application.
+    if (Context.User.Id == (await Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == 443192613621858304 /* Rekunan mentioned */)
+      return true;
+
+    // Get the PP Discord guild.
+    SocketGuild guild = Context.Client.GetGuild(546120878908506119);
+
+    // Check whether the user is in that guild and has the PP role.
+    SocketGuildUser user = guild.GetUser(Context.User.Id);
+    return user != null && user.Roles.Any(x => x.Id == 975402380411666482);
   }
 
   /// <summary>

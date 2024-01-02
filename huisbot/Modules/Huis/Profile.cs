@@ -23,7 +23,7 @@ public class ProfileCommandModule : ModuleBase
     await DeferAsync();
 
     // Make sure the user is an onion.
-    if (!IsOnion)
+    if (!await IsOnionAsync())
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return;

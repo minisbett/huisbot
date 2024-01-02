@@ -37,7 +37,7 @@ public class SimulateCommandModule : ModuleBase
     mods = mods?.ToUpper();
 
     // Make sure the user is an onion.
-    if (!IsOnion)
+    if (!await IsOnionAsync())
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return;

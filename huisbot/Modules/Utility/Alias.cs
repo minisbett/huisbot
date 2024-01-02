@@ -38,6 +38,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
+
       // Check whether the beatmap alias already exists.
       BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is not null)
@@ -64,6 +71,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
+
       // Check whether the beatmap alias exists.
       BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
@@ -85,6 +99,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
+
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
 
       // Check whether the beatmap alias exists.
       BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
@@ -137,6 +158,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
+
       // Check whether the score alias already exists.
       ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
       if (alias is not null)
@@ -163,6 +191,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
+
       // Check whether the score alias exists.
       ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
       if (alias is null)
@@ -184,6 +219,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
+
+      // Make sure the user is part of the PP team.
+      if (!await IsPPTeamAsync())
+      {
+        await FollowupAsync(embed: Embeds.NotPPTeam);
+        return;
+      }
 
       // Check whether the score alias exists.
       ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
