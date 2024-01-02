@@ -15,13 +15,8 @@ internal static class OsuBeatmapExtensions
   /// <returns>The length of the beatmap including the specified mods.</returns>
   public static TimeSpan GetLength(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
-    TimeSpan span = TimeSpan.FromSeconds(beatmap.Length);
-
-    // Multiply the timespan by the clock rate of the mods.
-    span *= ModUtils.GetClockRate(modsStr);
-
-    return span;
+    // Return the timespan of the beatmap multiplied by the clock rate of the mods.
+    return TimeSpan.FromSeconds(beatmap.Length) * ModUtils.GetClockRate(modsStr);
   }
 
   /// <summary>
@@ -32,8 +27,6 @@ internal static class OsuBeatmapExtensions
   /// <returns>The BPM of the beatmap including the specified mods.</returns>
   public static double GetBPM(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
-
     // Return the BPM multiplied by the clock rate of the mods.
     return beatmap.BPM * ModUtils.GetClockRate(modsStr);
   }
@@ -46,9 +39,9 @@ internal static class OsuBeatmapExtensions
   /// <returns>The mod-adjusted circle size.</returns>
   public static double GetAdjustedCS(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
-
+    string[] mods = ModUtils.Split(modsStr);
     double cs = beatmap.CircleSize;
+
     // If HardRock, the CS is multiplied by 1.3.
     if (mods.Contains("HR"))
       cs *= 1.3;
@@ -67,7 +60,7 @@ internal static class OsuBeatmapExtensions
   /// <returns>The mod-adjusted approach rate.</returns>
   public static double GetAdjustedAR(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
+    string[] mods = ModUtils.Split(modsStr);
 
     double ar = beatmap.ApproachRate;
     // If HardRock, the AR is multiplied by 1.4, up to 10.
@@ -95,7 +88,7 @@ internal static class OsuBeatmapExtensions
   /// <returns>The mod-adjusted overall difficulty.</returns>
   public static double GetAdjustedOD(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
+    string[] mods = ModUtils.Split(modsStr);
 
     double od = beatmap.OverallDifficulty;
     // If HardRock, the OD is multiplied by 1.4.
@@ -119,7 +112,7 @@ internal static class OsuBeatmapExtensions
   /// <returns>The mod-adjusted drain rate.</returns>
   public static double GetAdjustedHP(this OsuBeatmap beatmap, string modsStr)
   {
-    string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
+    string[] mods = ModUtils.Split(modsStr);
 
     double hp = beatmap.DrainRate;
     // If HardRock, the HP is multiplied by 1.4.

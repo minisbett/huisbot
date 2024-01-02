@@ -5,6 +5,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
+using huisbot.Utils;
 
 namespace huisbot.Modules.Huis;
 
@@ -41,7 +42,7 @@ public class SimulateCommandModule : ModuleBase
       return;
     }
 
-    // Check if either a beatmap ID or a score ID was .
+    // Check if either a beatmap ID or a score ID was specified.
     if (beatmapId is null && scoreId is null)
     {
       await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
@@ -51,6 +52,11 @@ public class SimulateCommandModule : ModuleBase
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
+      return;
+
+    // Get the live rework, since the HuisRework object is required for score calculation.
+    HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());
+    if(live is null)
       return;
 
     // If a score was specified, get the score and fill the unset parameters with it's attributes.
@@ -83,37 +89,37 @@ public class SimulateCommandModule : ModuleBase
       return;
 
     // Construct the HuisCalculationRequest.
-    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.Id, rework.Code!)
+    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.Id, rework)
     {
       Combo = combo,
       Count100 = count100,
       Count50 = count50,
       Misses = misses,
-      Mods = OsuMod.Parse(mods).Select(x => x.Acronym).ToArray() // Parse them to OsuMods to filter out invalid mods.
+      Mods = ModUtils.Split(mods)
     };
 
     // Display the calculation progress in an embed to the user.
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, rework.IsLive));
 
     // Get the local result from the Huis API and check whether it was successful.
-    HuisCalculatedScore? local = await _huis.CalculateAsync(request);
-    if (local is null)
+    HuisCalculatedScore? localScore = await _huis.CalculateAsync(request);
+    if (localScore is null)
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the local score with the Huis API."));
       return;
     }
 
     // If the requested rework is the live rework, the calculation is done here, therefore set the live score to the local one.
-    HuisCalculatedScore? live = local;
+    HuisCalculatedScore? liveScore = localScore;
     if (!rework.IsLive)
     {
       // Switch the branch of the request to the live "rework" and update the calculation progress embed.
-      request.ReworkCode = "live";
+      request.Rework = live;
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
 
       // Get the live result from the Huis API and check whether it was successful.
-      live = await _huis.CalculateAsync(request);
-      if (live is null)
+      liveScore = await _huis.CalculateAsync(request);
+      if (liveScore is null)
       {
         await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));
         return;
@@ -121,6 +127,6 @@ public class SimulateCommandModule : ModuleBase
     }
 
     // Send the result in an embed to the user.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(local, live, rework, beatmap, difficultyRating.Value));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, liveScore, rework, beatmap, difficultyRating.Value));
   }
 }

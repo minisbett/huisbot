@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Persistence;
+using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 namespace huisbot.Models.Huis;
@@ -6,7 +7,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation request to be sent to Huismetbenen.
 /// </summary>
-public class HuisCalculationRequest
+public class HuisCalculationRequest : ICacheableKey
 {
   /// <summary>
   /// The ID of the beatmap.
@@ -45,28 +46,44 @@ public class HuisCalculationRequest
   public string[]? Mods { get; set; }
 
   /// <summary>
-  /// The code of the rework.
+  /// The code of the rework. This property is used for JSON serialization for sending the request.
   /// </summary>
   [JsonProperty("rework")]
-  public string ReworkCode { get; set; }
+  public string ReworkCode => Rework.Code!;
+
+  /// <summary>
+  /// The rework.
+  /// </summary>
+  [JsonIgnore]
+  public HuisRework Rework { get; set; }
+
+  /// <summary>
+  /// A unique identifier of this calculation request for the cache, including the score parameters and algorithm version of the rework.
+  /// </summary>
+  [JsonIgnore]
+  public string CacheUID => $"algorithm version {Rework.PPVersion}\n{ToJson()}";
 
   /// <summary>
   /// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.
   /// </summary>
   /// <param name="beatmapId">The ID of the beatmap.</param>
-  /// <param name="reworkCode">The code of the rework.</param>
-  public HuisCalculationRequest(int beatmapId, string reworkCode)
+  /// <param name="rework">The rework.</param>
+  public HuisCalculationRequest(int beatmapId, HuisRework rework)
   {
     BeatmapId = beatmapId;
-    ReworkCode = reworkCode;
+    Rework = rework;
   }
 
+  /// <summary>
+  /// Returns the JSON string for this calculation request, removing all json properties with null values.
+  /// </summary>
+  /// <returns>The JSON string.</returns>
   public string ToJson()
   {
     // Convert this object to a JSON string.
     string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 
-    // Dirty workaround: Remove all lines that end with "null,".
+    // Dirty workaround: Remove all lines that end with "null,", getting rid of all unset parameters.
     return Regex.Replace(json, @"^.+null,\s*$", string.Empty, RegexOptions.Multiline);
   }
 }

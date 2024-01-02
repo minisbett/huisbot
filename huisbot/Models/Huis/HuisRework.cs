@@ -56,7 +56,7 @@ public class HuisRework
   public string? Description { get; private set; }
 
   /// <summary>
-  /// The version of the rework, used to determine whether a player is up-to-date or not.
+  /// The version of the rework, used to determine whether a player is up-to-date or not or cache values for a rework state.
   /// </summary>
   [JsonProperty("algorithm_version")]
   public int PPVersion { get; private set; }

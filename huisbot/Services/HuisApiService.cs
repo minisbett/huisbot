@@ -1,6 +1,6 @@
 ﻿using huisbot.Enums;
 using huisbot.Models.Huis;
-using huisbot.Utils;
+using huisbot.Persistence;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -16,9 +16,10 @@ public class HuisApiService
   private readonly ILogger<HuisApiService> _logger;
 
   /// <summary>
-  /// The cached reworks from the API.
+  /// The cache for calculated scores, indefinitely caching scores with the same score parameters, rework and algorithm version.
   /// </summary>
-  private readonly Cached<HuisRework[]> _reworks = new Cached<HuisRework[]>(TimeSpan.FromMinutes(5));
+  private readonly DictionaryCache<HuisCalculationRequest, HuisCalculatedScore> _calculatedScoreCache =
+    new DictionaryCache<HuisCalculationRequest, HuisCalculatedScore>();
 
   public HuisApiService(IHttpClientFactory httpClientFactory, ILogger<HuisApiService> logger)
   {
@@ -56,10 +57,6 @@ public class HuisApiService
   /// <returns></returns>
   public async Task<HuisRework[]?> GetReworksAsync()
   {
-    // If the cached reworks are not expired, return them.
-    if (_reworks.IsValid)
-      return _reworks.Value;
-
     try
     {
       // Get the reworks from the API.
@@ -70,8 +67,7 @@ public class HuisApiService
       if (reworks is null || reworks.Length == 0)
         throw new Exception("Deserialization of JSON returned null.");
 
-      // Update the cached reworks and return it.
-      _reworks.Value = reworks;
+      // Return the rework.
       return reworks;
     }
     catch (Exception ex)
@@ -179,6 +175,10 @@ public class HuisApiService
   /// <returns>The calculation result.</returns>
   public async Task<HuisCalculatedScore?> CalculateAsync(HuisCalculationRequest request)
   {
+    // Check whether the score is already cached.
+    if (_calculatedScoreCache.Has(request))
+      return _calculatedScoreCache.Get(request);
+
     try
     {
       // Send the score calculation request to the server and parse the response.
@@ -195,6 +195,8 @@ public class HuisApiService
       if (error is not null)
         throw new Exception($"API returned {error}");
 
+      // Cache the score and return it.
+      _calculatedScoreCache.Add(request, result);
       return result;
     }
     catch (Exception ex)
