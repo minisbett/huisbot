@@ -57,7 +57,7 @@ public class ProfileCommandModule : ModuleBase
     if (user is null)
       return;
 
-    // Loop through the following logic once with local = true and local = false, getting the player in both the local and the live rework.
+    // Loop through the following logic, getting the player in both the local and the live rework.
     List<HuisPlayer> players = new List<HuisPlayer>();
     foreach (HuisRework _rework in new HuisRework[] { rework, live })
     {
