@@ -139,7 +139,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       str = str.Replace(_config.GetValue<string>(secret), "<censored>");
 
     // If the string representation is too long, send a file containing it.
-    if (str.Length > 2000)
+    if (str.Length > 2000 - 8 /* ```\n\n``` */)
     {
       await ModifyOriginalResponseAsync(msg =>
       {
