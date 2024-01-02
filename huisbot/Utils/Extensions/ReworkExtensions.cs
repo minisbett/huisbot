@@ -27,7 +27,7 @@ internal static class HuisReworkExtensions
 
   /// <summary>
   /// Returns a human readable string for the rework status.
-  /// Example: 🔒 Private ✅ Active
+  /// Example: 🔒 Private • ✅ Active
   /// </summary>
   /// <param name="rework">The rework.</param>
   /// <returns>A human readable string for the rework status.</returns>
@@ -49,7 +49,7 @@ internal static class HuisReworkExtensions
   /// </summary>
   /// <param name="rework">The rework.</param>
   /// <returns>A human readable string for the ruleset.</returns>
-  public static string GetReadableRuleset(this HuisRework rework)
+  public static string GetReadableRulesetName(this HuisRework rework)
    => rework.RulesetId switch
    {
      0 => "osu!",

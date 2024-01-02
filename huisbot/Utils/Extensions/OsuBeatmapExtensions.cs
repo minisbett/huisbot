@@ -44,7 +44,7 @@ internal static class OsuBeatmapExtensions
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="modsStr">The mod string.</param>
   /// <returns>The mod-adjusted circle size.</returns>
-  public static double AdjustedCS(this OsuBeatmap beatmap, string modsStr)
+  public static double GetAdjustedCS(this OsuBeatmap beatmap, string modsStr)
   {
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
@@ -65,7 +65,7 @@ internal static class OsuBeatmapExtensions
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="modsStr">The mod string.</param>
   /// <returns>The mod-adjusted approach rate.</returns>
-  public static double AdjustedAR(this OsuBeatmap beatmap, string modsStr)
+  public static double GetAdjustedAR(this OsuBeatmap beatmap, string modsStr)
   {
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
@@ -93,7 +93,7 @@ internal static class OsuBeatmapExtensions
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="modsStr">The mod string.</param>
   /// <returns>The mod-adjusted overall difficulty.</returns>
-  public static double AdjustedOD(this OsuBeatmap beatmap, string modsStr)
+  public static double GetAdjustedOD(this OsuBeatmap beatmap, string modsStr)
   {
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
@@ -117,7 +117,7 @@ internal static class OsuBeatmapExtensions
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="modsStr">The mod string.</param>
   /// <returns>The mod-adjusted drain rate.</returns>
-  public static double AdjustedHP(this OsuBeatmap beatmap, string modsStr)
+  public static double GetAdjustedHP(this OsuBeatmap beatmap, string modsStr)
   {
     string[] mods = modsStr.Chunk(2).Select(x => new string(x)).ToArray();
 
