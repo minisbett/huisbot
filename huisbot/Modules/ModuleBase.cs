@@ -1,6 +1,4 @@
 ﻿using Discord.Interactions;
-using Discord.WebSocket;
-using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;

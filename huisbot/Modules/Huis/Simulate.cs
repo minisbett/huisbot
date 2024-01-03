@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Autocompletes;
@@ -57,7 +56,7 @@ public class SimulateCommandModule : ModuleBase
 
     // Get the live rework, since the HuisRework object is required for score calculation.
     HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());
-    if(live is null)
+    if (live is null)
       return;
 
     // If a score was specified, get the score and fill the unset parameters with it's attributes.

@@ -1,5 +1,4 @@
 ﻿using Discord.Interactions;
-using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
@@ -70,7 +69,16 @@ public class TopPlaysCommandModule : ModuleBase
     if (scores is null)
       return;
 
+    // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
+    Func<HuisScore, double> selector = sort.Code switch
+    {
+      "live_pp" => x => x.LivePP,
+      "pp_diff" => x => x.LocalPP - x.LivePP,
+      _ => x => x.LocalPP
+    };
+    HuisScore[] sortedScores = (sort.IsAscending ? scores.OrderBy(selector) : scores.OrderByDescending(selector)).ToArray();
+
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.TopPlays(user, scores, rework, sort, page));
+    await FollowupAsync(embed: Embeds.TopPlays(user, scores, sortedScores, rework, sort, page));
   }
 }
