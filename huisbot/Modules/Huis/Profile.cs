@@ -27,13 +27,6 @@ public class ProfileCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // The live rework is required to be passed to GetHuisPlayerAsync down below, since it
     // requires information about the pp version to determine whether a player is up-to-date.
     HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());

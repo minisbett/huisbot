@@ -15,7 +15,7 @@ public static class ModuleBaseUtils
   public static async Task<bool> IsOnionAsync(SocketInteractionContext context)
   {
 #if DEBUG
-    return true;
+    return false;
 #endif
 
     // Check whether the user is the owner of the application.

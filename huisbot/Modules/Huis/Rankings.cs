@@ -35,13 +35,6 @@ public class RankingsCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the player rankings.
     HuisPlayer[]? players = await GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked);
     if (players is null)

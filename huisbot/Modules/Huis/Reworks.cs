@@ -69,7 +69,7 @@ public class ReworksComponentModule : ModuleBase
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
     if (rework.IsOnionLevel && !await IsOnionAsync())
     {
-      await Context.Interaction.FollowupAsync(embed: Embeds.NotOnion, ephemeral: true);
+      await Context.Interaction.RespondAsync(embed: Embeds.NotOnion, ephemeral: true);
       return;
     }
 

@@ -47,13 +47,6 @@ public class SimulateCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Get the live rework, since the HuisRework object is required for score calculation.
     HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());
     if (live is null)

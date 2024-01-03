@@ -66,8 +66,14 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (reworks is null)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
-    else if (rework is null)
+    if (rework is null)
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
+    // Disallow non-Onion users to access Onion-level reworks.
+    else if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return null;
+    }
 
     return rework;
   }
