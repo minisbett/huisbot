@@ -1,5 +1,6 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
+using huisbot.Models.Utility;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 

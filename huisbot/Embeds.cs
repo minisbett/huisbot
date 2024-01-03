@@ -1,9 +1,9 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Utils;
-using huisbot.Utils.Extensions;
 using Emoji = huisbot.Models.Utility.Emoji;
 
 namespace huisbot;
@@ -99,9 +99,9 @@ internal static class Embeds
       embed = embed.AddField("\u200B", part);
 
     embed = embed
-      .AddField("Ruleset", rework.GetReadableRulesetName(), true)
-      .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})", true)
-      .AddField("Status", rework.GetReworkStatusString(), true);
+      .AddField("Ruleset", rework.RulesetName, true)
+      .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.CommitUrl})", true)
+      .AddField("Status", rework.ReworkTypeString, true);
 
     return embed.Build();
   }
@@ -123,7 +123,7 @@ internal static class Embeds
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = $"[Source]({rework.GetCommitUrl()})";
+    string github = $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
@@ -184,21 +184,20 @@ internal static class Embeds
     string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
-    string modsStr = local.Mods.Replace(", ", "").Replace("CL", "");
-    string mods = modsStr == "" ? "" : $"+{modsStr}";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    string stats2 = $"CS **{beatmap.GetAdjustedCS(modsStr):0.#}** AR **{beatmap.GetAdjustedAR(modsStr):0.#}** ▸ **{beatmap.GetBPM(modsStr):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(modsStr):0.#}** HP **{beatmap.GetAdjustedHP(modsStr):0.#}**";
-    string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount, beatmap.SliderCount,
-                           beatmap.GetAdjustedOD(modsStr), ModUtils.GetClockRate(modsStr)):F2}** eUR";
+    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Mods):0.#}** " +
+                    $"▸ **{beatmap.GetBPM(local.Mods):0.###}** {_emojis["bpm"]}";
+    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Mods):0.#}**";
+    string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount,
+                                                        beatmap.SliderCount, beatmap.GetAdjustedOD(local.Mods), local.Mods.ClockRate):F2}** eUR";
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = $"[Source]({rework.GetCommitUrl()})";
+    string github = $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] {mods} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Mods.PlusString} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
       .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
                $"{visualizer} • {osu}\n{huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
@@ -283,7 +282,7 @@ internal static class Embeds
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.CommitUrl})",
       ""
     };
 
@@ -298,14 +297,11 @@ internal static class Embeds
       if ($"{title} [{version}]".Length > 60 && title.Length > 27)
         title = $"{title.Substring(0, 27)}...";
 
-      string pp = GetPPDifferenceText(score.LivePP, score.LocalPP);
-      string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
-      string mods = modsStr == "" ? "" : $"+{modsStr}";
-
       // Add the info to the description lines.
-      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}] {mods}]" +
+      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]{score.Mods.PlusString}]" +
                       $"(https://osu.ppy.sh/b/{score.BeatmapId})");
-      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+      description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
+                      $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
@@ -335,7 +331,7 @@ internal static class Embeds
     {
       $"*{rework.Name}*",
       $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code}) • " +
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})",
+      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.CommitUrl})",
       ""
     };
 
@@ -350,11 +346,6 @@ internal static class Embeds
       if ($"{title} [{version}]".Length > 80 && title.Length > 37)
         title = $"{title.Substring(0, 37)}...";
 
-      // Get more info about the score.
-      string pp = GetPPDifferenceText(score.LivePP, score.LocalPP);
-      string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
-      string mods = modsStr == "" ? "" : $"+{modsStr}";
-
       // Get the placement of each score, as well as the difference.
       int placement = sortedScores.ToList().IndexOf(score) + 1;
       int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) + 1 - placement;
@@ -363,8 +354,9 @@ internal static class Embeds
         placementStr += $" ({placementDiff:+#;-#;0})";
 
       // Add the info to the description lines.
-      description.Add($"{placementStr} [{title} [{version}] {mods}](https://osu.ppy.sh/b/{score.BeatmapId})");
-      description.Add($"▸ {pp} ▸ {score.Accuracy:N2}% {score.MaxCombo}x ▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+      description.Add($"{placementStr} [{title} [{version}]{score.Mods.PlusString}](https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
+                      $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
     // Add hyperlinks to useful urls.
@@ -391,7 +383,7 @@ internal static class Embeds
 
     // Generate the embed description.
     List<string> description = new List<string>()
-    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.GetCommitUrl()})\n" };
+    { $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • [Source]({rework.CommitUrl})\n" };
     foreach (HuisPlayer player in players)
       // Add the info to the description lines.
       description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {GetPPDifferenceText(player.OldPP, player.NewPP)} ▸ " +

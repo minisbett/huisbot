@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
+using huisbot.Models.Utility;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 using huisbot.Utils;
@@ -30,10 +31,9 @@ public class SimulateCommandModule : ModuleBase
     [Summary("100s", "The amount of 100s/oks in the score.")] int? count100 = null,
     [Summary("50s", "The amount of 50s/mehs in the score.")] int? count50 = null,
     [Summary("misses", "The amount of misses in the score.")] int? misses = null,
-    [Summary("mods", "The mods used in the score.")] string? mods = null)
+    [Summary("mods", "The mods used in the score.")] string? modsStr = null)
   {
     await DeferAsync();
-    mods = mods?.ToUpper();
 
     // Check if either a beatmap ID or a score ID was specified.
     if (beatmapId is null && scoreId is null)
@@ -65,11 +65,11 @@ public class SimulateCommandModule : ModuleBase
       count100 ??= score.Statistics.Count100;
       count50 ??= score.Statistics.Count50;
       misses ??= score.Statistics.Misses;
-      mods ??= string.Join("", score.Mods);
+      modsStr ??= string.Join("", score.Mods);
     }
 
-    // Default mods to "" if they haven't been initialized by score parsing before.
-    mods ??= "";
+    // Parse the mods into a mods object.
+    Mods mods = Mods.Parse(modsStr ?? "");
 
     // Get the beatmap from the identifier.
     OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId!);
@@ -88,7 +88,7 @@ public class SimulateCommandModule : ModuleBase
       Count100 = count100,
       Count50 = count50,
       Misses = misses,
-      Mods = ModUtils.Split(mods)
+      Mods = mods.Array
     };
 
     // Display the calculation progress in an embed to the user.

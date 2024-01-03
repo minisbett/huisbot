@@ -1,4 +1,5 @@
 ﻿using huisbot.Models.Osu;
+using huisbot.Models.Utility;
 using huisbot.Persistence.Caching;
 using huisbot.Utils;
 using Microsoft.CodeAnalysis;
@@ -210,14 +211,14 @@ public class OsuApiService
   /// <param name="beatmapId">The beatmap ID.</param>
   /// <param name="mods">The mod string.</param>
   /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, Mods mods)
   {
     // Serialize the JSON string for the request.
     var requestJson = JsonConvert.SerializeObject(new
     {
       ruleset_id = rulesetId,
       beatmap_id = beatmapId,
-      mods = ModUtils.Split(mods).Select(x => new { acronym = x })
+      mods = mods.Array.Select(x => new { acronym = x })
     });
 
     // Check whether the difficulty rating is already cached.

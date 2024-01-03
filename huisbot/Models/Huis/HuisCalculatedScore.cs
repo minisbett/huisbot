@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Models.Utility;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
 
@@ -59,7 +60,7 @@ public class HuisCalculatedScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string Mods { get; private set; } = "";
+  public Mods Mods { get; private set; } = null!;
 
   /// <summary>
   /// The PP for the aim skill.

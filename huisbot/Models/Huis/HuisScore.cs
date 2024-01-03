@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Models.Utility;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
 
@@ -65,7 +66,7 @@ public class HuisScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string Mods { get; private set; } = "";
+  public Mods Mods { get; private set; } = null!;
 
   /// <summary>
   /// The amount of 300s/greats of the score.
@@ -74,13 +75,13 @@ public class HuisScore
   public int Count300 { get; private set; }
 
   /// <summary>
-  /// The amount of 100s/goods of the score.
+  /// The amount of 100s/oks of the score.
   /// </summary>
-  [JsonProperty("good")] // BUG: This is actually called "ok", but Huismetbenen mistakenly calls them "goods".
+  [JsonProperty("good")] // BUG: This is actually called "ok", but Huismetbenen mistakenly calls them "good".
   public int Count100 { get; private set; }
 
   /// <summary>
-  /// The amount of 300s/greats of the score.
+  /// The amount of 50s/mehs of the score.
   /// </summary>
   [JsonProperty("meh")]
   public int Count50 { get; private set; }
@@ -147,7 +148,7 @@ public class HuisScore
 
   public override string ToString()
   {
-    return $"**{Username}** | {Artist} - {Title} ({Mapper}) [{Version}]{(string.IsNullOrEmpty(Mods) ? "" : "+" + Mods!.Replace("CL", "").Replace(", ", ""))} " +
+    return $"**{Username}** | {Artist} - {Title} ({Mapper}) [{Version}]{Mods.PlusString} " +
            $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
   }
 }

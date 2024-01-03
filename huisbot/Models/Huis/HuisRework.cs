@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
 
@@ -100,5 +101,58 @@ public class HuisRework
   public override string ToString()
   {
     return $"{Id} {Name} ({Code})";
+  }
+
+  /// <summary>
+  /// A URL to the commit of the rework.
+  /// </summary>
+  public string CommitUrl
+  {
+    get
+    {
+      if (Url is null || Commit is null)
+        return "";
+
+      // If the URL of the rework points to a non-master branch or a commit on the ppy/osu repository, return the URL as-is.
+      if (Url.StartsWith("https://github.com/ppy/osu/tree") && !Url.Contains("/tree/master"))
+        return Url;
+
+      // Otherwise, get the base repository URL (there might be something appending it) and append the commit.
+      return string.Join('/', Url.Split('/').Take(5)) + $"/tree/{Commit}";
+    }
+  }
+
+  /// <summary>
+  /// A human readable string for the rework status.<br/>
+  /// Example: 🔒 Private • ✅ Active
+  /// </summary>
+  public string ReworkTypeString
+  {
+    get => this switch
+    {
+      { IsLive: true } => "🔴 Live",
+      { IsHistoric: true } => "📜 Historic",
+      { IsConfirmed: true } => "✅ Confirmed for next deploy",
+      { IsPublic: true, IsActive: true } => "🌐 Public • ✅ Active",
+      { IsPublic: true, IsActive: false } => "🌐 Public • 💀 Inactive",
+      { IsPublic: false, IsActive: true } => "🔒 Private • ✅ Active",
+      { IsPublic: false, IsActive: false } => "🔒 Private • 💀 Inactive",
+      _ => ReworkType ?? "null"
+    };
+  }
+
+  /// <summary>
+  /// A human readable name for the ruleset targetted by the rework.
+  /// </summary>
+  public string RulesetName
+  {
+    get => RulesetId switch
+    {
+      0 => "osu!",
+      1 => "osu!taiko",
+      2 => "osu!catch",
+      3 => "osu!mania",
+      _ => "Unknown"
+    };
   }
 }

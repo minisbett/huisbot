@@ -4,7 +4,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Services;
 using huisbot.Utils;
-using huisbot.Utils.Extensions;
 
 namespace huisbot.Modules;
 
@@ -292,7 +291,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="beatmapId">The beatmap ID.</param>
   /// <param name="mods">The mods.</param>
   /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, Mods mods)
   {
     // Get the difficulty rating and check whether the request was successful. If not, notify the user.
     double? rating = await _osu.GetDifficultyRatingAsync(rulesetId, beatmapId, mods);
