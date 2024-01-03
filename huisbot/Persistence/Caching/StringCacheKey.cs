@@ -1,11 +1,4 @@
-﻿using huisbot.Persistence.Caching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Persistence.Caching;
+﻿namespace huisbot.Persistence.Caching;
 
 /// <summary>
 /// A wrapper class around a string in order to use it as a cache key.

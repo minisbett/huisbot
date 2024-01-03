@@ -1,5 +1,4 @@
 ﻿using Discord.Interactions;
-using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;

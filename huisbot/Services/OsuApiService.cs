@@ -1,12 +1,10 @@
-﻿using huisbot.Enums;
-using huisbot.Models.Osu;
+﻿using huisbot.Models.Osu;
 using huisbot.Persistence.Caching;
 using huisbot.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
 

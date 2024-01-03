@@ -1,5 +1,4 @@
 ﻿using Discord;
-using huisbot.Enums;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Utility;
@@ -280,9 +279,6 @@ internal static class Embeds
   /// <returns>An embed for displaying the score rankings.</returns>
   public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
-    // Get the scores to be displayed.
-    HuisScore[] scores = allScores.Skip((page - 1) * 10).Take(10).ToArray();
-
     // Generate the embed description.
     List<string> description = new List<string>()
     {
@@ -292,7 +288,7 @@ internal static class Embeds
     };
 
     int offset = (page - 1) * 10;
-    foreach (HuisScore score in scores)
+    foreach (HuisScore score in allScores.Skip((page - 1) * 10).Take(10))
     {
       // Trim the version if title + version is too long. If it's still too long, trim title as well.
       string title = score.Title ?? "";
@@ -326,26 +322,14 @@ internal static class Embeds
   /// Returns an embed for displaying the top plays of the specified player in the specified rework.
   /// </summary>
   /// <param name="user">The player.</param>
-  /// <param name="allScores">All scores, including the ones to display.</param>
+  /// <param name="rawScores">All top plays in their original order. Used to display placement differences.</param>
+  /// <param name="sortedScores">All top plays in their sorted order.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="page">The sorting for the scores.</param>
   /// <param name="page">The page being displayed.</param>
   /// <returns>An embed for displaying the top plays.</returns>
-  public static Embed TopPlays(OsuUser user, HuisScore[] allScores, HuisRework rework, Sort sort, int page)
+  public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
   {
-    // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
-    Func<HuisScore, double> selector = sort.Code switch
-    {
-      "live_pp" => x => x.LivePP,
-      "pp_diff" => x => x.LocalPP - x.LivePP,
-      _ => x => x.LocalPP
-    };
-
-    HuisScore[] sortedScores = (sort.IsAscending ? allScores.OrderBy(selector) : allScores.OrderByDescending(selector)).ToArray();
-
-    // Get the scores to be displayed.
-    HuisScore[] scores = sortedScores.Skip((page - 1) * 10).Take(10).ToArray();
-
     // Generate the embed description.
     List<string> description = new List<string>()
     {
@@ -356,7 +340,7 @@ internal static class Embeds
     };
 
     // Go through all scores and populate the description.
-    foreach (HuisScore score in scores)
+    foreach (HuisScore score in sortedScores.Skip((page - 1) * 10).Take(10).ToArray())
     {
       // Trim the version if title + version is too long. If it's still too long, trim title as well.
       string title = score.Title ?? "";
@@ -370,8 +354,10 @@ internal static class Embeds
       string pp = GetPPDifferenceText(score.LivePP, score.LocalPP);
       string modsStr = score.Mods.Replace(", ", "").Replace("CL", "");
       string mods = modsStr == "" ? "" : $"+{modsStr}";
-      int placement = allScores.ToList().IndexOf(score) + 1;
-      int placementDiff = allScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) - placement;
+
+      // Get the placement of each score, as well as the difference.
+      int placement = sortedScores.ToList().IndexOf(score) + 1;
+      int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) - placement;
       string placementStr = $"**#{placement}**";
       if (placementDiff != 0)
         placementStr += $" ({placementDiff:+#;-#;0})";
@@ -382,7 +368,7 @@ internal static class Embeds
     }
 
     // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of {Math.Ceiling(allScores.Length / 10d)}.*");
+    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {rawScores.Length} on page {page} of {Math.Ceiling(rawScores.Length / 10d)}.*");
 
     return BaseEmbed
       .WithTitle($"Top Plays of {user.Name} ({sort.DisplayName})")

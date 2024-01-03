@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Enums;
+using huisbot.Models.Huis;
 
 namespace huisbot.Modules.Autocompletes;
 

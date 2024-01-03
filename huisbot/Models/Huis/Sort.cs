@@ -1,11 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Enums;
+﻿namespace huisbot.Models.Huis;
 
 /// <summary>
 /// Represents a sorting option with it's sorting code and order.
