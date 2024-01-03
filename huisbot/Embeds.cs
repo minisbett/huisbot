@@ -191,7 +191,7 @@ internal static class Embeds
     string stats3 = $"OD **{beatmap.GetAdjustedOD(modsStr):0.#}** HP **{beatmap.GetAdjustedHP(modsStr):0.#}**";
     string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount, beatmap.SliderCount,
                            beatmap.GetAdjustedOD(modsStr), ModUtils.GetClockRate(modsStr)):F2}** eUR";
-    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/preview?b={beatmap.Id})";
+    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
     string github = $"[Source]({rework.GetCommitUrl()})";
