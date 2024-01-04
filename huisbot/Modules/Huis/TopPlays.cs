@@ -35,13 +35,6 @@ public class TopPlaysCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // If no player identifier was specified, try to get one from a link.
     if (playerId is null)
     {

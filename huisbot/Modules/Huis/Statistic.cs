@@ -33,13 +33,6 @@ public class StatisticCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
-
     // Exclude the live rework, as it has no statistics to show.
     if (rework.Id == HuisRework.LiveId)
     {

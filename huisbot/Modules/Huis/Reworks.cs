@@ -3,7 +3,6 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using huisbot.Utils.Extensions;
 
 namespace huisbot.Modules;
 
@@ -34,7 +33,7 @@ public class ReworksCommandModule : ModuleBase
         .WithCustomId("rework")
         .WithPlaceholder("Select a rework...")
         .WithMaxValues(1)
-        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.GetReworkStatusString()} )", null, false)).ToList()))
+        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.ReworkTypeString} )", null, false)).ToList()))
       .Build();
 
     // Show the live "rework" by default and add the select menu to the reply.
@@ -69,7 +68,7 @@ public class ReworksComponentModule : ModuleBase
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
     if (rework.IsOnionLevel && !await IsOnionAsync())
     {
-      await Context.Interaction.FollowupAsync(embed: Embeds.NotOnion, ephemeral: true);
+      await Context.Interaction.RespondAsync(embed: Embeds.NotOnion, ephemeral: true);
       return;
     }
 

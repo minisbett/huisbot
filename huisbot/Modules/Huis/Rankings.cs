@@ -1,5 +1,6 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
+using huisbot.Models.Utility;
 using huisbot.Modules.Autocompletes;
 using huisbot.Services;
 
@@ -34,13 +35,6 @@ public class RankingsCommandModule : ModuleBase
     HuisRework? rework = await GetReworkAsync(reworkId);
     if (rework is null)
       return;
-
-    // Disallow non-Onion users to access Onion-level reworks.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
-    {
-      await FollowupAsync(embed: Embeds.NotOnion);
-      return;
-    }
 
     // Get the player rankings.
     HuisPlayer[]? players = await GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked);

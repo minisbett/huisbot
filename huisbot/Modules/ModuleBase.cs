@@ -4,7 +4,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Utility;
 using huisbot.Services;
 using huisbot.Utils;
-using huisbot.Utils.Extensions;
 
 namespace huisbot.Modules;
 
@@ -66,8 +65,14 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
     if (reworks is null)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
-    else if (rework is null)
+    if (rework is null)
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
+    // Disallow non-Onion users to access Onion-level reworks.
+    else if (rework.IsOnionLevel && !await IsOnionAsync())
+    {
+      await FollowupAsync(embed: Embeds.NotOnion);
+      return null;
+    }
 
     return rework;
   }
@@ -286,7 +291,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="beatmapId">The beatmap ID.</param>
   /// <param name="mods">The mods.</param>
   /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, string mods)
+  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, Mods mods)
   {
     // Get the difficulty rating and check whether the request was successful. If not, notify the user.
     double? rating = await _osu.GetDifficultyRatingAsync(rulesetId, beatmapId, mods);
