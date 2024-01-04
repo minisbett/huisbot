@@ -198,7 +198,7 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Mods.PlusString} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
+      .AddField("PP Comparison (Live → Local)", $"▸ **PP**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
                $"{visualizer} • {osu}\n{huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
