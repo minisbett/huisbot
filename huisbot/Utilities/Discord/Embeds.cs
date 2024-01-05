@@ -155,7 +155,6 @@ internal static class Embeds
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
   /// <param name="local">Bool whether the local score finished calculating.</param>
-  /// <param name="live">Bool whether the live score finished calculating.</param>
   /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
   /// <returns>An embed for displaying the score calculation progress.</returns>
   public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
