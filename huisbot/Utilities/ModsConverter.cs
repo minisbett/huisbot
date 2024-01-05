@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using huisbot.Models.Utility;
+﻿using Newtonsoft.Json;
 
-namespace huisbot.Utils;
+namespace huisbot.Utilities;
 
 /// <summary>
 /// A <see cref="JsonConverter"/> for converting between <see cref="string"/> and <see cref="Mods"/>.

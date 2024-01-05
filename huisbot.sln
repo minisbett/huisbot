@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "huisbot", "huisbot\huisbot.csproj", "{F0476E9B-9D41-4303-9459-43D56C4E67DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "huisbot", "huisbot\huisbot.csproj", "{F0476E9B-9D41-4303-9459-43D56C4E67DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

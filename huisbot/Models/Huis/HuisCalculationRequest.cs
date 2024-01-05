@@ -1,5 +1,4 @@
-﻿using huisbot.Persistence.Caching;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 namespace huisbot.Models.Huis;
@@ -7,7 +6,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation request to be sent to Huismetbenen.
 /// </summary>
-public class HuisCalculationRequest : ICacheableKey
+public class HuisCalculationRequest
 {
   /// <summary>
   /// The ID of the beatmap.
@@ -56,12 +55,6 @@ public class HuisCalculationRequest : ICacheableKey
   /// </summary>
   [JsonIgnore]
   public HuisRework Rework { get; set; }
-
-  /// <summary>
-  /// A unique identifier of this calculation request for the cache, including the score parameters and algorithm version of the rework.
-  /// </summary>
-  [JsonIgnore]
-  public string CacheUID => $"algorithm version {Rework.PPVersion}\n{ToJson()}";
 
   /// <summary>
   /// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.

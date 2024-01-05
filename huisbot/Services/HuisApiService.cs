@@ -1,6 +1,5 @@
 ﻿using huisbot.Models.Huis;
-using huisbot.Models.Utility;
-using huisbot.Persistence.Caching;
+using huisbot.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -16,15 +15,14 @@ public class HuisApiService
   private readonly ILogger<HuisApiService> _logger;
 
   /// <summary>
-  /// The cache for the reworks.
+  /// The cache for the reworks. This is cached as reworks are frequently accessed, e.g. via autocompletes.
   /// </summary>
-  private readonly ExpiringValue<HuisRework[]> _reworksCache = new ExpiringValue<HuisRework[]>(TimeSpan.FromMinutes(5));
+  private HuisRework[] _reworksCache = null!;
 
   /// <summary>
-  /// The cache for calculated scores, indefinitely caching scores with the same score parameters, rework and algorithm version.
+  /// The last refresh time of the reworks cache.
   /// </summary>
-  private readonly DictionaryCache<HuisCalculationRequest, HuisCalculatedScore> _calculatedScoreCache =
-    new DictionaryCache<HuisCalculationRequest, HuisCalculatedScore>();
+  private DateTime _lastReworksCacheRefresh = DateTime.MinValue;
 
   public HuisApiService(IHttpClientFactory httpClientFactory, ILogger<HuisApiService> logger)
   {
@@ -63,21 +61,22 @@ public class HuisApiService
   public async Task<HuisRework[]?> GetReworksAsync()
   {
     // Check whether the cached reworks are still valid.
-    if (_reworksCache.IsValid)
-      return _reworksCache.Value;
+    if (_lastReworksCacheRefresh.AddMinutes(5) > DateTime.UtcNow)
+      return _reworksCache;
 
     try
     {
       // Get the reworks from the API.
       string json = await _http.GetStringAsync("reworks/list");
-      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json)?.Where(x => x.RulesetId == 0).ToArray()  /* TODO: Support for other rulsets */;
+      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json)?.Where(x => x.RulesetId == 0).ToArray();
 
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
         throw new Exception("Deserialization of JSON returned null.");
 
       // Cache the reworks and return them.
-      _reworksCache.Value = reworks;
+      _reworksCache = reworks;
+      _lastReworksCacheRefresh = DateTime.UtcNow;
       return reworks;
     }
     catch (Exception ex)
@@ -185,10 +184,6 @@ public class HuisApiService
   /// <returns>The calculation result.</returns>
   public async Task<HuisCalculatedScore?> CalculateAsync(HuisCalculationRequest request)
   {
-    // Check whether the score is already cached.
-    if (_calculatedScoreCache.Has(request))
-      return _calculatedScoreCache[request];
-
     try
     {
       // Send the score calculation request to the server and parse the response.
@@ -205,8 +200,7 @@ public class HuisApiService
       if (error is not null)
         throw new Exception($"API returned {error}");
 
-      // Cache the score and return it.
-      _calculatedScoreCache[request] = result;
+      // Return the score.
       return result;
     }
     catch (Exception ex)

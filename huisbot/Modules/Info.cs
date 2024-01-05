@@ -1,7 +1,8 @@
 ﻿using Discord.Interactions;
 using huisbot.Services;
+using huisbot.Utilities.Discord;
 
-namespace huisbot.Modules.Utility;
+namespace huisbot.Modules;
 
 /// <summary>
 /// The interaction module for the info command, displaying general info about the bot.

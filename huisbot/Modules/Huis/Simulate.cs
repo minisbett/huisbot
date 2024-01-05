@@ -2,10 +2,9 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
-using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using huisbot.Utils;
+using huisbot.Utilities;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 
@@ -24,7 +23,7 @@ public class SimulateCommandModule : ModuleBase
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("score", "The ID or alias of a score to base the score attributes off. Can be overriden by other parameters.")] string? scoreId = null,
     [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,

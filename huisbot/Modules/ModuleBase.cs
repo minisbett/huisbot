@@ -1,9 +1,11 @@
 ﻿using Discord.Interactions;
+using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
+using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utils;
+using huisbot.Utilities;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules;
 
@@ -25,18 +27,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Bool whether the user has the Onion role on the PP Discord, making them eligible to use Huis commands.
-  /// </summary>
-  public Task<bool> IsOnionAsync() => ModuleBaseUtils.IsOnionAsync(Context);
-
-  /// <summary>
-  /// Returns whether the user has the PP role on the PP Discord, making them eligible for certain more critical commands.
-  /// </summary>
-  public Task<bool> IsPPTeamAsync() => ModuleBaseUtils.IsPPTeamAsync(Context);
-
-  /// <summary>
-  /// Returns all available reworks on Huismetbenen. If it failed, the user will automatically
-  /// be notified, unless the seeError parameter is set. In this case, this method returns null.
+  /// Returns all available reworks on Huismetbenen.<br/>
+  /// If it failed, the user will automatically be notified, unless the seeError parameter is set. In this case, this method returns null.
   /// </summary>
   /// <param name="showError">Bool whether an error should be displayed to the user.</param>
   /// <returns>The available reworks.</returns>
@@ -52,12 +44,11 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns a rework available on Huismetbenen based on the specified identifier.
-  /// This can be the ID, code or fully qualified name. If it failed, the user will
-  /// automatically be notified. In this case, this method returns null.
+  /// Returns a rework available on Huismetbenen based on the specified identifier (ID, code or fully qualified name).<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="reworkId">The identifier for the rework. (ID, code or fully qualified name)</param>
-  /// <returns></returns>
+  /// <returns>The Huis rework.</returns>
   public async Task<HuisRework?> GetReworkAsync(string reworkId)
   {
     // Get all reworks, find the one with a matching identifier and check whether the process was successful. If not, notify the user.
@@ -68,7 +59,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     if (rework is null)
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
     // Disallow non-Onion users to access Onion-level reworks.
-    else if (rework.IsOnionLevel && !await IsOnionAsync())
+    else if (rework.IsOnionLevel && !await IsOnionAsync(Context))
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return null;
@@ -78,7 +69,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the sorting option based on the specified identifier (this can be the ID or display name) and list of sorts.
+  /// Returns the sorting option based on the specified identifier (ID or display name) and list of sorts.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="sortId">The identifier for the player sorting options. (ID or display name)</param>
@@ -95,7 +86,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the player rankings of the specified rework with the specified sorting option and filters.
+  /// Returns the player rankings of the specified rework with the specified sorting option and filters.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="reworkId">The ID of the rework.</param>
@@ -114,7 +105,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the score rankings of the specified rework with the specified sorting option and filters.
+  /// Returns the score rankings of the specified rework with the specified sorting option and filters.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="reworkId">The ID of the rework.</param>
@@ -131,7 +122,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the statistic with the specified ID in the specified rework.
+  /// Returns the statistic with the specified ID in the specified rework.<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="statisticId">The statistic ID.</param>
   /// <param name="reworkId">The rework ID.</param>
@@ -147,7 +139,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the link between the Discord user in the current context and an osu! account.
+  /// Returns the link between the Discord user in the current context and an osu! account.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <returns>The link between the Discord user and an osu! account.</returns>
@@ -162,7 +154,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the osu! user with the specified identifier. (ID or username)
+  /// Returns the osu! user with the specified identifier (ID or username).<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="userId">An identifier for the osu! user. (ID or username)</param>
@@ -170,17 +162,17 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   public async Task<OsuUser?> GetOsuUserAsync(string userId)
   {
     // Get the user from the osu! API. If it failed or the user was not found, notify the user.
-    OsuUser? user = await _osu.GetUserAsync(userId);
+    NotFoundOr<OsuUser>? user = await _osu.GetUserAsync(userId);
     if (user is null)
       await FollowupAsync(embed: Embeds.InternalError("Failed to resolve the player from the osu! API."));
-    else if (!user.WasFound)
+    else if (!user.Found)
       await FollowupAsync(embed: Embeds.Error($"No player with identifier `{userId}` could not be found."));
 
-    return user;
+    return (user?.Found ?? false) ? user : null!;
   }
 
   /// <summary>
-  /// Returns the Huis player with the specified ID in the specified rework.
+  /// Returns the Huis player with the specified ID in the specified rework.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="playerId">The player ID.</param>
@@ -202,7 +194,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the current calculation queue on Huismetbenen, including all reworks.
+  /// Returns the current calculation queue on Huismetbenen, including all reworks.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <returns>The calculation queue.</returns>
@@ -217,7 +209,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Adds the specified player to the calculation queue in the specified rework.
+  /// Adds the specified player to the calculation queue in the specified rework.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns false.
   /// </summary>
   /// <param name="player">The player.</param>
@@ -236,7 +228,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the beatmap by the specified identifier. (Beatmap ID or alias)
+  /// Returns the beatmap by the specified identifier (ID or alias).<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="beatmapId">An identifier for the beatmap. (Beatmap ID or alias)</param>
   /// <returns>The beatmap.</returns>
@@ -257,17 +250,18 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     }
 
     // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
-    OsuBeatmap? beatmap = await _osu.GetBeatmapAsync(int.Parse(beatmapId));
+    NotFoundOr<OsuBeatmap>? beatmap = await _osu.GetBeatmapAsync(int.Parse(beatmapId));
     if (beatmap is null)
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the beatmap from the osu! API."));
-    else if (!beatmap.WasFound)
+      await FollowupAsync(embed: Embeds.InternalError("Failed to get the beatmap from the osu! API."));
+    else if (!beatmap.Found)
       await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could be found."));
 
-    return (beatmap?.WasFound ?? false) ? beatmap : null;
+    // Return the beatmap.
+    return (beatmap?.Found ?? false) ? beatmap : null!;
   }
 
   /// <summary>
-  /// Returns the top plays of the specified player in the specified rework from the Huis API.
+  /// Returns the top plays of the specified player in the specified rework from the Huis API.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="player">The player.</param>
@@ -284,7 +278,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.
+  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="rulesetId">The ruleset ID.</param>
@@ -302,7 +296,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the score by the specified identifier. (Score ID or alias)
+  /// Returns the score by the specified identifier (ID or alias).<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
   /// <param name="scoreId">An identifier for the score. (Score ID or alias)</param>
   /// <returns>The score.</returns>
@@ -322,12 +317,57 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
         scoreId = alias.ScoreId.ToString();
     }
     // Get the score from the osu! API. If it failed or the score was not found, notify the user.
-    OsuScore? score = await _osu.GetScoreAsync(rulesetId, long.Parse(scoreId));
+    NotFoundOr<OsuScore>? score = await _osu.GetScoreAsync(rulesetId, long.Parse(scoreId));
     if (score is null)
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the score from the osu! API."));
-    else if (!score.WasFound)
+    else if (!score.Found)
       await FollowupAsync(embed: Embeds.Error($"No score with ID `{scoreId}` could be found."));
 
-    return (score?.WasFound ?? false) ? score : null;
+    // Return the score.
+    return (score?.Found ?? false) ? score : null!;
+  }
+
+  /// <summary>
+  /// Returns whether the user has the Onion role on the PP Discord, making them eligible to use Huis commands.
+  /// </summary>
+  /// <param name="context">The Discord socket interaction context.</param>
+  public static async Task<bool> IsOnionAsync(SocketInteractionContext context)
+  {
+#if DEBUG
+    return false;
+#endif
+
+    // Check whether the user is the owner of the application.
+    if (context.User.Id == (await context.Client.GetApplicationInfoAsync()).Owner.Id)
+      return true;
+
+    // Get the PP Discord guild.
+    SocketGuild guild = context.Client.GetGuild(546120878908506119);
+
+    // Check whether the user is in that guild and has the Onion role.
+    SocketGuildUser user = guild.GetUser(context.User.Id);
+    return user != null && user.Roles.Any(x => x.Id == 577267917662715904);
+  }
+
+  /// <summary>
+  /// Returns whether the user has the PP role on the PP Discord, making them eligible for certain more critical commands.
+  /// </summary>
+  /// <param name="context">The Discord socket interaction context.</param>
+  public static async Task<bool> IsPPTeamAsync(SocketInteractionContext context)
+  {
+#if DEBUG
+    return true;
+#endif
+
+    // Check whether the user is the owner of the application.
+    if (context.User.Id == (await context.Client.GetApplicationInfoAsync()).Owner.Id)
+      return true;
+
+    // Get the PP Discord guild.
+    SocketGuild guild = context.Client.GetGuild(546120878908506119);
+
+    // Check whether the user is in that guild and has the PP role.
+    SocketGuildUser user = guild.GetUser(context.User.Id);
+    return user != null && user.Roles.Any(x => x.Id == 975402380411666482);
   }
 }

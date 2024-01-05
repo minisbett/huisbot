@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace huisbot.Models.Utility;
+namespace huisbot.Models.Persistence;
 
 /// <summary>
 /// Represents an alias to be used instead of a score ID in order to provide easier access.

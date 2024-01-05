@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace huisbot.Models.Utility;
+namespace huisbot.Models.Persistence;
 
 /// <summary>
 /// Represents a link between an osu! user and a discord user.

@@ -1,8 +1,9 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Models.Huis;
-using huisbot.Models.Utility;
-using huisbot.Modules.Autocompletes;
 using huisbot.Services;
+using huisbot.Utilities;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 
@@ -17,7 +18,7 @@ public class RankingsCommandModule : ModuleBase
   [SlashCommand("player", "Displays the global player leaderboard of the specified rework.")]
   public async Task HandlePlayerAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting for the players. Defaults to sort by Local PP.")]
     [Autocomplete(typeof(RankingPlayersSortAutocomplete))] string sortId = "new_pp_incl_bonus_desc",
     [Summary("onlyUpToDate", "Bool whether outdated players/uncalculated will be included. Defaults to true.")] bool onlyUpToDate = true,
@@ -48,7 +49,7 @@ public class RankingsCommandModule : ModuleBase
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
   public async Task HandleScoreAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
     [Autocomplete(typeof(RankingScoresSortAutocomplete))] string sortId = "local_pp_desc",
     [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1)
@@ -72,5 +73,31 @@ public class RankingsCommandModule : ModuleBase
 
     // Return the embed to the user.
     await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, sort, page));
+  }
+
+  /// <summary>
+  /// Autocomplete for the sort parameter on the score rankings command.
+  /// </summary>
+  private class RankingScoresSortAutocomplete : AutocompleteHandler
+  {
+    public override Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
+      IParameterInfo pInfo, IServiceProvider services)
+    {
+      // Return the sorting options.
+      return Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingScores.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
+    }
+  }
+
+  /// <summary>
+  /// Autocomplete for the sort parameter on the player rankings command.
+  /// </summary>
+  private class RankingPlayersSortAutocomplete : AutocompleteHandler
+  {
+    public override Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
+      IParameterInfo pInfo, IServiceProvider services)
+    {
+      // Return the sorting options.
+      return Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingPlayers.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
+    }
   }
 }

@@ -1,9 +1,10 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
+using huisbot.Models.Persistence;
 using huisbot.Services;
+using huisbot.Utilities.Discord;
 
-namespace huisbot.Modules.Utility;
+namespace huisbot.Modules;
 
 /// <summary>
 /// The interaction module for the alias group & add, remove and list subcommand, listing and modifying the different aliases.
@@ -39,7 +40,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -72,7 +73,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -101,7 +102,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -159,7 +160,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -192,7 +193,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -221,7 +222,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync())
+      if (!await IsPPTeamAsync(Context))
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;

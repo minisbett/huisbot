@@ -1,11 +1,11 @@
 ﻿using MathNet.Numerics;
 
-namespace huisbot.Utils;
+namespace huisbot.Utilities;
 
 /// <summary>
 /// Provides utility methods for any complex maths.
 /// </summary>
-internal static class MathUtils
+internal static class Utils
 {
   /// <summary>
   /// Estimates the player's tap deviation based on the OD, number of circles and sliders, and number of 300s, 100s, 50s, and misses,
@@ -15,6 +15,7 @@ internal static class MathUtils
   /// </summary>
   public static double? CalculateEstimatedUR(int count300, int count100, int count50, int misses, int circleCount, int sliderCount, double overallDifficulty, double clockRate)
   {
+    // If there's no hits at all, the UR is infinity.
     if (count50 + count100 + count300 == 0)
       return double.PositiveInfinity;
 

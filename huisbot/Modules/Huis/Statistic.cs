@@ -1,7 +1,7 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
-using huisbot.Modules.Autocompletes;
 using huisbot.Services;
+using huisbot.Utilities.Discord;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
@@ -22,7 +22,7 @@ public class StatisticCommandModule : ModuleBase
     [Summary("statistic", "The top-statistic to display.")]
     [Choice("Top Scores", "topscores")] [Choice("Top Players", "topplayers")] string statisticId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("amount", "Amount of entries to include, up to 500. Default is 500.")][MinValue(1)][MaxValue(500)] int amount = 500)
   {
     await DeferAsync();

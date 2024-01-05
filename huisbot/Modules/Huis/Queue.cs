@@ -1,9 +1,9 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
-using huisbot.Modules.Autocompletes;
+using huisbot.Models.Persistence;
 using huisbot.Services;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 
@@ -17,7 +17,7 @@ public class QueueCommandModule : ModuleBase
   [SlashCommand("queue", "Queues you or the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null)
   {
     await DeferAsync();

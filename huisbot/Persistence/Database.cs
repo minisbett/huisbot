@@ -1,4 +1,4 @@
-﻿using huisbot.Models.Utility;
+﻿using huisbot.Models.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace huisbot.Persistence;
