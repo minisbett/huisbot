@@ -21,14 +21,10 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   private readonly PersistenceService _persistence;
 
   /// <summary>
-  /// The cache for the reworks. This is cached as reworks are frequently accessed, e.g. via autocompletes.
+  /// A dictionary containing the dates and times at which each Discord user queued a player on Huismetbenen.<br/>
+  /// This is used to track the amount of queues over a timespan, ratelimiting them from spamming the API.
   /// </summary>
-  private HuisRework[] _reworksCache = null!;
-
-  /// <summary>
-  /// The last refresh time of the reworks cache.
-  /// </summary>
-  private DateTime _lastReworksCacheRefresh = DateTime.MinValue;
+  private static readonly Dictionary<ulong, List<DateTime>> _queueRatelimitTracker = new Dictionary<ulong, List<DateTime>>();
 
   public ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, PersistenceService persistence = null!)
   {
@@ -45,10 +41,6 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>The available reworks.</returns>
   public async Task<HuisRework[]?> GetReworksAsync(bool showError = true)
   {
-    // Check whether the cached reworks are still valid.
-    if (_lastReworksCacheRefresh.AddMinutes(5) > DateTime.UtcNow)
-      return _reworksCache;
-
     // Get all reworks and check whether the request was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
     if (reworks is null)
@@ -59,10 +51,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
       return null;
     }
 
-    // Order the reworks by relevancy for the user, cache and return them.
-    _reworksCache = reworks.OrderByRelevancy();
-    _lastReworksCacheRefresh = DateTime.UtcNow;
-    return _reworksCache;
+    // Order the reworks by relevancy for the user and return them.
+    return reworks.OrderByRelevancy();
   }
 
   /// <summary>
@@ -239,12 +229,32 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>Bool whether the queueing was successful or not.</returns>
   public async Task<bool> QueuePlayerAsync(OsuUser player, int reworkId)
   {
+    // Ensure a ratelimit on queuing players, specifically only 5 players per 5 minutes.
+    if (_queueRatelimitTracker.ContainsKey(Context.User.Id))
+    {
+      // Get rid of all entries older than 5 minutes.
+      _queueRatelimitTracker[Context.User.Id] = _queueRatelimitTracker[Context.User.Id].Where(x => x.AddMinutes(5) > DateTime.UtcNow).ToList();
+
+      // Check whether the user queued more than 5 users in the last 5 minutes. If so, notify the user.
+      if (_queueRatelimitTracker[Context.User.Id].Count >= 5)
+      {
+        await FollowupAsync(embed: Embeds.Error("You are currently being ratelimited. Please wait a while beforing queuing someone again " +
+                                               "in order to not overload the server."));
+        return false;
+      }
+    }
+
     // Queue the player and notify the user whether it was successful.
     bool queued = await _huis.QueuePlayerAsync(player.Id, reworkId);
     if (queued)
       await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
     else
       await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{player.Name}`."));
+
+    // If the queuing was successful, add an entry in the ratelimit tracker.
+    if(queued)
+      if(!_queueRatelimitTracker.TryAdd(Context.User.Id, new List<DateTime>() { DateTime.UtcNow }))
+        _queueRatelimitTracker[Context.User.Id].Add(DateTime.UtcNow);
 
     return queued;
   }
@@ -382,7 +392,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   public static async Task<bool> IsOnionAsync(SocketInteractionContext context)
   {
 #if DEBUG
-    return false;
+    return true;
 #endif
 
     // Check whether the user is the owner of the application.
