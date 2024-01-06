@@ -367,12 +367,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>The simulated score.</returns>
   public async Task<HuisSimulatedScore?> SimulateScoreAsync(HuisSimulationRequest request)
   {
-    // Check whether a simulated score is cached in the database.
-    if (await _persistence.GetCachedScoreSimulationAsync(request) is HuisSimulatedScore s)
-      return s;
-
     // Calculate the score and check whether it was successful. If not, notify the user.
-    HuisSimulatedScore? score = await _huis.CalculateAsync(request);
+    HuisSimulatedScore? score = await _huis.SimulateAsync(request);
     if (score is null)
     {
       await ModifyOriginalResponseAsync(x =>
@@ -380,8 +376,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
       return null;
     }
 
-    // Cache the calculated score and return it.
-    await _persistence.AddCachedScoreSimulationAsync(request, score);
+    // Return the score.
     return score;
   }
 

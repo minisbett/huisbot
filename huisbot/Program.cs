@@ -117,6 +117,9 @@ public class Program
         // Register the persistence service, responsible for providing logic for accessing the persistence database.
         services.AddScoped<PersistenceService>();
 
+        // Add the caching service.
+        services.AddScoped<CachingService>();
+
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>
         {
