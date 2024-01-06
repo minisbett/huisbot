@@ -5,6 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Development;Release;Cutting Edge</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
