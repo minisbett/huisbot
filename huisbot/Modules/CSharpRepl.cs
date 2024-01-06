@@ -64,6 +64,14 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     _config = config;
     _osu = osu;
     _huis = huis;
+
+    // If the references array has not been initialized yet, initialize it with all assemblies referenced by the entry assembly.
+    if (_references is null)
+    {
+      AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
+      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat(new Assembly[] { Assembly.GetEntryAssembly()! }).ToArray();
+      _references = references;
+    }
   }
 
   [SlashCommand("csharprepl", "Runs C# code in the runtime context of the bot client application.")]
@@ -80,14 +88,6 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     // If the code does not end with a semicolon, add one.
     if (!code.EndsWith(";"))
       code += ";";
-
-    // If the references array has not been initialized yet, initialize it with all assemblies referenced by the entry assembly.
-    if (_references is null)
-    {
-      AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
-      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat(new Assembly[] { Assembly.GetEntryAssembly()! }).ToArray();
-      _references = references;
-    }
 
     // Construct the script options using the loaded references and the specified namespaces to import.
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);

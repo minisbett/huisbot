@@ -6,7 +6,7 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation request to be sent to Huismetbenen.
 /// </summary>
-public class HuisCalculationRequest
+public class HuisSimulationRequest
 {
   /// <summary>
   /// The ID of the beatmap.
@@ -57,11 +57,11 @@ public class HuisCalculationRequest
   public HuisRework Rework { get; set; }
 
   /// <summary>
-  /// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.
+  /// Creates a new <see cref="HuisSimulationRequest"/> for the specified beatmap and rework.
   /// </summary>
   /// <param name="beatmapId">The ID of the beatmap.</param>
   /// <param name="rework">The rework.</param>
-  public HuisCalculationRequest(int beatmapId, HuisRework rework)
+  public HuisSimulationRequest(int beatmapId, HuisRework rework)
   {
     BeatmapId = beatmapId;
     Rework = rework;

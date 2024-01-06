@@ -11,17 +11,17 @@ public class ScoreAlias
   /// The unique alias.
   /// </summary>
   [Key]
-  public string Alias { get; set; }
+  public string Alias { get; private set; }
 
   /// <summary>
   /// The score ID the alias represents.
   /// </summary>
-  public long ScoreId { get; set; }
+  public long ScoreId { get; private set; }
 
   /// <summary>
   /// The display name of the object associated with the score ID, used for display purposes.
   /// </summary>
-  public string DisplayName { get; set; }
+  public string DisplayName { get; private set; }
 
   /// <summary>
   /// Creates a new <see cref="ScoreAlias"/> object with the specified score ID, alias for it and display name.

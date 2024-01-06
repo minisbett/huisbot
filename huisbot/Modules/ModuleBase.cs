@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
@@ -19,6 +20,16 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   private readonly OsuApiService _osu;
   private readonly PersistenceService _persistence;
 
+  /// <summary>
+  /// The cache for the reworks. This is cached as reworks are frequently accessed, e.g. via autocompletes.
+  /// </summary>
+  private HuisRework[] _reworksCache = null!;
+
+  /// <summary>
+  /// The last refresh time of the reworks cache.
+  /// </summary>
+  private DateTime _lastReworksCacheRefresh = DateTime.MinValue;
+
   public ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, PersistenceService persistence = null!)
   {
     _huis = huis;
@@ -34,13 +45,24 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <returns>The available reworks.</returns>
   public async Task<HuisRework[]?> GetReworksAsync(bool showError = true)
   {
+    // Check whether the cached reworks are still valid.
+    if (_lastReworksCacheRefresh.AddMinutes(5) > DateTime.UtcNow)
+      return _reworksCache;
+
     // Get all reworks and check whether the request was successful. If not, notify the user.
     HuisRework[]? reworks = await _huis.GetReworksAsync();
-    if (reworks is null && showError)
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+    if (reworks is null)
+    {
+      if (showError)
+        await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
 
-    // Order the reworks by relevancy for the user and return them.
-    return reworks?.OrderByRelevancy();
+      return null;
+    }
+
+    // Order the reworks by relevancy for the user, cache and return them.
+    _reworksCache = reworks.OrderByRelevancy();
+    _lastReworksCacheRefresh = DateTime.UtcNow;
+    return _reworksCache;
   }
 
   /// <summary>
@@ -325,6 +347,32 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 
     // Return the score.
     return (score?.Found ?? false) ? score : null!;
+  }
+
+  /// <summary>
+  /// Returns a simulated score, calculated through the specified request. Caching via the persistence database is applied here.<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="request">The score simulation request.</param>
+  /// <returns>The simulated score.</returns>
+  public async Task<HuisSimulatedScore?> SimulateScoreAsync(HuisSimulationRequest request)
+  {
+    // Check whether a simulated score is cached in the database.
+    if (await _persistence.GetCachedScoreSimulationAsync(request) is HuisSimulatedScore s)
+      return s;
+
+    // Calculate the score and check whether it was successful. If not, notify the user.
+    HuisSimulatedScore? score = await _huis.CalculateAsync(request);
+    if (score is null)
+    {
+      await ModifyOriginalResponseAsync(x =>
+        x.Embed = Embeds.InternalError($"Failed to calculate the {(request.Rework.IsLive ? "live" : "local")} score."));
+      return null;
+    }
+
+    // Cache the calculated score and return it.
+    await _persistence.AddCachedScoreSimulationAsync(request, score);
+    return score;
   }
 
   /// <summary>

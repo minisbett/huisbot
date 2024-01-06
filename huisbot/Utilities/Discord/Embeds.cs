@@ -172,7 +172,7 @@ internal static class Embeds
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
+  public static Embed CalculatedScore(HuisSimulatedScore local, HuisSimulatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
   {
     // Construct some strings for the embed.
     string total = GetPPDifferenceText(live.TotalPP, local.TotalPP);

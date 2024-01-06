@@ -11,12 +11,12 @@ public class OsuDiscordLink
   /// The discord user ID.
   /// </summary>
   [Key]
-  public ulong DiscordId { get; set; }
+  public ulong DiscordId { get; private set; }
 
   /// <summary>
   /// The osu! user ID.
   /// </summary>
-  public int OsuId { get; set; }
+  public int OsuId { get; private set; }
 
   public OsuDiscordLink(ulong discordId, int osuId)
   {

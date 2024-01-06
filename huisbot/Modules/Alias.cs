@@ -126,7 +126,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Remove the beatmap alias and add the new one.
       await _persistence.RemoveBeatmapAliasAsync(alias);
-      alias.Alias = newName;
+      alias = new BeatmapAlias(newName, alias.BeatmapId, alias.DisplayName);
       await _persistence.AddBeatmapAliasAsync(alias);
       await base.FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has been renamed to `{newName}`."));
     }
@@ -246,7 +246,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Remove the score alias and add the new one.
       await _persistence.RemoveScoreAliasAsync(alias);
-      alias.Alias = newName;
+      alias = new ScoreAlias(newName, alias.ScoreId, alias.DisplayName);
       await _persistence.AddScoreAliasAsync(alias);
       await base.FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has been renamed to `{newName}`."));
     }

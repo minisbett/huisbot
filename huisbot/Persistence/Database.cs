@@ -23,5 +23,10 @@ public class Database : DbContext
   /// </summary>
   public DbSet<ScoreAlias> ScoreAliases { get; set; }
 
+  /// <summary>
+  /// The cache for scores simulated on Huismetbenen.
+  /// </summary>
+  public DbSet<CachedScoreSimulation> CachedScoreSimulations { get; set; }
+
   public Database(DbContextOptions<Database> options) : base(options) { }
 }

@@ -11,17 +11,17 @@ public class BeatmapAlias
   /// The unique alias.
   /// </summary>
   [Key]
-  public string Alias { get; set; }
+  public string Alias { get; private set; }
 
   /// <summary>
   /// The beatmap ID the alias represents.
   /// </summary>
-  public long BeatmapId { get; set; }
+  public long BeatmapId { get; private set; }
 
   /// <summary>
   /// The display name of the object associated with the beatmap ID, used for display purposes.
   /// </summary>
-  public string DisplayName { get; set; }
+  public string DisplayName { get; private set; }
 
   /// <summary>
   /// Creates a new <see cref="BeatmapAlias"/> object with the specified beatmap ID, alias for it and display name.
