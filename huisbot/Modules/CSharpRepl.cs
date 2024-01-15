@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using huisbot.Services;
 using huisbot.Utilities.Discord;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -93,7 +94,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);
 
     // Construct the script globals, which contains variables for the script to be accessable.
-    var globals = new
+    var globals = new ScriptGlobals()
     {
       Client = Context.Client,
       User = Context.User,
@@ -101,8 +102,8 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       Guild = Context.Guild,
       ServiceProvider = _provider,
       Config = _config,
-      Osu = _osu,
-      Huis = _huis,
+      OsuApi = _osu,
+      HuisApi = _huis,
     };
 
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
@@ -249,5 +250,51 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
 
     // Return the built string.
     return builder.ToString();
+  }
+
+  /// <summary>
+  /// Represents the globals that are available to the script.
+  /// </summary>
+  public class ScriptGlobals
+  {
+    /// <summary>
+    /// The bot client.
+    /// </summary>
+    public required DiscordSocketClient Client { get; init; }
+
+    /// <summary>
+    /// The user that executed the command.
+    /// </summary>
+    public required SocketUser User { get; init; }
+
+    /// <summary>
+    /// The channel in which the command was executed.
+    /// </summary>
+    public required ISocketMessageChannel Channel { get; init; }
+
+    /// <summary>
+    /// The guild in which the command was executed.
+    /// </summary>
+    public required SocketGuild Guild { get; init; }
+
+    /// <summary>
+    /// The service provider of the application.
+    /// </summary>
+    public required IServiceProvider ServiceProvider { get; init; }
+
+    /// <summary>
+    /// The configuration of the application.
+    /// </summary>
+    public required IConfiguration Config { get; init; }
+
+    /// <summary>
+    /// The osu! api service.
+    /// </summary>
+    public required OsuApiService OsuApi { get; init; }
+
+    /// <summary>
+    /// The huis api service.
+    /// </summary>
+    public required HuisApiService HuisApi { get; init; }
   }
 }
