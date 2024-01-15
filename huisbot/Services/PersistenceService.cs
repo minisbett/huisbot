@@ -1,6 +1,7 @@
 ﻿using huisbot.Models.Huis;
 using huisbot.Models.Persistence;
 using huisbot.Persistence;
+using huisbot.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace huisbot.Services;
@@ -60,17 +61,19 @@ public class PersistenceService
   public async Task<BeatmapAlias?> GetBeatmapAliasAsync(string alias)
   {
     // Get all beatmap aliases and try to find the specified one.
-    return await _database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == alias);
+    return await _database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
   }
 
   /// <summary>
   /// Adds the specified alias to the database.
   /// </summary>
-  /// <param name="alias">The alias.</param>
-  public async Task AddBeatmapAliasAsync(BeatmapAlias alias)
+  /// <param name="alias">The score alias.</param>
+  /// <param name="beatmapId">The beatmap ID.</param>
+  /// <param name="displayName">The display name for the score.</param>
+  public async Task AddBeatmapAliasAsync(string alias, long beatmapId, string displayName)
   {
     // Add the beatmap alias to the database.
-    _database.BeatmapAliases.Add(alias);
+    _database.BeatmapAliases.Add(new BeatmapAlias(Utils.GetFormattedAlias(alias), beatmapId, displayName));
     await _database.SaveChangesAsync();
   }
 
@@ -102,17 +105,19 @@ public class PersistenceService
   public async Task<ScoreAlias?> GetScoreAliasAsync(string alias)
   {
     // Get all score aliases and try to find the specified one.
-    return await _database.ScoreAliases.FirstOrDefaultAsync(x => x.Alias == alias);
+    return await _database.ScoreAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
   }
 
   /// <summary>
   /// Adds the specified score alias to the database.
   /// </summary>
   /// <param name="alias">The score alias.</param>
-  public async Task AddScoreAliasAsync(ScoreAlias alias)
+  /// <param name="scoreId">The score ID.</param>
+  /// <param name="displayName">The display name for the score.</param>
+  public async Task AddScoreAliasAsync(string alias, long scoreId, string displayName)
   {
     // Add the score alias to the database.
-    _database.ScoreAliases.Add(alias);
+    _database.ScoreAliases.Add(new ScoreAlias(Utils.GetFormattedAlias(alias), scoreId, displayName));
     await _database.SaveChangesAsync();
   }
 

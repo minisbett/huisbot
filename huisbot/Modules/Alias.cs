@@ -37,7 +37,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("beatmapId", "The ID of the beatmap.")] int beatmapId)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -60,9 +59,9 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
         return;
 
       // Add the beatmap alias.
-      alias = new BeatmapAlias(aliasText, beatmapId, $"{beatmap.Title} [{beatmap.Version}]");
-      await _persistence.AddBeatmapAliasAsync(alias);
-      await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has successfully added.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{beatmapId})"));
+      string displayName = $"{beatmap.Title} [{beatmap.Version}]";
+      await _persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
+      await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/b/{beatmapId})"));
     }
 
     [SlashCommand("remove", "Removes a beatmap alias.")]
@@ -70,7 +69,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("alias", "The beatmap alias to remove.")] string aliasText)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -98,8 +96,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("newName", "The new name of the beatmap alias.")] string newName)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
-      newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -126,8 +122,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Remove the beatmap alias and add the new one.
       await _persistence.RemoveBeatmapAliasAsync(alias);
-      alias = new BeatmapAlias(newName, alias.BeatmapId, alias.DisplayName);
-      await _persistence.AddBeatmapAliasAsync(alias);
+      await _persistence.AddBeatmapAliasAsync(newName, alias.BeatmapId, alias.DisplayName);
       await base.FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has been renamed to `{newName}`."));
     }
   }
@@ -157,7 +152,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("scoreId", "The ID of the beatmap.")] long scoreId)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -179,10 +173,10 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       if (score is null)
         return;
 
-      // Add the score alias.
-      alias = new ScoreAlias(aliasText, scoreId, $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]");
-      await _persistence.AddScoreAliasAsync(alias);
-      await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has successfully added.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
+      // Add the score alias. 
+      string displayName = $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]";
+      await _persistence.AddScoreAliasAsync(aliasText, scoreId, displayName);
+      await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
     }
 
     [SlashCommand("remove", "Removes a score alias.")]
@@ -190,7 +184,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("alias", "The score alias to remove.")] string aliasText)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -218,8 +211,6 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       [Summary("newName", "The new name of the score alias.")] string newName)
     {
       await DeferAsync();
-      aliasText = new string(aliasText.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
-      newName = new string(newName.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
       // Make sure the user is part of the PP team.
       if (!await IsPPTeamAsync(Context))
@@ -246,8 +237,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Remove the score alias and add the new one.
       await _persistence.RemoveScoreAliasAsync(alias);
-      alias = new ScoreAlias(newName, alias.ScoreId, alias.DisplayName);
-      await _persistence.AddScoreAliasAsync(alias);
+      await _persistence.AddScoreAliasAsync(newName, alias.ScoreId, alias.DisplayName);
       await base.FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has been renamed to `{newName}`."));
     }
   }
