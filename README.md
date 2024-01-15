@@ -1,6 +1,8 @@
 # huisbot
 An osu! related discord bot for pp.huismetbenen.nl, used on the pp Discord server.
 
+Invite: https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560
+
 # Read before usage
 
 The bot uses an onion-key in order to gain onion-level access to [Huismetbenen](https://pp.huismetbenen.nl/). However, this key is not necessary for the basic functionality of the bot and only provides an extended access to more reworks.
