@@ -15,6 +15,21 @@ public class HuisApiService
   private readonly CachingService _caching;
   private readonly ILogger<HuisApiService> _logger;
 
+  // TEMPORARY MONITORING
+  private static List<DateTime> _lastSimulations = new List<DateTime>();
+  private static List<DateTime> _lastQueues = new List<DateTime>();
+  public static int GetSimulationsLastHour()
+  {
+    _lastSimulations.RemoveAll(x => x.AddHours(1) < DateTime.UtcNow);
+    return _lastSimulations.Count;
+  }
+  public static int GetQueuesLastHour()
+  {
+    _lastQueues.RemoveAll(x => x.AddHours(1) < DateTime.UtcNow);
+    return _lastQueues.Count;
+  }
+  // TEMPORARY MONITORING
+
   public HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
   {
     _http = httpClientFactory.CreateClient("huisapi");
@@ -111,6 +126,10 @@ public class HuisApiService
   /// <returns>Bool whether queuing was successful.</returns>
   public async Task<bool> QueuePlayerAsync(int playerId, int reworkId)
   {
+    // TEMPORARY MONITORING
+    _lastQueues.Add(DateTime.UtcNow);
+    // TEMPORARY MONITORING
+
     try
     {
       // Send the queue request to the API.
@@ -180,6 +199,10 @@ public class HuisApiService
     // Check whether a score for the score simulation request is cached.
     if (await _caching.GetCachedScoreSimulationAsync(request) is HuisSimulatedScore s)
       return s;
+
+    // TEMPORARY MONITORING
+    _lastSimulations.Add(DateTime.UtcNow);
+    // TEMPORARY MONITORING
 
     try
     {

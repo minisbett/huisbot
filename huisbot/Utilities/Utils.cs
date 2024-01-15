@@ -65,4 +65,11 @@ internal static class Utils
     // Multiply the deviation by 10 to get the UR.
     return deviationOnSliders * 10;
   }
+
+  /// <summary>
+  /// Formats the specified alias to have a unified format, disregarding dashes, underscores, dots and spaces.
+  /// </summary>
+  /// <param name="alias">The alias.</param>
+  /// <returns>The formatted alias.</returns>
+  public static string GetFormattedAlias(string alias) => new string(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 }
