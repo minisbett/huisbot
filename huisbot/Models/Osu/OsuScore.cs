@@ -9,17 +9,6 @@ namespace huisbot.Models.Osu;
 public class OsuScore
 {
   /// <summary>
-  /// Returns a score object representing no score was found.
-  /// </summary>
-  public static OsuScore NotFound => new OsuScore() { WasFound = false };
-
-  /// <summary>
-  /// Bool whether the score could be found or not. This property is used in <see cref="OsuApiService.GetScoreAsync(int, int)"/>, which returns
-  /// an object where this is false in order to report that the request was successful, but no score was found back to the caller.
-  /// </summary>
-  public bool WasFound { get; init; } = true;
-
-  /// <summary>
   /// The beatmap of the score.
   /// </summary>
   [JsonProperty("beatmap")]

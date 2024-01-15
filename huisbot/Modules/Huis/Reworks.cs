@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Services;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules;
 
@@ -24,7 +25,7 @@ public class ReworksCommandModule : ModuleBase
       return;
 
     // If the user does not have Onion-level authorization, remove Onion-level reworks.
-    if (!await IsOnionAsync())
+    if (!await IsOnionAsync(Context))
       reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
 
     // Construct the component for selecting a rework.
@@ -66,7 +67,7 @@ public class ReworksComponentModule : ModuleBase
     }
 
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
-    if (rework.IsOnionLevel && !await IsOnionAsync())
+    if (rework.IsOnionLevel && !await IsOnionAsync(Context))
     {
       await Context.Interaction.RespondAsync(embed: Embeds.NotOnion, ephemeral: true);
       return;

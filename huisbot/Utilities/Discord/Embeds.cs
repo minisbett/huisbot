@@ -1,12 +1,11 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
-using huisbot.Utils;
-using Emoji = huisbot.Models.Utility.Emoji;
+using huisbot.Models.Persistence;
+using Emoji = huisbot.Utilities.Discord.Emoji;
+using DEmoji = Discord.Emoji;
 
-namespace huisbot;
+namespace huisbot.Utilities.Discord;
 
 /// <summary>
 /// Provides embeds for the application.
@@ -144,11 +143,11 @@ internal static class Embeds
   public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
     .WithColor(new Color(0xFFD4A8))
     .WithTitle($"Information about Huisbot {Program.VERSION}")
-    .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
-                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
+    .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
+                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
     .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source](https://github.com/minisbett/huisbot)", true)
-    .AddField("API Status", $"osu!api v1 {new Discord.Emoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new Discord.Emoji(osuV2Available ? "✅" : "❌")}\n" +
-                            $"Huismetbenen {new Discord.Emoji(huisAvailable ? "✅" : "❌")}", true)
+    .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
+                            $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
     .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
     .Build();
 
@@ -156,13 +155,12 @@ internal static class Embeds
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
   /// <param name="local">Bool whether the local score finished calculating.</param>
-  /// <param name="live">Bool whether the live score finished calculating.</param>
   /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
   /// <returns>An embed for displaying the score calculation progress.</returns>
   public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
     .WithDescription($"*{(local || liveOnly ? "Calculating live score" : "Calculating local score")}...*\n\n" +
-                     $"{(liveOnly ? "" : $"{new Discord.Emoji(local ? "✅" : "⏳")} Local\n")}" +
-                     $"{new Discord.Emoji(local ? "⏳" : "🕐")} Live")
+                     $"{(liveOnly ? "" : $"{new DEmoji(local ? "✅" : "⏳")} Local\n")}" +
+                     $"{new DEmoji(local ? "⏳" : "🕐")} Live")
     .Build();
 
   /// <summary>
@@ -174,7 +172,7 @@ internal static class Embeds
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisCalculatedScore local, HuisCalculatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
+  public static Embed CalculatedScore(HuisSimulatedScore local, HuisSimulatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
   {
     // Construct some strings for the embed.
     string total = GetPPDifferenceText(live.TotalPP, local.TotalPP);
@@ -188,7 +186,7 @@ internal static class Embeds
     string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Mods):0.#}** " +
                     $"▸ **{beatmap.GetBPM(local.Mods):0.###}** {_emojis["bpm"]}";
     string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Mods):0.#}**";
-    string stats4 = $"**{MathUtils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount,
+    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount,
                                                         beatmap.SliderCount, beatmap.GetAdjustedOD(local.Mods), local.Mods.ClockRate):F2}** eUR";
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
@@ -347,7 +345,7 @@ internal static class Embeds
         title = $"{title.Substring(0, 37)}...";
 
       // Get the placement of each score, as well as the difference.
-      int placement = sortedScores.ToList().IndexOf(score) + 1;
+      int placement = rawScores.ToList().IndexOf(score) + 1;
       int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) + 1 - placement;
       string placementStr = $"**#{placement}**";
       if (placementDiff != 0)

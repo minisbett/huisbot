@@ -1,4 +1,4 @@
-﻿using huisbot.Models.Utility;
+﻿using huisbot.Models.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace huisbot.Persistence;
@@ -22,6 +22,11 @@ public class Database : DbContext
   /// The table containing aliases for score IDs, providing easier access.
   /// </summary>
   public DbSet<ScoreAlias> ScoreAliases { get; set; }
+
+  /// <summary>
+  /// The cache for scores simulated on Huismetbenen.
+  /// </summary>
+  public DbSet<CachedScoreSimulation> CachedScoreSimulations { get; set; }
 
   public Database(DbContextOptions<Database> options) : base(options) { }
 }

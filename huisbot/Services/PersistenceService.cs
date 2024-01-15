@@ -1,4 +1,5 @@
-﻿using huisbot.Models.Utility;
+﻿using huisbot.Models.Huis;
+using huisbot.Models.Persistence;
 using huisbot.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,15 +34,11 @@ public class PersistenceService
   /// <param name="osuId">The osu! user ID of the user.</param>
   public async Task SetOsuDiscordLinkAsync(ulong discordId, int osuId)
   {
-    // Check whether the link already exists. If it does, update it.
+    // Check whether the link already exists. If it does, remove it first.
     if (await GetOsuDiscordLinkAsync(discordId) is OsuDiscordLink link)
-    {
-      link.OsuId = osuId;
-      await _database.SaveChangesAsync();
-      return;
-    }
+      _database.OsuDiscordLinks.Remove(link);
 
-    // Otherwise add the link to the database.
+    // Add the link to the database.
     _database.OsuDiscordLinks.Add(new OsuDiscordLink(discordId, osuId));
     await _database.SaveChangesAsync();
   }
@@ -128,5 +125,33 @@ public class PersistenceService
     // Remove the score alias from the database.
     _database.ScoreAliases.Remove(alias);
     await _database.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Adds a new cache entry for the specified score simulation request and it's resulting score.
+  /// </summary>
+  /// <param name="request">The score simulation request.</param>
+  /// <param name="score">The simulated score.</param>
+  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulatedScore score)
+  {
+    // To make this thread-safe, make sure there is no cache entry at this point in time (again).
+    if (await GetCachedScoreSimulationAsync(request) is HuisSimulatedScore)
+      return;
+
+    // Add the cached simulation to the database.
+    _database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, score));
+    await _database.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Returns the cached simulation score for the specified score simulation request.<br/>
+  /// If no cache entry exists, null is returned instead.
+  /// </summary>
+  /// <param name="request">The score simulation request.</param>
+  /// <returns>The cached simulated score or null, if no cache entry exists.</returns>
+  public async Task<HuisSimulatedScore?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
+  {
+    return (await _database.CachedScoreSimulations.FirstOrDefaultAsync(
+      x => x.RequestIdentifier == CachedScoreSimulation.GetRequestIdentifier(request)))?.Score;
   }
 }

@@ -2,10 +2,9 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Models.Utility;
-using huisbot.Modules.Autocompletes;
 using huisbot.Services;
-using huisbot.Utils;
+using huisbot.Utilities;
+using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 
@@ -14,17 +13,12 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 public class SimulateCommandModule : ModuleBase
 {
-  private readonly HuisApiService _huis;
-
-  public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence)
-  {
-    _huis = huis;
-  }
+  public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
 
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocomplete))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("score", "The ID or alias of a score to base the score attributes off. Can be overriden by other parameters.")] string? scoreId = null,
     [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
@@ -82,7 +76,7 @@ public class SimulateCommandModule : ModuleBase
       return;
 
     // Construct the HuisCalculationRequest.
-    HuisCalculationRequest request = new HuisCalculationRequest(beatmap.Id, rework)
+    HuisSimulationRequest request = new HuisSimulationRequest(beatmap.Id, rework)
     {
       Combo = combo,
       Count100 = count100,
@@ -95,15 +89,12 @@ public class SimulateCommandModule : ModuleBase
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, rework.IsLive));
 
     // Get the local result from the Huis API and check whether it was successful.
-    HuisCalculatedScore? localScore = await _huis.CalculateAsync(request);
+    HuisSimulatedScore? localScore = await SimulateScoreAsync(request);
     if (localScore is null)
-    {
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the local score with the Huis API."));
       return;
-    }
 
     // If the requested rework is the live rework, the calculation is done here, therefore set the live score to the local one.
-    HuisCalculatedScore? liveScore = localScore;
+    HuisSimulatedScore? liveScore = localScore;
     if (!rework.IsLive)
     {
       // Switch the branch of the request to the live "rework" and update the calculation progress embed.
@@ -111,12 +102,9 @@ public class SimulateCommandModule : ModuleBase
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
 
       // Get the live result from the Huis API and check whether it was successful.
-      liveScore = await _huis.CalculateAsync(request);
+      liveScore = await SimulateScoreAsync(request);
       if (liveScore is null)
-      {
-        await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to calculate the live score with the Huis API."));
         return;
-      }
     }
 
     // Send the result in an embed to the user.

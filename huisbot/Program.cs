@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Persistence;
 using huisbot.Services;
-using huisbot.Utils;
+using huisbot.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +19,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "1.9.3";
+  public const string VERSION = "2.0.0";
 
   /// <summary>
   /// The startup time of the application.
@@ -112,10 +112,13 @@ public class Program
         services.AddSingleton<OsuApiService>();
 
         // Add the Huis API service for communicating with the Huis API.
-        services.AddSingleton<HuisApiService>();
+        services.AddScoped<HuisApiService>();
 
         // Register the persistence service, responsible for providing logic for accessing the persistence database.
         services.AddScoped<PersistenceService>();
+
+        // Add the caching service.
+        services.AddScoped<CachingService>();
 
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>
@@ -158,11 +161,9 @@ public class Program
     if (!await huis.IsAvailableAsync())
       throw new Exception("The Huis API was deemed unavailable at startup.");
 
-
     // Try to initially load the reworks for a faster use after startup.
     HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
     await huisApi.GetReworksAsync();
-
 
     // Run the host.
     await host.RunAsync();

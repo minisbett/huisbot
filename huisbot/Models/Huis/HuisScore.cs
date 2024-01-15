@@ -1,4 +1,4 @@
-﻿using huisbot.Models.Utility;
+﻿using huisbot.Utilities;
 using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
@@ -148,7 +148,7 @@ public class HuisScore
 
   public override string ToString()
   {
-    return $"**{Username}** | {Artist} - {Title} ({Mapper}) [{Version}]{Mods.PlusString} " +
+    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{Mods.PlusString} " +
            $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
   }
 }

@@ -1,5 +1,5 @@
-﻿using huisbot.Models.Utility;
-using huisbot.Services;
+﻿using huisbot.Services;
+using huisbot.Utilities;
 using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
@@ -9,17 +9,6 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuBeatmap
 {
-  /// <summary>
-  /// Returns a beatmap object representing no beatmap was found.
-  /// </summary>
-  public static OsuBeatmap NotFound => new OsuBeatmap() { WasFound = false };
-
-  /// <summary>
-  /// Bool whether the beatmap could be found or not. This property is used in <see cref="OsuApiService.GetBeatmapAsync(int)"/>, which returns
-  /// an object where this is false in order to report that the request was successful, but no beatmap was found back to the caller.
-  /// </summary>
-  public bool WasFound { get; init; } = true;
-
   /// <summary>
   /// The ID of the beatmap set the beatmap belongs to.
   /// </summary>
@@ -175,7 +164,7 @@ public class OsuBeatmap
 
     // Ensure scaling of the pre-empt through the clock rate of the mods.
     int ms = (int)(ar >= 5 ? ar == 5 ? 1200 : 1200 - 750 * (ar - 5) / 5d : 1200 + 600 * (5 - ar) / 5d);
-    ms = (int)(ms * mods.ClockRate);
+    ms = (int)(ms / mods.ClockRate);
     return Math.Min(11.11, (ms == 1200) ? 5 : (ms > 1200) ? 5 - 5 * (1200 - ms) / 600d : 5 + 5 * (1200 - ms) / 750d);
   }
 

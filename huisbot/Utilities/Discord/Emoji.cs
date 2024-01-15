@@ -1,4 +1,4 @@
-﻿namespace huisbot.Models.Utility;
+﻿namespace huisbot.Utilities.Discord;
 
 /// <summary>
 /// Represents a Discord emoji with a name and ID.

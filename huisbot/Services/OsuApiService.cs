@@ -1,8 +1,5 @@
 ﻿using huisbot.Models.Osu;
-using huisbot.Models.Utility;
-using huisbot.Persistence.Caching;
-using huisbot.Utils;
-using Microsoft.CodeAnalysis;
+using huisbot.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -38,11 +35,6 @@ public class OsuApiService
   /// The date when the API v2 access token expires.
   /// </summary>
   private DateTimeOffset _accessTokenExpiresAt = DateTimeOffset.MinValue;
-
-  /// <summary>
-  /// The cache for the difficulty ratings of beatmaps.
-  /// </summary>
-  private readonly DictionaryCache<StringCacheKey, double> _difficultyRatingCache = new DictionaryCache<StringCacheKey, double>();
 
   public OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
   {
@@ -158,7 +150,7 @@ public class OsuApiService
   /// </summary>
   /// <param name="identifier">The identifier the user.</param>
   /// <returns>The user.</returns>
-  public async Task<OsuUser?> GetUserAsync(string identifier)
+  public async Task<NotFoundOr<OsuUser>?> GetUserAsync(string identifier)
   {
     try
     {
@@ -168,9 +160,9 @@ public class OsuApiService
 
       // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
       if (user is null)
-        return OsuUser.NotFound;
+        return NotFoundOr<OsuUser>.NotFound;
 
-      return user;
+      return user.WasFound();
     }
     catch (Exception ex)
     {
@@ -183,7 +175,7 @@ public class OsuApiService
   /// Returns the beatmap set ID for the specified beatmap ID.
   /// </summary>
   /// <returns>The Beatmap Set ID of the specified beatmap.</returns>
-  public async Task<OsuBeatmap?> GetBeatmapAsync(int id)
+  public async Task<NotFoundOr<OsuBeatmap>?> GetBeatmapAsync(int id)
   {
     try
     {
@@ -193,9 +185,10 @@ public class OsuApiService
 
       // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
       if (beatmap is null)
-        return OsuBeatmap.NotFound;
+        return NotFoundOr<OsuBeatmap>.NotFound;
 
-      return beatmap;
+      // Return the beatmap.
+      return beatmap.WasFound();
     }
     catch (Exception ex)
     {
@@ -221,11 +214,6 @@ public class OsuApiService
       mods = mods.Array.Select(x => new { acronym = x })
     });
 
-    // Check whether the difficulty rating is already cached.
-    StringCacheKey key = new StringCacheKey(requestJson);
-    if (_difficultyRatingCache.Has(key))
-      return _difficultyRatingCache[key];
-
     try
     {
       // Get the difficulty rating from the API.
@@ -237,8 +225,7 @@ public class OsuApiService
       if (!double.TryParse(result, out double rating))
         throw new Exception("Failed to parse the difficulty rating from the response.");
 
-      // Cache the difficulty rating and return it.
-      _difficultyRatingCache[key] = rating;
+      // Return the difficulty rating.
       return rating;
     }
     catch (Exception ex)
@@ -255,7 +242,7 @@ public class OsuApiService
   /// <param name="rulesetId">The ruleset ID.</param>
   /// <param name="scoreId">The score ID.</param>
   /// <returns>The score with the specified ID./returns>
-  public async Task<OsuScore?> GetScoreAsync(int rulesetId, long scoreId)
+  public async Task<NotFoundOr<OsuScore>?> GetScoreAsync(int rulesetId, long scoreId)
   {
     // Make sure a valid access token exists. If not, return null.
     if (!await EnsureAccessTokenAsync())
@@ -275,10 +262,11 @@ public class OsuApiService
       // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
       HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{ruleset}/{scoreId}");
       if (response.StatusCode == HttpStatusCode.NotFound)
-        return OsuScore.NotFound;
+        return NotFoundOr<OsuScore>.NotFound;
 
-      // Parse the score from the JSON and return it.
-      return JsonConvert.DeserializeObject<OsuScore>(await response.Content.ReadAsStringAsync());
+      // Parse the score object and either return it or null.
+      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(await response.Content.ReadAsStringAsync());
+      return score?.WasFound();
     }
     catch (Exception ex)
     {

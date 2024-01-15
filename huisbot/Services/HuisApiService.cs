@@ -1,6 +1,5 @@
 ﻿using huisbot.Models.Huis;
-using huisbot.Models.Utility;
-using huisbot.Persistence.Caching;
+using huisbot.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -13,22 +12,13 @@ namespace huisbot.Services;
 public class HuisApiService
 {
   private readonly HttpClient _http;
+  private readonly CachingService _caching;
   private readonly ILogger<HuisApiService> _logger;
 
-  /// <summary>
-  /// The cache for the reworks.
-  /// </summary>
-  private readonly ExpiringValue<HuisRework[]> _reworksCache = new ExpiringValue<HuisRework[]>(TimeSpan.FromMinutes(5));
-
-  /// <summary>
-  /// The cache for calculated scores, indefinitely caching scores with the same score parameters, rework and algorithm version.
-  /// </summary>
-  private readonly DictionaryCache<HuisCalculationRequest, HuisCalculatedScore> _calculatedScoreCache =
-    new DictionaryCache<HuisCalculationRequest, HuisCalculatedScore>();
-
-  public HuisApiService(IHttpClientFactory httpClientFactory, ILogger<HuisApiService> logger)
+  public HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
   {
     _http = httpClientFactory.CreateClient("huisapi");
+    _caching = caching;
     _logger = logger;
   }
 
@@ -59,25 +49,25 @@ public class HuisApiService
   /// <summary>
   /// Returns an array of all reworks from the API.
   /// </summary>
-  /// <returns></returns>
+  /// <returns>The reworks.</returns>
   public async Task<HuisRework[]?> GetReworksAsync()
   {
-    // Check whether the cached reworks are still valid.
-    if (_reworksCache.IsValid)
-      return _reworksCache.Value;
+    // Check whether the cached reworks are valid. If so, return them.
+    if (_caching.GetReworks() is HuisRework[] r)
+      return r;
 
     try
     {
       // Get the reworks from the API.
       string json = await _http.GetStringAsync("reworks/list");
-      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json)?.Where(x => x.RulesetId == 0).ToArray()  /* TODO: Support for other rulsets */;
+      HuisRework[]? reworks = JsonConvert.DeserializeObject<HuisRework[]>(json)?.Where(x => x.RulesetId == 0).ToArray();
 
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
         throw new Exception("Deserialization of JSON returned null.");
 
       // Cache the reworks and return them.
-      _reworksCache.Value = reworks;
+      _caching.SetReworks(reworks);
       return reworks;
     }
     catch (Exception ex)
@@ -107,7 +97,8 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list", ex.Message);
+      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list",
+        ex.Message);
       return null;
     }
   }
@@ -124,7 +115,8 @@ public class HuisApiService
     {
       // Send the queue request to the API.
       var request = new { user_id = playerId, rework = reworkId };
-      HttpResponseMessage response = await _http.PatchAsync("queue/add-to-queue", new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
+      HttpResponseMessage response = await _http.PatchAsync("/queue/add-to-queue", new StringContent(JsonConvert.SerializeObject(request),
+        Encoding.UTF8, "application/json"));
 
       // Make sure the request was successful by checking whether the json contains the "queue" property.
       string json = await response.Content.ReadAsStringAsync();
@@ -148,7 +140,7 @@ public class HuisApiService
   /// <returns>The player with the specified ID in the specified rework.</returns>
   public async Task<HuisPlayer?> GetPlayerAsync(int playerId, HuisRework rework)
   {
-    string url = $"player/userdata/{playerId}/{rework.Id}";
+    string url = $"/player/userdata/{playerId}/{rework.Id}";
     try
     {
       // Get the json from the API.
@@ -179,25 +171,26 @@ public class HuisApiService
   }
 
   /// <summary>
-  /// Calculates the specified score via the Huis API and returns the result.
+  /// Simulates the specified score simulation request via the Huis API and returns the result.
   /// </summary>
   /// <param name="request">The score request.</param>
   /// <returns>The calculation result.</returns>
-  public async Task<HuisCalculatedScore?> CalculateAsync(HuisCalculationRequest request)
+  public async Task<HuisSimulatedScore?> SimulateAsync(HuisSimulationRequest request)
   {
-    // Check whether the score is already cached.
-    if (_calculatedScoreCache.Has(request))
-      return _calculatedScoreCache[request];
+    // Check whether a score for the score simulation request is cached.
+    if (await _caching.GetCachedScoreSimulationAsync(request) is HuisSimulatedScore s)
+      return s;
 
     try
     {
       // Send the score calculation request to the server and parse the response.
-      HttpResponseMessage response = await _http.PatchAsync("calculate-score", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
+      HttpResponseMessage response = await _http.PatchAsync("/calculate-score", new StringContent(request.ToJson(),
+        Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisCalculatedScore? result = JsonConvert.DeserializeObject<HuisCalculatedScore>(json);
+      HuisSimulatedScore? score = JsonConvert.DeserializeObject<HuisSimulatedScore>(json);
 
       // Check whether the deserialized json is valid.
-      if (result is null)
+      if (score is null)
         throw new Exception("Deserialization of JSON returned null.");
 
       // Check whether the json contains an error.
@@ -206,8 +199,8 @@ public class HuisApiService
         throw new Exception($"API returned {error}");
 
       // Cache the score and return it.
-      _calculatedScoreCache[request] = result;
-      return result;
+      await _caching.AddCachedScoreSimulationAsync(request, score);
+      return score;
     }
     catch (Exception ex)
     {
@@ -267,7 +260,8 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+        ex.Message, url);
       return null;
     }
   }
@@ -298,7 +292,8 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      _logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+        ex.Message, url);
       return null;
     }
   }

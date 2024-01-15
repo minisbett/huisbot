@@ -1,4 +1,4 @@
-﻿using huisbot.Models.Utility;
+﻿using huisbot.Utilities;
 using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
@@ -6,14 +6,8 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation response received from Huismetbenen.
 /// </summary>
-public class HuisCalculatedScore
+public class HuisSimulatedScore
 {
-  /// <summary>
-  /// The fully qualified name of the map of the score in the format "(map id) - (artist) - (title) ((creator)) [(version)]".
-  /// </summary>
-  [JsonProperty("map_name")]
-  public string? MapName { get; private set; }
-
   /// <summary>
   /// The accuracy of the score.
   /// </summary>

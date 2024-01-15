@@ -1,4 +1,4 @@
-﻿namespace huisbot.Models.Utility;
+﻿namespace huisbot.Utilities;
 
 /// <summary>
 /// Represents a sorting option with it's sorting code and order.
