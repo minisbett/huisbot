@@ -345,7 +345,7 @@ internal static class Embeds
         title = $"{title.Substring(0, 37)}...";
 
       // Get the placement of each score, as well as the difference.
-      int placement = sortedScores.ToList().IndexOf(score) + 1;
+      int placement = rawScores.ToList().IndexOf(score) + 1;
       int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) + 1 - placement;
       string placementStr = $"**#{placement}**";
       if (placementDiff != 0)
