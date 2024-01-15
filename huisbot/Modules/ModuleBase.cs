@@ -7,6 +7,7 @@ using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
 using huisbot.Utilities.Discord;
+using System.Diagnostics;
 
 namespace huisbot.Modules;
 
