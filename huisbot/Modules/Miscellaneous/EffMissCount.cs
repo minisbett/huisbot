@@ -2,7 +2,7 @@
 using huisbot.Models.Osu;
 using huisbot.Utilities.Discord;
 
-namespace huisbot.Modules.Utility.Miscellaneous;
+namespace huisbot.Modules.Miscellaneous;
 
 /// <summary>
 /// The partial interaction module for the effmisscount command.

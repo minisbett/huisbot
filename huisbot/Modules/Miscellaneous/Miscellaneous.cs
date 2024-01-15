@@ -1,7 +1,7 @@
 ﻿using Discord.Interactions;
 using huisbot.Services;
 
-namespace huisbot.Modules.Utility.Miscellaneous;
+namespace huisbot.Modules.Miscellaneous;
 
 /// <summary>
 /// The partial interaction module for the misc group & various subcommands, providing miscellaneous utility commands.
