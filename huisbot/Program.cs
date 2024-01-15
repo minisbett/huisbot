@@ -19,7 +19,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.0.1";
+  public const string VERSION = "2.0.2";
 
   /// <summary>
   /// The startup time of the application.
@@ -78,6 +78,10 @@ public class Program
           options.UseUtcTimestamp = true;
           options.ColorBehavior = LoggerColorBehavior.Enabled;
         });
+
+        // Exclude HttpClients and DB commands from logging, as they spam the logs.
+        logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
+        logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
       })
 
       // Configure the Discord host (bot token, log level, bot behavior etc.)

@@ -39,30 +39,6 @@ public class HuisScore
   public double LocalPP { get; private set; }
 
   /// <summary>
-  /// The Aim PP in the rework.
-  /// </summary>
-  [JsonProperty("aim_pp")]
-  public double AimPP { get; private set; }
-
-  /// <summary>
-  /// The Tap PP in the rework.
-  /// </summary>
-  [JsonProperty("tap_pp")]
-  public double TapPP { get; private set; }
-
-  /// <summary>
-  /// The Acc PP in the rework.
-  /// </summary>
-  [JsonProperty("acc_pp")]
-  public double AccPP { get; private set; }
-
-  /// <summary>
-  /// The FL PP in the rework.
-  /// </summary>
-  [JsonProperty("fl_pp")]
-  public double FLPP { get; private set; }
-
-  /// <summary>
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
