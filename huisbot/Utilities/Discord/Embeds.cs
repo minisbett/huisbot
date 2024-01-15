@@ -143,8 +143,8 @@ internal static class Embeds
   public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
     .WithColor(new Color(0xFFD4A8))
     .WithTitle($"Information about Huisbot {Program.VERSION}")
-    .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is exclusive to the " +
-                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` here or send them a DM.")
+    .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
+                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
     .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source](https://github.com/minisbett/huisbot)", true)
     .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
                             $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
