@@ -227,7 +227,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the calculation response from the Huis API: {Message}", ex.Message);
+      _logger.LogError("Failed to process the calculation on the Huis API: {Message}", ex.Message);
       return null;
     }
   }
