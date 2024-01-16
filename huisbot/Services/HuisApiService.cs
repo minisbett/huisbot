@@ -2,6 +2,7 @@
 using huisbot.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net;
 using System.Text;
 
 namespace huisbot.Services;
@@ -119,12 +120,16 @@ public class HuisApiService
   }
 
   /// <summary>
-  /// Queues the specified player in the rework with the specified ID.
+  /// Queues the specified player in the rework with the specified ID.<br/><br/>
+  /// A requester identifier needs to be provided and will be passed to Huismetbenen in order to provide ratelimits
+  /// based on the person invoking the queuing, rather than the Onion-key associated with this application.
+  /// This is only of relevance if the application is using an Onion-key and is therefore an authenticated 3rd-party app.
   /// </summary>
   /// <param name="playerId">The osu! user ID.</param>
   /// <param name="reworkId">The rework ID.</param>
-  /// <returns>Bool whether queuing was successful.</returns>
-  public async Task<bool> QueuePlayerAsync(int playerId, int reworkId)
+  /// <param name="discordId">The Discord ID of the requester.</param>
+  /// <returns>True when queuing was successful, false when the requester is being ratelimited, null if an error ocurred.</returns>
+  public async Task<bool?> QueuePlayerAsync(int playerId, int reworkId, ulong discordId)
   {
     // TEMPORARY MONITORING
     _lastQueues.Add(DateTime.UtcNow);
@@ -133,9 +138,13 @@ public class HuisApiService
     try
     {
       // Send the queue request to the API.
-      var request = new { user_id = playerId, rework = reworkId };
+      var request = new { user_id = playerId, rework = reworkId, discord_id = discordId };
       HttpResponseMessage response = await _http.PatchAsync("/queue/add-to-queue", new StringContent(JsonConvert.SerializeObject(request),
         Encoding.UTF8, "application/json"));
+
+      // Check whether the requester is being ratelimited.
+      if (response.StatusCode == HttpStatusCode.TooManyRequests)
+        return false;
 
       // Make sure the request was successful by checking whether the json contains the "queue" property.
       string json = await response.Content.ReadAsStringAsync();
@@ -147,7 +156,7 @@ public class HuisApiService
     catch (Exception ex)
     {
       _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message}", ex.Message);
-      return false;
+      return null;
     }
   }
 
