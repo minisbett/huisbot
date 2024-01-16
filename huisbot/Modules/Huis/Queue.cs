@@ -57,7 +57,8 @@ public class QueueCommandModule : ModuleBase
     }
 
     // Queue the player.
-    await QueuePlayerAsync(user, rework.Id, Context.User.Id);
+    if (!await QueuePlayerAsync(user, rework.Id, Context.User.Id))
+      return;
 
     // Asynchronously check whether the player is no longer in the queue and if so, notify the user.
     _ = Task.Run(async () =>
@@ -80,7 +81,7 @@ public class QueueCommandModule : ModuleBase
         }
 
         // Wait 3 seconds before checking again.
-        await Task.Delay(TimeSpan.FromSeconds(3));
+        await Task.Delay(3000);
       }
     });
   }
