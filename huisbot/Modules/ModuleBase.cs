@@ -7,6 +7,8 @@ using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
 using huisbot.Utilities.Discord;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 
 namespace huisbot.Modules;
 
@@ -19,12 +21,6 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   private readonly HuisApiService _huis;
   private readonly OsuApiService _osu;
   private readonly PersistenceService _persistence;
-
-  /// <summary>
-  /// A dictionary containing the dates and times at which each Discord user queued a player on Huismetbenen.<br/>
-  /// This is used to track the amount of queues over a timespan, ratelimiting them from spamming the API.
-  /// </summary>
-  private static readonly Dictionary<ulong, List<DateTime>> _queueRatelimitTracker = new Dictionary<ulong, List<DateTime>>();
 
   public ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, PersistenceService persistence = null!)
   {
@@ -222,41 +218,28 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 
   /// <summary>
   /// Adds the specified player to the calculation queue in the specified rework.<br/>
-  /// If it failed, the user will automatically be notified. In this case, this method returns false.
+  /// If it failed, the user will automatically be notified. In this case, this method returns false.<br/><br/>
+  /// A requester identifier needs to be provided and will be passed to Huismetbenen in order to provide ratelimits
+  /// based on the person invoking the queuing, rather than the Onion-key associated with this application.
+  /// This is only of relevance if the application is using an Onion-key and is therefore an authenticated 3rd-party app.
   /// </summary>
   /// <param name="player">The player.</param>
   /// <param name="reworkId">The rework ID.</param>
+  /// <param name="discordId">The Discord ID of the requester.</param>
   /// <returns>Bool whether the queueing was successful or not.</returns>
-  public async Task<bool> QueuePlayerAsync(OsuUser player, int reworkId)
+  public async Task<bool> QueuePlayerAsync(OsuUser player, int reworkId, ulong discordId)
   {
-    // Ensure a ratelimit on queuing players, specifically only 5 players per 5 minutes.
-    if (_queueRatelimitTracker.ContainsKey(Context.User.Id))
-    {
-      // Get rid of all entries older than 5 minutes.
-      _queueRatelimitTracker[Context.User.Id] = _queueRatelimitTracker[Context.User.Id].Where(x => x.AddMinutes(5) > DateTime.UtcNow).ToList();
-
-      // Check whether the user queued more than 5 users in the last 5 minutes. If so, notify the user.
-      if (_queueRatelimitTracker[Context.User.Id].Count >= 5)
-      {
-        await FollowupAsync(embed: Embeds.Error("You are currently being ratelimited. Please wait a while beforing queuing someone again " +
-                                               "in order to not overload the server."));
-        return false;
-      }
-    }
-
     // Queue the player and notify the user whether it was successful.
-    bool queued = await _huis.QueuePlayerAsync(player.Id, reworkId);
-    if (queued)
-      await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
-    else
+    bool? queued = await _huis.QueuePlayerAsync(player.Id, reworkId, discordId);
+    if (queued is null)
       await FollowupAsync(embed: Embeds.InternalError($"Failed to queue the player `{player.Name}`."));
+    else if (!queued.Value)
+      await FollowupAsync(embed: Embeds.Error("You are currently being ratelimited. Please wait a while beforing queuing someone again " +
+                                              "in order to not overload the server."));
+    else
+      await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
 
-    // If the queuing was successful, add an entry in the ratelimit tracker.
-    if(queued)
-      if(!_queueRatelimitTracker.TryAdd(Context.User.Id, new List<DateTime>() { DateTime.UtcNow }))
-        _queueRatelimitTracker[Context.User.Id].Add(DateTime.UtcNow);
-
-    return queued;
+    return queued.HasValue ? queued.HasValue : false;
   }
 
   /// <summary>

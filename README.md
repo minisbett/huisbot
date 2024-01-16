@@ -1,5 +1,7 @@
 # huisbot
-An osu! related discord bot for pp.huismetbenen.nl, used on the pp Discord server.
+An osu!-related discord bot for https://pp.huismetbenen.nl/, used on the PP Discord server.
+
+[Join The PP Discord](https://discord.gg/aqPCnXu) • [Add The Bot To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)
 
 # Read before usage
 
