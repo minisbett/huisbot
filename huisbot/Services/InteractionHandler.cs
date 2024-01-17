@@ -62,7 +62,7 @@ public class InteractionHandler : DiscordClientService
     string guild = command.GuildId is null ? "Unknown" : $"{Client.GetGuild(command.GuildId.Value)} ({command.GuildId})";
     string user = $"{command.User.Username} [{command.User.GlobalName}] ({command.User.Id})";
     string cmd = $"/{command.CommandName}{parse(command.Data.Options)}";
-    Logger.LogInformation("Guild: {guild}\nUser: {user}\nCommand: {cmd}", guild, user, cmd);
+    Logger.LogInformation("  Guild: {guild}\n   User: {user}\nCommand: {cmd}", guild, user, cmd);
 
     return Task.CompletedTask;
   }
