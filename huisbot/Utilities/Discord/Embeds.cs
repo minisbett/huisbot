@@ -429,6 +429,20 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an embed for displaying the feedback of a user.
+  /// </summary>
+  /// <param name="user">The Discord user submitting the feedback.</param>
+  /// <param name="rework">The name of the rework.</param>
+  /// <param name="text">The text body of the feedback.</param>
+  /// <returns>An embed for displaying the feedback of a user.</returns>
+  public static Embed Feedback(IUser user, string rework, string text) => BaseEmbed
+    .WithColor(new Color(0x4287f5))
+    .WithAuthor($"{user.Username} ({user.Id})", user.GetAvatarUrl())
+    .WithTitle(rework)
+    .WithDescription(text)
+    .Build();
+
+  /// <summary>
   /// Returns a string representing the difference between two PP values, including the old and new PP values.
   /// </summary>
   /// <param name="oldPP">The old PP.</param>

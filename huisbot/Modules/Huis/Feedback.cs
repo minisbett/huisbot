@@ -1,0 +1,80 @@
+﻿using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
+using huisbot.Models.Huis;
+using huisbot.Models.Osu;
+using huisbot.Models.Persistence;
+using huisbot.Services;
+using huisbot.Utilities.Discord;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace huisbot.Modules.Huis;
+
+public class FeedbackCommandModule : ModuleBase
+{
+  public FeedbackCommandModule(HuisApiService huis) : base(huis) { }
+
+  [SlashCommand("feedback", "Feedback")]
+  public async Task HandleAsync(
+    [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId)
+  {
+    // Get the specified rework.
+    HuisRework? rework = await GetReworkAsync(reworkId);
+    if (rework is null)
+      return;
+
+    // Make sure the rework is eligible.
+    if(rework.IsLive || !rework.IsActive)
+    {
+      await RespondAsync(embed: Embeds.Error("The specified rework cannot receive feedback."));
+      return;
+    }
+
+    // Build the modal and respond.
+    await RespondWithModalAsync<FeedbackModal>($"pp_feedback_{rework.Id}");
+  }
+}
+
+/// <summary>
+/// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
+/// </summary>
+public class FeedbackModalModule : ModuleBase
+{
+  public FeedbackModalModule(HuisApiService huis) : base(huis) { }
+
+  [ModalInteraction("pp_feedback_*")]
+  public async Task HandleAsync(FeedbackModal modal)
+  {
+    await DeferAsync();
+
+    // Get the rework from it's ID.
+    HuisRework? rework = await GetReworkAsync(HuisRework.LiveId.ToString());
+    if (rework is null)
+      return;
+
+    // Get the PP Discord feedback channel.
+    SocketTextChannel channel = Context.Client.GetGuild(1009893337639161856).GetTextChannel(1009893434087198720);
+
+    // Respond to the user and send the feedback in the feedback channel.
+    await FollowupAsync(embed: Embeds.Success("Your feedback was submitted."));
+    await channel.SendMessageAsync(embed: Embeds.Feedback(Context.User, rework.Name!, modal.FeebackText));
+  }
+}
+
+public class FeedbackModal : IModal
+{
+  public string Title => "PP Feedback Form";
+
+  /// <summary>
+  /// The text of the feedback.
+  /// </summary>
+  [InputLabel("Feedback")]
+  [ModalTextInput("text", TextInputStyle.Paragraph, "Type your feedback here...", 200)]
+  public required string FeebackText { get; init; }
+}
