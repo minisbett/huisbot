@@ -30,7 +30,7 @@ public class FeedbackCommandModule : ModuleBase
       return;
 
     // Make sure the rework is eligible.
-    if(rework.IsLive || !rework.IsActive)
+    if(rework.IsLive || !rework.IsActive || rework.IsHistoric || rework.IsConfirmed)
     {
       await RespondAsync(embed: Embeds.Error("The specified rework cannot receive feedback."));
       return;
@@ -48,13 +48,13 @@ public class FeedbackModalModule : ModuleBase
 {
   public FeedbackModalModule(HuisApiService huis) : base(huis) { }
 
-  [ModalInteraction("pp_feedback_*")]
+  [ModalInteraction("pp_feedback_.*", TreatAsRegex = true)]
   public async Task HandleAsync(FeedbackModal modal)
   {
     await DeferAsync();
 
     // Get the rework from it's ID.
-    HuisRework? rework = await GetReworkAsync(HuisRework.LiveId.ToString());
+    HuisRework? rework = await GetReworkAsync(((SocketModal)Context.Interaction).Data.CustomId.Substring(12) /* pp_feedback_ID */);
     if (rework is null)
       return;
 
