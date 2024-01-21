@@ -239,7 +239,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     else
       await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
 
-    return queued.HasValue ? queued.HasValue : false;
+    return queued.HasValue ? queued.Value : false;
   }
 
   /// <summary>
