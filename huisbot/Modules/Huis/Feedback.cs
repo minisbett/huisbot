@@ -54,7 +54,7 @@ public class FeedbackModalModule : ModuleBase
     await DeferAsync();
 
     // Get the rework from it's ID.
-    HuisRework? rework = await GetReworkAsync(((SocketModal)Context.Interaction).Data.CustomId.Substring(12) /* pp_feedback_ID */);
+    HuisRework? rework = await GetReworkAsync(((SocketModal)Context.Interaction).Data.CustomId.Substring(12) /* pp_feedback_<rework ID> */);
     if (rework is null)
       return;
 
