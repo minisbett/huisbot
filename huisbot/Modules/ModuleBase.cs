@@ -369,7 +369,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="context">The Discord socket interaction context.</param>
   public static async Task<bool> IsOnionAsync(SocketInteractionContext context)
   {
-#if DEBUG
+#if DEVELOPMENT
+    // In development mode, always grant the permissions.
     return true;
 #endif
 
@@ -391,7 +392,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="context">The Discord socket interaction context.</param>
   public static async Task<bool> IsPPTeamAsync(SocketInteractionContext context)
   {
-#if DEBUG
+#if DEVELOPMENT
+    // In development mode, always grant the permissions.
     return true;
 #endif
 

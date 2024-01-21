@@ -58,8 +58,13 @@ public class FeedbackModalModule : ModuleBase
     if (rework is null)
       return;
 
+#if DEVELOPMENT
+    // In development mode, always send the feedback into the same channel.
+    ISocketMessageChannel channel = Context.Channel;
+#else
     // Get the PP Discord feedback channel.
-    SocketTextChannel channel = Context.Client.GetGuild(1009893337639161856).GetTextChannel(1009893434087198720);
+    ISocketMessageChannel channel = Context.Client.GetGuild(1009893337639161856).GetTextChannel(1009893434087198720);
+#endif
 
     // Respond to the user and send the feedback in the feedback channel.
     await FollowupAsync(embed: Embeds.Success("Your feedback was submitted."));
