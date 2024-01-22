@@ -138,7 +138,8 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying info about the bot (version, uptime, api status, ...).
   /// </summary>
-  /// <param name="osuAvailable">Bool whether the osu! api is available.</param>
+  /// <param name="osuV1Available">Bool whether the osu! API v1 is available.</param>
+  /// <param name="osuV2Available">Bool whether the osu! API v2 is available.</param>
   /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
   public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
