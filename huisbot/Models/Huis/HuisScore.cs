@@ -39,10 +39,15 @@ public class HuisScore
   public double LocalPP { get; private set; }
 
   /// <summary>
-  /// The mods of the score.
+  /// The string representation of the mods of the score. Null if no mods are present.
   /// </summary>
   [JsonProperty("mods")]
-  public Mods Mods { get; private set; } = null!;
+  public string? ModsStr { get; private set; }
+
+  /// <summary>
+  /// The mods of the score. Defaults to an empty <see cref="Utilities.Mods"/> object if <see cref="ModsStr"/> is null.
+  /// </summary>
+  public Mods Mods => Mods.Parse(ModsStr ?? "");
 
   /// <summary>
   /// The amount of 300s/greats of the score.
@@ -124,7 +129,7 @@ public class HuisScore
 
   public override string ToString()
   {
-    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{Mods.PlusString} " +
+    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{Mods!.PlusString} " +
            $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
   }
 }
