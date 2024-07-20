@@ -58,17 +58,17 @@ public class FeedbackModalModule : ModuleBase
     if (rework is null)
       return;
 
-#if DEVELOPMENT
-    // In development mode, always send the feedback into the same channel.
+#if DEVELOPMENT || CUTTING_EDGE
+    // In development or cutting edge mode, always send the feedback into the same channel.
     ISocketMessageChannel channel = Context.Channel;
 #else
-    // Get the PP Discord feedback channel.
-    ISocketMessageChannel channel = Context.Client.GetGuild(1009893337639161856).GetTextChannel(1009893434087198720);
+    // Get the PP Discord feedback channel. (WIP, other temp channel for now)
+    ISocketMessageChannel channel = Context.Client.GetGuild(1166126757141827775).GetTextChannel(1264243048821293105);
 #endif
 
     // Respond to the user and send the feedback in the feedback channel.
     await FollowupAsync(embed: Embeds.Success("Your feedback was submitted."));
-    await channel.SendMessageAsync(embed: Embeds.Feedback(Context.User, rework.Name!, modal.FeebackText));
+    await channel.SendMessageAsync(embed: Embeds.Feedback(Context.User, rework, modal.FeebackText));
   }
 }
 
@@ -80,6 +80,6 @@ public class FeedbackModal : IModal
   /// The text of the feedback.
   /// </summary>
   [InputLabel("Feedback")]
-  [ModalTextInput("text", TextInputStyle.Paragraph, "Type your feedback here...", 200)]
+  [ModalTextInput("text", TextInputStyle.Paragraph, "Type your feedback here... NOTE: The feedback is NOT anonymous, and publically visible.", 200)]
   public required string FeebackText { get; init; }
 }

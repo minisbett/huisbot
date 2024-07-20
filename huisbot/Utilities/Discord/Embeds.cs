@@ -438,13 +438,13 @@ internal static class Embeds
   /// Returns an embed for displaying the feedback of a user.
   /// </summary>
   /// <param name="user">The Discord user submitting the feedback.</param>
-  /// <param name="rework">The name of the rework.</param>
+  /// <param name="rework">The rework.</param>
   /// <param name="text">The text body of the feedback.</param>
   /// <returns>An embed for displaying the feedback of a user.</returns>
-  public static Embed Feedback(IUser user, string rework, string text) => BaseEmbed
+  public static Embed Feedback(IUser user, HuisRework rework, string text) => BaseEmbed
     .WithColor(new Color(0x4287f5))
     .WithAuthor($"{user.Username} ({user.Id})", user.GetAvatarUrl())
-    .WithTitle(rework)
+    .WithTitle($"{rework.Name!} (v{rework.PPVersion})")
     .WithDescription(text)
     .Build();
 
