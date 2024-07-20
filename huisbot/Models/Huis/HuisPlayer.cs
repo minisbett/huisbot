@@ -32,46 +32,53 @@ public class HuisPlayer
   public string? Name { get; private set; }
 
   /// <summary>
-  /// The live pp of the player.
+  /// The live PP of the player.
   /// </summary>
   [JsonProperty("old_pp")]
   public double OldPP { get; private set; }
 
   /// <summary>
-  /// The pp of the player in the rework the player object is from.
+  /// The PP of the player in the rework the player object is from.
   /// </summary>
   [JsonProperty("new_pp_incl_bonus")]
   public double NewPP { get; private set; }
 
   /// <summary>
-  /// The bonus pp of the player.
+  /// The bonus PP of the player.
   /// </summary>
   [JsonProperty("bonus_pp")]
   public double BonusPP { get; private set; }
 
   /// <summary>
-  /// The weighted accuracy pp of the player in the rework the player object is from.
+  /// The weighted accuracy PP of the player in the rework the player object is from.
   /// </summary>
   [JsonProperty("weighted_acc_pp")]
   public double AccPP { get; private set; }
 
   /// <summary>
-  /// The weighted aim pp of the player in the rework the player object is from.
+  /// The weighted aim PP of the player in the rework the player object is from.
   /// </summary>
   [JsonProperty("weighted_aim_pp")]
   public double AimPP { get; private set; }
 
   /// <summary>
-  /// The weighted tapping pp of the player in the rework the player object is from.
+  /// The weighted tapping PP of the player in the rework the player object is from.
   /// </summary>
   [JsonProperty("weighted_tap_pp")]
   public double TapPP { get; private set; }
 
   /// <summary>
-  /// The weighted flashlight pp of the player in the rework the player object is from.
+  /// The weighted flashlight PP of the player in the rework the player object is from.
   /// </summary>
   [JsonProperty("weighted_fl_pp")]
   public double FLPP { get; private set; }
+
+  /// <summary>
+  /// The weighted cognition PP of the player in the rework the player object is from.
+  /// This skill only exists in some reworks, and therefore may be null.
+  /// </summary>
+  [JsonProperty("weighted_cognition_pp")]
+  public double? CognitionPP { get; private set; }
 
   /// <summary>
   /// The last time the player got updated on Huismetbenen.

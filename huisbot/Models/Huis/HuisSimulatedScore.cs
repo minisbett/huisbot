@@ -81,6 +81,12 @@ public class HuisSimulatedScore
   public double FLPP { get; private set; }
 
   /// <summary>
+  /// The PP for the congition skill. This skill only exists in some reworks, and therefore may be null.
+  /// </summary>
+  [JsonProperty("cognition_pp")]
+  public double? CognitionPP { get; private set; }
+
+  /// <summary>
   /// The total PP of the score.
   /// </summary>
   [JsonProperty("local_pp")]
