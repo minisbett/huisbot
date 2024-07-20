@@ -29,11 +29,29 @@ public class SimulateCommandModule : ModuleBase
   {
     await DeferAsync();
 
-    // Check if either a beatmap ID or a score ID was specified.
+    // Check if either a beatmap ID or a score ID was specified, or if a recent bot message with a beatmap URL can be found.
     if (beatmapId is null && scoreId is null)
     {
-      await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
-      return;
+      // Look for a message with a score in the last 100 messages.
+      foreach (IMessage message in (await Context.Channel.GetMessagesAsync(100).FlattenAsync()))
+        if (Utils.TryFindScore(message, out (int? beatmapId, int? score100, int? score50, int? scoreMiss, int? combo, string? mods) score))
+        {
+          beatmapId = score.beatmapId.ToString();
+          combo ??= score.combo;
+          count100 ??= score.score100;
+          count50 ??= score.score50;
+          misses ??= score.scoreMiss;
+          modsStr ??= score.mods;
+          break;
+        }
+
+
+      // If there was no beatmap ID found in the last 100 messages, respond with an error.
+      if (beatmapId is null)
+      {
+        await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
+        return;
+      }
     }
 
     // Get the matching rework for the specified rework identifier.

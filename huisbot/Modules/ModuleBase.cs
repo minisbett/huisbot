@@ -239,7 +239,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     else
       await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
 
-    return queued.HasValue ? queued.HasValue : false;
+    return queued.HasValue ? queued.Value : false;
   }
 
   /// <summary>
@@ -369,7 +369,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="context">The Discord socket interaction context.</param>
   public static async Task<bool> IsOnionAsync(SocketInteractionContext context)
   {
-#if DEBUG
+#if DEVELOPMENT || CUTTING_EDGE
+    // In development mode, always grant the permissions.
     return true;
 #endif
 
@@ -391,7 +392,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// <param name="context">The Discord socket interaction context.</param>
   public static async Task<bool> IsPPTeamAsync(SocketInteractionContext context)
   {
-#if DEBUG
+#if DEVELOPMENT
+    // In development mode, always grant the permissions.
     return true;
 #endif
 

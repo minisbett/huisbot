@@ -120,6 +120,7 @@ internal static class Embeds
     string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
     string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
     string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
+    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -128,7 +129,9 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
       .WithAuthor($"{local.Name} on {rework.Name}", $"https://a.ppy.sh/{local.Id}", $"https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code}")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}", true)
+      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
+              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
+       , true)
       .AddField("Useful Links", $"▸ {osuProfile}\n▸ {huisProfile}\n▸ {huisRework}\n▸ {github}", true)
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(local.LastUpdated)
@@ -138,7 +141,8 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying info about the bot (version, uptime, api status, ...).
   /// </summary>
-  /// <param name="osuAvailable">Bool whether the osu! api is available.</param>
+  /// <param name="osuV1Available">Bool whether the osu! API v1 is available.</param>
+  /// <param name="osuV2Available">Bool whether the osu! API v2 is available.</param>
   /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
   public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
@@ -182,6 +186,7 @@ internal static class Embeds
     string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
     string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
     string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
+    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
     string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
     string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
@@ -198,8 +203,9 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Mods.PlusString} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
-      .AddField("PP Comparison (Live → Local)", $"▸ **PP**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}\n" +
-               $"{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .AddField("PP Comparison (Live → Local)", $"▸ **PP**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
+              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
+              + $"\n{visualizer} • {osu}\n{huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
@@ -429,6 +435,20 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an embed for displaying the feedback of a user.
+  /// </summary>
+  /// <param name="user">The Discord user submitting the feedback.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="text">The text body of the feedback.</param>
+  /// <returns>An embed for displaying the feedback of a user.</returns>
+  public static Embed Feedback(IUser user, HuisRework rework, string text) => BaseEmbed
+    .WithColor(new Color(0x4287f5))
+    .WithAuthor($"{user.Username} ({user.Id})", user.GetAvatarUrl())
+    .WithTitle($"{rework.Name!} (v{rework.PPVersion})")
+    .WithDescription(text)
+    .Build();
+
+  /// <summary>
   /// Returns a string representing the difference between two PP values, including the old and new PP values.
   /// </summary>
   /// <param name="oldPP">The old PP.</param>
@@ -436,13 +456,19 @@ internal static class Embeds
   /// <returns>A string representing the difference between two PP values.</returns>
   private static string GetPPDifferenceText(double oldPP, double newPP)
   {
+    // Round the PP values if they're above 1000, as that's irrelevant info and hurts the display flexibility.
+    if (oldPP >= 1000)
+      oldPP = Math.Round(oldPP);
+    if (newPP >= 1000)
+      newPP = Math.Round(newPP);
+
     // Calculate the difference between the two PP values. If it's less than 0.01, the PP values are the same.
     double difference = newPP - oldPP;
     if (Math.Abs(difference) < 0.01)
-      return $"**{newPP:N2}pp**";
+      return $"**{newPP:0.##}pp**";
 
     // Otherwise return the difference string.
-    return $"{oldPP:N2} → **{newPP:N2}pp** *({difference:+#,##0.00;-#,##0.00}pp)*";
+    return $"{oldPP:0.##} → **{newPP:0.##}pp** *({difference:+#,##0.##;-#,##0.##}pp)*";
   }
 
   /// <summary>

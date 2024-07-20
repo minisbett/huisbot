@@ -1,4 +1,5 @@
-﻿using Discord.Addons.Hosting;
+﻿using Discord;
+using Discord.Addons.Hosting;
 using Discord.Addons.Hosting.Util;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -53,7 +54,7 @@ public class InteractionHandler : DiscordClientService
     string parse(IReadOnlyCollection<SocketSlashCommandDataOption> data, string str = "")
     {
       foreach (var i in data)
-        str += " " + (i.Type == Discord.ApplicationCommandOptionType.SubCommand ? $"{i.Name}{parse(i.Options, str)}" : $"{i.Name}:{i.Value}");
+        str += " " + (i.Type == ApplicationCommandOptionType.SubCommand ? $"{i.Name}{parse(i.Options, str)}" : $"{i.Name}:{i.Value}");
 
       return str;
     }
@@ -62,7 +63,7 @@ public class InteractionHandler : DiscordClientService
     string guild = command.GuildId is null ? "Unknown" : $"{Client.GetGuild(command.GuildId.Value)} ({command.GuildId})";
     string user = $"{command.User.Username} [{command.User.GlobalName}] ({command.User.Id})";
     string cmd = $"/{command.CommandName}{parse(command.Data.Options)}";
-    Logger.LogInformation("Guild: {guild}\nUser: {user}\nCommand: {cmd}", guild, user, cmd);
+    Logger.LogInformation("  Guild: {guild}\n   User: {user}\nCommand: {cmd}", guild, user, cmd);
 
     return Task.CompletedTask;
   }

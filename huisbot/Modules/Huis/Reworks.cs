@@ -43,7 +43,7 @@ public class ReworksCommandModule : ModuleBase
 }
 
 /// <summary>
-/// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
+/// The interaction module for the rework select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
 public class ReworksComponentModule : ModuleBase
 {
