@@ -165,7 +165,7 @@ public class OsuBeatmap
     // Ensure scaling of the pre-empt through the clock rate of the mods.
     int ms = (int)(ar >= 5 ? ar == 5 ? 1200 : 1200 - 750 * (ar - 5) / 5d : 1200 + 600 * (5 - ar) / 5d);
     ms = (int)(ms / mods.ClockRate);
-    return Math.Min(11.11, (ms == 1200) ? 5 : (ms > 1200) ? 5 - 5 * (1200 - ms) / 600d : 5 + 5 * (1200 - ms) / 750d);
+    return Math.Min(11.11, (ms == 1200) ? 5 : (ms > 1200) ? 5 - 5 * (ms - 1200) / 600d : 5 + 5 * (1200 - ms) / 750d);
   }
 
   /// <summary>
