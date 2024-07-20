@@ -1,4 +1,6 @@
-﻿using MathNet.Numerics;
+﻿using Discord;
+using MathNet.Numerics;
+using System.Text.RegularExpressions;
 
 namespace huisbot.Utilities;
 
@@ -72,4 +74,55 @@ internal static class Utils
   /// <param name="alias">The alias.</param>
   /// <returns>The formatted alias.</returns>
   public static string GetFormattedAlias(string alias) => new string(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
+
+  /// <summary>
+  /// Tries to parse osu! score information from common Discord bots from the specified message.
+  /// </summary>
+  /// <param name="message">The discord message.</param>
+  /// <param name="score">The parsed score.</param>
+  /// <returns>Bool whether parsing was successful (a score was found).</returns>
+  public static bool TryFindScore(IMessage message, out (int? beatmapId, int? count100, int? count50, int? countMiss, int? combo, string? mods) score)
+  {
+    score = (null, null, null, null, null, null);
+
+    int? FindBeatmap(IEmbed embed) => new string[] { embed.Author?.Url ?? "", embed.Url ?? "" }
+      .FirstOrDefault(x => x.StartsWith("https://osu.ppy.sh/b/"))?
+      .Split('/').Last() is { } id ? int.Parse(id) : null;
+
+    // Go through all embeds in the message and check if any of them contain a beatmap URL.
+    IEmbed? beatmapEmbed = null;
+    foreach (IEmbed embed in message.Embeds)
+      (score.beatmapId, beatmapEmbed) = (FindBeatmap(embed), embed);
+
+    // If no beatmap URL was found, return false.
+    if (score.beatmapId is null)
+      return false;
+
+    // Try to find further information in the embed by generating a big score info string from the author, description and fields.
+    string? scoreInfo = beatmapEmbed!.Author + "\n"
+                      + beatmapEmbed.Description + "\n"
+                      + string.Join("\n", beatmapEmbed.Fields.Select(x => $"{x.Name}\n{x.Value}"));
+    scoreInfo = scoreInfo.Replace("**", ""); // bathbot puts combo in bold text
+
+    // Try to find a combo in the format of " x<number>/<number> " (owo) or " <number>x/<number>x " (bathbot).
+    Match match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
+    string? combo = match.Groups.Count == 3 ? match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value : null;
+    
+    // Try to find hits in the format of " [300/100/50/miss]" (owo) or " {300/100/50/miss}" (bathbot).
+    match = Regex.Match(scoreInfo, "[\\[{]\\s*\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\s*[\\]}]");
+    string? count100 = match.Groups.Count == 4 ? match.Groups[1].Value : null;
+    string? count50 = match.Groups.Count == 4 ? match.Groups[2].Value : null;
+    string? countMiss = match.Groups.Count == 4 ? match.Groups[3].Value : null;
+
+    // Try to find the mods in the format of " +<mod1><mod2>... ".
+    match = Regex.Match(scoreInfo, "\\+\\s*([A-Z]+)");
+    string? mods = match.Groups.Count == 2 ? match.Groups[1].Value : null;
+
+    // If not all information was found, return false.
+    if (combo is null || count100 is null || count50 is null || countMiss is null || mods is null)
+      return false;
+
+    score = (score.beatmapId, int.Parse(count100), int.Parse(count50), int.Parse(countMiss), int.Parse(combo), mods);
+    return true;
+  }
 }
