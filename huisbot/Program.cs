@@ -19,7 +19,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.2.0";
+  public const string VERSION = "2.2.1";
 
   /// <summary>
   /// The startup time of the application.
@@ -127,7 +127,7 @@ public class Program
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>
         {
-          client.BaseAddress = new Uri("https://pp-api.huismetbenen.nl/");
+          client.BaseAddress = new Uri("https://api.pp.huismetbenen.nl/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
 
           // The onion key is optional, allowing access to onion-level reworks.
