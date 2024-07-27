@@ -113,13 +113,17 @@ internal static class Embeds
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
   public static Embed Player(HuisPlayer local, HuisPlayer live, HuisRework rework)
   {
-    // Construct some strings for the embed.
-    string total = GetPPDifferenceText(local.OldPP, local.NewPP);
-    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
-    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
-    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
-    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
-    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
+    // Construct the PP info string.
+    string ppStr = $"▸ **PP**: {GetPPDifferenceText(local.OldPP, local.NewPP)}";
+    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(live.AimPP, local.AimPP)}";
+    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(live.TapPP, local.TapPP)}";
+    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}";
+    if (local.FLPP + live.FLPP > 0)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}";
+    if (local.CogPP + live.CogPP > 0)
+      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.CogPP, local.CogPP)}";
+
+    // Constructs some more strings for the embed.
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -128,9 +132,7 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
       .WithAuthor($"{local.Name} on {rework.Name}", $"https://a.ppy.sh/{local.Id}", $"https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code}")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
-              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
-       , true)
+      .AddField("PP Comparison (Live → Local)", ppStr, true)
       .AddField("Useful Links", $"▸ {osuProfile}\n▸ {huisProfile}\n▸ {huisRework}\n▸ {github}", true)
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(local.LastUpdated)
