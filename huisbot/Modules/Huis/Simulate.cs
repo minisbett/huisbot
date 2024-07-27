@@ -88,11 +88,6 @@ public class SimulateCommandModule : ModuleBase
     if (beatmap is null)
       return;
 
-    // Get the difficulty rating of the beatmap.
-    double? difficultyRating = await GetDifficultyRatingAsync(rework.RulesetId, beatmap.Id, mods);
-    if (difficultyRating is null)
-      return;
-
     // Construct the HuisCalculationRequest.
     HuisSimulationRequest request = new HuisSimulationRequest(beatmap.Id, rework)
     {
@@ -107,12 +102,12 @@ public class SimulateCommandModule : ModuleBase
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, rework.IsLive));
 
     // Get the local result from the Huis API and check whether it was successful.
-    HuisSimulatedScore? localScore = await SimulateScoreAsync(request);
+    HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
     if (localScore is null)
       return;
 
     // If the requested rework is the live rework, the calculation is done here, therefore set the live score to the local one.
-    HuisSimulatedScore? liveScore = localScore;
+    HuisSimulationResponse? liveScore = localScore;
     if (!rework.IsLive)
     {
       // Switch the branch of the request to the live "rework" and update the calculation progress embed.
@@ -126,6 +121,6 @@ public class SimulateCommandModule : ModuleBase
     }
 
     // Send the result in an embed to the user.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, liveScore, rework, beatmap, difficultyRating.Value));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, liveScore, rework, beatmap));
   }
 }

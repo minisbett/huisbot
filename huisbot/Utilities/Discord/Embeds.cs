@@ -2,9 +2,7 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
-using Emoji = huisbot.Utilities.Discord.Emoji;
 using DEmoji = Discord.Emoji;
-using System;
 
 namespace huisbot.Utilities.Discord;
 
@@ -193,23 +191,26 @@ internal static class Embeds
   /// <param name="beatmap">The beatmap.</param>
   /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisSimulatedScore local, HuisSimulatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
+  public static Embed CalculatedScore(HuisSimulationResponse local, HuisSimulationResponse live, HuisRework rework, OsuBeatmap beatmap)
   {
-    // Construct some strings for the embed.
-    string total = GetPPDifferenceText(live.TotalPP, local.TotalPP);
-    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
-    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
-    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
-    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
-    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
-    string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
-    string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
+    // Construct the PP info string.
+    string ppStr = $"▸ **PP**: {GetPPDifferenceText(live.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
+    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(live.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
+    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(live.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
+    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
+    if (local.PerformanceAttributes.FLPP is not null)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
+    if (local.PerformanceAttributes.CogPP is not null)
+      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.PerformanceAttributes.CogPP ?? 0, local.PerformanceAttributes.CogPP.Value)}";
+
+    // Construct some more strings for the embed.
+    string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
+    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Mods):0.#}** " +
-                    $"▸ **{beatmap.GetBPM(local.Mods):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Mods):0.#}**";
-    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount,
-                                                        beatmap.SliderCount, beatmap.GetAdjustedOD(local.Mods), local.Mods.ClockRate):F2}** eUR";
+    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** " +
+                    $"▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}**";
+    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -217,11 +218,9 @@ internal static class Embeds
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Mods.PlusString} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
-      .AddField("PP Comparison (Live → Local)", $"▸ **PP**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
-              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
-              + $"\n{visualizer} • {osu}\n{huisRework} • {github}", true)
-      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({live.DifficultyAttributes.DifficultyRating:N2}→{local.DifficultyAttributes.DifficultyRating:N2}★)")
+      .AddField("PP Comparison (Live → Local)", $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)

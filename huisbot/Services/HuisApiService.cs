@@ -16,21 +16,6 @@ public class HuisApiService
   private readonly CachingService _caching;
   private readonly ILogger<HuisApiService> _logger;
 
-  // TEMPORARY MONITORING
-  private static List<DateTime> _lastSimulations = new List<DateTime>();
-  private static List<DateTime> _lastQueues = new List<DateTime>();
-  public static int GetSimulationsLastHour()
-  {
-    _lastSimulations.RemoveAll(x => x.AddHours(1) < DateTime.UtcNow);
-    return _lastSimulations.Count;
-  }
-  public static int GetQueuesLastHour()
-  {
-    _lastQueues.RemoveAll(x => x.AddHours(1) < DateTime.UtcNow);
-    return _lastQueues.Count;
-  }
-  // TEMPORARY MONITORING
-
   public HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
   {
     _http = httpClientFactory.CreateClient("huisapi");
@@ -131,10 +116,6 @@ public class HuisApiService
   /// <returns>True when queuing was successful, false when the requester is being ratelimited, null if an error ocurred.</returns>
   public async Task<bool?> QueuePlayerAsync(int playerId, int reworkId, ulong discordId)
   {
-    // TEMPORARY MONITORING
-    _lastQueues.Add(DateTime.UtcNow);
-    // TEMPORARY MONITORING
-
     try
     {
       // Send the queue request to the API.
@@ -203,15 +184,11 @@ public class HuisApiService
   /// </summary>
   /// <param name="request">The score request.</param>
   /// <returns>The calculation result.</returns>
-  public async Task<HuisSimulatedScore?> SimulateAsync(HuisSimulationRequest request)
+  public async Task<HuisSimulationResponse?> SimulateAsync(HuisSimulationRequest request)
   {
     // Check whether a score for the score simulation request is cached.
-    if (await _caching.GetCachedScoreSimulationAsync(request) is HuisSimulatedScore s)
+    if (await _caching.GetCachedScoreSimulationAsync(request) is HuisSimulationResponse s)
       return s;
-
-    // TEMPORARY MONITORING
-    _lastSimulations.Add(DateTime.UtcNow);
-    // TEMPORARY MONITORING
 
     try
     {
@@ -219,10 +196,10 @@ public class HuisApiService
       HttpResponseMessage response = await _http.PatchAsync("/calculate-score", new StringContent(request.ToJson(),
         Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisSimulatedScore? score = JsonConvert.DeserializeObject<HuisSimulatedScore>(json);
+      HuisSimulationResponse? simResponse = JsonConvert.DeserializeObject<HuisSimulationResponse>(json);
 
       // Check whether the deserialized json is valid.
-      if (score is null)
+      if (simResponse is null)
         throw new Exception("Deserialization of JSON returned null.");
 
       // Check whether the json contains an error.
@@ -230,9 +207,9 @@ public class HuisApiService
       if (error is not null)
         throw new Exception($"API returned {error}");
 
-      // Cache the score and return it.
-      await _caching.AddCachedScoreSimulationAsync(request, score);
-      return score;
+      // Cache the simulation response and return it.
+      await _caching.AddCachedScoreSimulationAsync(request, simResponse);
+      return simResponse;
     }
     catch (Exception ex)
     {

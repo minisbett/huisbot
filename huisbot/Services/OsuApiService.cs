@@ -198,45 +198,6 @@ public class OsuApiService
   }
 
   /// <summary>
-  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.
-  /// </summary>
-  /// <param name="rulesetId">The ruleset ID.</param>
-  /// <param name="beatmapId">The beatmap ID.</param>
-  /// <param name="mods">The mod string.</param>
-  /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, Mods mods)
-  {
-    // Serialize the JSON string for the request.
-    string requestJson = JsonConvert.SerializeObject(new
-    {
-      ruleset_id = rulesetId,
-      beatmap_id = beatmapId,
-      mods = mods.Array.Select(x => new { acronym = x })
-    });
-
-    try
-    {
-      // Get the difficulty rating from the API.
-      HttpResponseMessage response = await _http.PostAsync("difficulty-rating",
-        new StringContent(requestJson, Encoding.UTF8, "application/json"));
-
-      // Try to parse the difficulty rating from the response.
-      string result = await response.Content.ReadAsStringAsync();
-      if (!double.TryParse(result, out double rating))
-        throw new Exception("Failed to parse the difficulty rating from the response.");
-
-      // Return the difficulty rating.
-      return rating;
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError("Failed to get the difficulty rating for beatmap in ruleset {Ruleset} with ID {Id} and mods {Mods} from the osu! API: {Message}",
-        rulesetId, beatmapId, mods, ex.Message);
-      return null;
-    }
-  }
-
-  /// <summary>
   /// Returns the score with the specified ID in the specified ruleset.
   /// </summary>
   /// <param name="rulesetId">The ruleset ID.</param>

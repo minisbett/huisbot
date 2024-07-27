@@ -294,24 +294,6 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   }
 
   /// <summary>
-  /// Returns the difficulty rating of the specified beatmap in the specified ruleset with the specified mods.<br/>
-  /// If it failed, the user will automatically be notified. In this case, this method returns null.
-  /// </summary>
-  /// <param name="rulesetId">The ruleset ID.</param>
-  /// <param name="beatmapId">The beatmap ID.</param>
-  /// <param name="mods">The mods.</param>
-  /// <returns>The difficulty rating.</returns>
-  public async Task<double?> GetDifficultyRatingAsync(int rulesetId, int beatmapId, Mods mods)
-  {
-    // Get the difficulty rating and check whether the request was successful. If not, notify the user.
-    double? rating = await _osu.GetDifficultyRatingAsync(rulesetId, beatmapId, mods);
-    if (rating is null)
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the difficulty rating for the beatmap."));
-
-    return rating;
-  }
-
-  /// <summary>
   /// Returns the score by the specified identifier (ID or alias).<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
@@ -349,19 +331,19 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// </summary>
   /// <param name="request">The score simulation request.</param>
   /// <returns>The simulated score.</returns>
-  public async Task<HuisSimulatedScore?> SimulateScoreAsync(HuisSimulationRequest request)
+  public async Task<HuisSimulationResponse?> SimulateScoreAsync(HuisSimulationRequest request)
   {
-    // Calculate the score and check whether it was successful. If not, notify the user.
-    HuisSimulatedScore? score = await _huis.SimulateAsync(request);
-    if (score is null)
+    // Simulate the score and check whether it was successful. If not, notify the user.
+    HuisSimulationResponse? response = await _huis.SimulateAsync(request);
+    if (response is null)
     {
       await ModifyOriginalResponseAsync(x =>
         x.Embed = Embeds.InternalError($"Failed to calculate the {(request.Rework.IsLive ? "live" : "local")} score."));
       return null;
     }
 
-    // Return the score.
-    return score;
+    // Return the response.
+    return response;
   }
 
   /// <summary>
