@@ -14,8 +14,12 @@ public class ModsConverter : JsonConverter
 
   public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
   {
-    // Make sure the token type is a string and the value not null.
-    if (reader.TokenType != JsonToken.String || reader.Value is not string str)
+    // If the value is null, default to an empty mods object.
+    if (reader.TokenType == JsonToken.Null)
+      return Mods.Parse("");
+
+      // Make sure the token type is a string and the value not null.
+      if (reader.TokenType != JsonToken.String || reader.Value is not string str)
       throw new JsonSerializationException($"Unable to convert '{reader.Value}' ({reader.TokenType}) into a Mods object.");
 
     // Parse the mods and return them.
