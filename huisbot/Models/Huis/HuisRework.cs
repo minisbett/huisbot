@@ -95,7 +95,7 @@ public class HuisRework
   /// <summary>
   /// The rework ID of the live pp system.
   /// </summary>
-  public static int LiveId => 1;
+  public const int LiveId = 1;
 
   public override string ToString()
   {

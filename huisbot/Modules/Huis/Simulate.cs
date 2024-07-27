@@ -19,6 +19,8 @@ public class SimulateCommandModule : ModuleBase
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? reworkReferenceId = null,
     [Summary("score", "The ID or alias of a score to base the score attributes off. Can be overriden by other parameters.")] string? scoreId = null,
     [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
@@ -28,6 +30,9 @@ public class SimulateCommandModule : ModuleBase
     [Summary("mods", "The mods used in the score.")] string? modsStr = null)
   {
     await DeferAsync();
+
+    // Default to the live PP system as the reference rework.
+    reworkReferenceId ??= HuisRework.LiveId.ToString();
 
     // Check if either a beatmap ID or a score ID was specified, or if a recent bot message with a beatmap URL can be found.
     if (beatmapId is null && scoreId is null)
@@ -59,9 +64,9 @@ public class SimulateCommandModule : ModuleBase
     if (rework is null)
       return;
 
-    // Get the live rework, since the HuisRework object is required for score calculation.
-    HuisRework? live = await GetReworkAsync(HuisRework.LiveId.ToString());
-    if (live is null)
+    // Get the matching reference rework for the specified rework identifier.
+    HuisRework? refRework = await GetReworkAsync(reworkReferenceId);
+    if (refRework is null)
       return;
 
     // If a score was specified, get the score and fill the unset parameters with it's attributes.
@@ -88,7 +93,7 @@ public class SimulateCommandModule : ModuleBase
     if (beatmap is null)
       return;
 
-    // Construct the HuisCalculationRequest.
+    // Construct the simulation request.
     HuisSimulationRequest request = new HuisSimulationRequest(beatmap.Id, rework)
     {
       Combo = combo,
@@ -98,29 +103,29 @@ public class SimulateCommandModule : ModuleBase
       Mods = mods.Array
     };
 
-    // Display the calculation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(false, rework.IsLive));
+    // Display the simulation progress in an embed to the user.
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false, rework.Id == refRework.Id));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
     if (localScore is null)
       return;
 
-    // If the requested rework is the live rework, the calculation is done here, therefore set the live score to the local one.
-    HuisSimulationResponse? liveScore = localScore;
-    if (!rework.IsLive)
+    // If the requested rework is the same as the reference, simulation is done here.
+    HuisSimulationResponse? refScore = localScore;
+    if (rework.Id != refRework.Id)
     {
-      // Switch the branch of the request to the live "rework" and update the calculation progress embed.
-      request.Rework = live;
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(true, false));
+      // Switch the request to target the reference rework and update the simulation progress embed.
+      request.Rework = refRework;
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Simulating(rework, refRework, true));
 
       // Get the live result from the Huis API and check whether it was successful.
-      liveScore = await SimulateScoreAsync(request);
-      if (liveScore is null)
+      refScore = await SimulateScoreAsync(request);
+      if (refScore is null)
         return;
     }
 
     // Send the result in an embed to the user.
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, liveScore, rework, beatmap));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.SimulatedScore(localScore, refScore, rework, refRework, beatmap));
   }
 }

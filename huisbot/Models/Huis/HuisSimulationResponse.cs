@@ -99,14 +99,14 @@ public class HuisSimulationResponse
     /// <summary>
     /// The mods of the score.
     /// </summary>
+    [JsonIgnore]
     public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
 
     /// <summary>
     /// The mods of the score, in the osu-tools format.
     /// </summary>
     [JsonProperty("mods")]
-    private HuisSimulationScoreMod[] OsuMods { get; set; } = null!;
-
+    public HuisSimulationScoreMod[] OsuMods { get; private set; } = null!;
 
     /// <summary>
     /// The hit statistics of the score.

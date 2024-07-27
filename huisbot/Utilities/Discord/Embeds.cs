@@ -175,25 +175,32 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
-  /// <param name="local">Bool whether the local score finished calculating.</param>
-  /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
-  /// <returns>An embed for displaying the score calculation progress.</returns>
-  public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
-    .WithDescription($"*{(local || liveOnly ? "Calculating live score" : "Calculating local score")}...*\n\n" +
-                     $"{(liveOnly ? "" : $"{new DEmoji(local ? "✅" : "⏳")} Local\n")}" +
-                     $"{new DEmoji(local ? "⏳" : "🕐")} Live")
-    .Build();
+  /// <param name="local">The local rework to simulate.</param>
+  /// <param name="reference">The reference rework to simulate.</param>
+  /// <param name="localDone">Bool whether the local score finished simulation.</param>
+  /// <returns>An embed for displaying the score simulation progress.</returns>
+  public static Embed Simulating(HuisRework local, HuisRework reference, bool localDone, bool localOnly = false)
+  {
+    // Build the status string.
+    string status = localDone ?  "*Calculating reference score...*" : "*Calculating local score...*";
+    status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
+    if (!localOnly)
+      status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
+
+    return BaseEmbed
+      .WithDescription(status)
+      .Build();
+  }
 
   /// <summary>
-  /// Returns an embed for displaying a calculated score and it's difference to the current live state.
+  /// Returns an embed for displaying the difference between two simulated scores.
   /// </summary>
-  /// <param name="local">The local score in the rework.</param>
-  /// <param name="live">The score on the live servers.</param>
+  /// <param name="local">The first simulated score for comparison.</param>
+  /// <param name="live">The second simulated for score for comparison.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
-  /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisSimulationResponse local, HuisSimulationResponse live, HuisRework rework, OsuBeatmap beatmap)
+  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse live, HuisRework rework, HuisRework referenceRework, OsuBeatmap beatmap)
   {
     // Construct the PP info string.
     string ppStr = $"▸ **PP**: {GetPPDifferenceText(live.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
@@ -221,11 +228,11 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({live.DifficultyAttributes.DifficultyRating:N2}→{local.DifficultyAttributes.DifficultyRating:N2}★)")
-      .AddField("PP Comparison (Live → Local)", $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .AddField("PP Comparison (Reference → Local)", $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
-      .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+      .WithFooter($"{referenceRework.Name} → {rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
 
