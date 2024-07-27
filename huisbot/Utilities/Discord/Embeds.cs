@@ -4,6 +4,7 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using Emoji = huisbot.Utilities.Discord.Emoji;
 using DEmoji = Discord.Emoji;
+using System;
 
 namespace huisbot.Utilities.Discord;
 
@@ -145,17 +146,31 @@ internal static class Embeds
   /// <param name="osuV2Available">Bool whether the osu! API v2 is available.</param>
   /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
-  public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable) => BaseEmbed
-    .WithColor(new Color(0xFFD4A8))
-    .WithTitle($"Information about Huisbot {Program.VERSION}")
-    .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
-                     "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
-    .AddField("Uptime", $"{(DateTime.UtcNow - Program.STARTUP_TIME).ToUptimeString()}\n\n[Source](https://github.com/minisbett/huisbot) • " +
-                        $"[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
-    .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
-                            $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
-    .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
-    .Build();
+  public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable)
+  {
+    // Build an uptime string (eg. "4 hours, 22 minutes, 1 second") from the time since startup.
+    TimeSpan uptime = DateTime.UtcNow - Program.STARTUP_TIME;
+    string uptimeStr = string.Join(", ", new (int Value, string Unit)[]
+    {
+      (uptime.Days / 7, "week"),
+      (uptime.Days % 7, "day"),
+      (uptime.Hours, "hour"),
+      (uptime.Minutes, "minute"),
+      (uptime.Seconds, "second")
+    }.Where(x => x.Value > 0).Select(x => $"{x.Value} {x.Unit}{(x.Value > 1 ? "s" : "")}"));
+
+    return BaseEmbed
+      .WithColor(new Color(0xFFD4A8))
+      .WithTitle($"Information about Huisbot {Program.VERSION}")
+      .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
+                       "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
+      .AddField("Uptime", $"{uptimeStr}\n\n[Source](https://github.com/minisbett/huisbot) • " +
+                          $"[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
+      .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
+                              $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
+      .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
+      .Build();
+  }
 
   /// <summary>
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
