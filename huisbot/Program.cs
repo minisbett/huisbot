@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
 using System.Globalization;
 
+namespace huisbot;
+
 public class Program
 {
   /// <summary>
