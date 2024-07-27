@@ -23,37 +23,36 @@ public class CachedScoreSimulation
   public string RequestIdentifier { get; private set; } = "";
 
   /// <summary>
-  /// The JSON string resembling the simulated score.
+  /// The JSON string resembling the simulation response.
   /// </summary>
-  public string ScoreJson { get; private set; } = "";
+  public string ResponseJson { get; private set; } = "";
 
   /// <summary>
-  /// The deserialized <see cref="ScoreJson"/>.
+  /// The deserialized <see cref="ResponseJson"/>.
   /// </summary>
   [NotMapped]
-  public HuisSimulatedScore Score => JsonConvert.DeserializeObject<HuisSimulatedScore>(ScoreJson)!;
+  public HuisSimulationResponse Response => JsonConvert.DeserializeObject<HuisSimulationResponse>(ResponseJson)!;
 
   /// <summary>
-  /// Creates a new <see cref="CachedScoreSimulation"/> instance with the specified request identifier and score data.
+  /// Creates a new <see cref="CachedScoreSimulation"/> instance with the specified request identifier and simulation data.
   /// </summary>
-  public CachedScoreSimulation(string requestIdentifier, string scoreJson)
+  public CachedScoreSimulation(string requestIdentifier, string responseJson)
   {
     RequestIdentifier = requestIdentifier;
-    ScoreJson = scoreJson;
+    ResponseJson = responseJson;
   }
 
   /// <summary>
   /// Creates a new <see cref="CachedScoreSimulation"/> instance with the specified simulation request and response.
   /// </summary>
   /// <param name="request">The simulation request.</param>
-  /// <param name="score">The simulated score.</param>
-  /// <returns>The cached score simulation.</returns>
-  public CachedScoreSimulation(HuisSimulationRequest request, HuisSimulatedScore score)
+  /// <param name="response">The simulation response.</param>
+  public CachedScoreSimulation(HuisSimulationRequest request, HuisSimulationResponse response)
   {
     // The rework ID is included in case another rework with the same code exists sometime in the future.
     // The algorithm version is included in order to "forget"/ignore scores of an older state of the rework.
     RequestIdentifier = GetRequestIdentifier(request);
-    ScoreJson = JsonConvert.SerializeObject(score);
+    ResponseJson = JsonConvert.SerializeObject(response);
   }
 
   /// <summary>

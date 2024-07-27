@@ -78,7 +78,7 @@ public class HuisPlayer
   /// This skill only exists in some reworks, and therefore may be null.
   /// </summary>
   [JsonProperty("weighted_cognition_pp")]
-  public double? CognitionPP { get; private set; }
+  public double CogPP { get; private set; }
 
   /// <summary>
   /// The last time the player got updated on Huismetbenen.

@@ -136,27 +136,27 @@ public class PersistenceService
   /// Adds a new cache entry for the specified score simulation request and it's resulting score.
   /// </summary>
   /// <param name="request">The score simulation request.</param>
-  /// <param name="score">The simulated score.</param>
-  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulatedScore score)
+  /// <param name="response">The simulation response.</param>
+  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
   {
     // To make this thread-safe, make sure there is no cache entry at this point in time (again).
-    if (await GetCachedScoreSimulationAsync(request) is HuisSimulatedScore)
+    if (await GetCachedScoreSimulationAsync(request) is HuisSimulationResponse)
       return;
 
     // Add the cached simulation to the database.
-    _database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, score));
+    _database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, response));
     await _database.SaveChangesAsync();
   }
 
   /// <summary>
-  /// Returns the cached simulation score for the specified score simulation request.<br/>
+  /// Returns the cached simulation response for the specified score simulation request.<br/>
   /// If no cache entry exists, null is returned instead.
   /// </summary>
   /// <param name="request">The score simulation request.</param>
-  /// <returns>The cached simulated score or null, if no cache entry exists.</returns>
-  public async Task<HuisSimulatedScore?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
+  /// <returns>The cached simulation response or null, if no cache entry exists.</returns>
+  public async Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
   {
     return (await _database.CachedScoreSimulations.FirstOrDefaultAsync(
-      x => x.RequestIdentifier == CachedScoreSimulation.GetRequestIdentifier(request)))?.Score;
+      x => x.RequestIdentifier == CachedScoreSimulation.GetRequestIdentifier(request)))?.Response;
   }
 }

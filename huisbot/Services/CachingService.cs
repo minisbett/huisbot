@@ -53,11 +53,11 @@ public class CachingService
   }
 
   /// <summary>
-  /// Returns the cached simulated score of the specified simulation request. If no score is cached, null is returned instead.
+  /// Returns the cached simulation response of the specified simulation request. If no score is cached, null is returned instead.
   /// </summary>
   /// <param name="request">The score simulation request.</param>
-  /// <returns>The simulated score or null, if no score is cached.</returns>
-  public Task<HuisSimulatedScore?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
+  /// <returns>The simulation response or null, if no score is cached.</returns>
+  public Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
   {
     return _persistence.GetCachedScoreSimulationAsync(request);
   }
@@ -66,9 +66,9 @@ public class CachingService
   /// Adds a new cache entry for the score simulation request and it's corresponding simulated score.
   /// </summary>
   /// <param name="request">The score simulation request.</param>
-  /// <param name="score">The simulated score.</param>
-  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulatedScore score)
+  /// <param name="response">The simulation response.</param>
+  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
   {
-    await _persistence.AddCachedScoreSimulationAsync(request, score);
+    await _persistence.AddCachedScoreSimulationAsync(request, response);
   }
 }

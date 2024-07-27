@@ -2,9 +2,7 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
-using Emoji = huisbot.Utilities.Discord.Emoji;
 using DEmoji = Discord.Emoji;
-using System;
 
 namespace huisbot.Utilities.Discord;
 
@@ -115,13 +113,17 @@ internal static class Embeds
   /// <returns>An embed for displaying the specified player in the specified rework.</returns>
   public static Embed Player(HuisPlayer local, HuisPlayer live, HuisRework rework)
   {
-    // Construct some strings for the embed.
-    string total = GetPPDifferenceText(local.OldPP, local.NewPP);
-    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
-    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
-    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
-    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
-    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
+    // Construct the PP info string.
+    string ppStr = $"▸ **PP**: {GetPPDifferenceText(local.OldPP, local.NewPP)}";
+    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(live.AimPP, local.AimPP)}";
+    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(live.TapPP, local.TapPP)}";
+    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}";
+    if (local.FLPP + live.FLPP > 0)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}";
+    if (local.CogPP + live.CogPP > 0)
+      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.CogPP, local.CogPP)}";
+
+    // Constructs some more strings for the embed.
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -130,9 +132,7 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
       .WithAuthor($"{local.Name} on {rework.Name}", $"https://a.ppy.sh/{local.Id}", $"https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code}")
-      .AddField("PP Comparison (Live → Local)", $"▸ **Total**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
-              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
-       , true)
+      .AddField("PP Comparison (Live → Local)", ppStr, true)
       .AddField("Useful Links", $"▸ {osuProfile}\n▸ {huisProfile}\n▸ {huisRework}\n▸ {github}", true)
       .WithFooter($"{BaseEmbed.Footer.Text} • Last Updated", BaseEmbed.Footer.IconUrl)
       .WithTimestamp(local.LastUpdated)
@@ -175,41 +175,51 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
-  /// <param name="local">Bool whether the local score finished calculating.</param>
-  /// <param name="liveOnly">Bool whether only the live score calculation should be displayed.</param>
-  /// <returns>An embed for displaying the score calculation progress.</returns>
-  public static Embed Calculating(bool local, bool liveOnly) => BaseEmbed
-    .WithDescription($"*{(local || liveOnly ? "Calculating live score" : "Calculating local score")}...*\n\n" +
-                     $"{(liveOnly ? "" : $"{new DEmoji(local ? "✅" : "⏳")} Local\n")}" +
-                     $"{new DEmoji(local ? "⏳" : "🕐")} Live")
-    .Build();
+  /// <param name="local">The local rework to simulate.</param>
+  /// <param name="reference">The reference rework to simulate.</param>
+  /// <param name="localDone">Bool whether the local score finished simulation.</param>
+  /// <returns>An embed for displaying the score simulation progress.</returns>
+  public static Embed Simulating(HuisRework local, HuisRework reference, bool localDone, bool localOnly = false)
+  {
+    // Build the status string.
+    string status = localDone ?  "*Calculating reference score...*" : "*Calculating local score...*";
+    status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
+    if (!localOnly)
+      status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
+
+    return BaseEmbed
+      .WithDescription(status)
+      .Build();
+  }
 
   /// <summary>
-  /// Returns an embed for displaying a calculated score and it's difference to the current live state.
+  /// Returns an embed for displaying the difference between two simulated scores.
   /// </summary>
-  /// <param name="local">The local score in the rework.</param>
-  /// <param name="live">The score on the live servers.</param>
+  /// <param name="local">The first simulated score for comparison.</param>
+  /// <param name="live">The second simulated for score for comparison.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
-  /// <param name="difficultyRating">The difficulty rating of the score.</param>
   /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed CalculatedScore(HuisSimulatedScore local, HuisSimulatedScore live, HuisRework rework, OsuBeatmap beatmap, double difficultyRating)
+  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse live, HuisRework rework, HuisRework referenceRework, OsuBeatmap beatmap)
   {
-    // Construct some strings for the embed.
-    string total = GetPPDifferenceText(live.TotalPP, local.TotalPP);
-    string aim = GetPPDifferenceText(live.AimPP, local.AimPP);
-    string tap = GetPPDifferenceText(live.TapPP, local.TapPP);
-    string acc = GetPPDifferenceText(live.AccPP, local.AccPP);
-    string fl = GetPPDifferenceText(live.FLPP, local.FLPP);
-    string? cognition = local.CognitionPP is null ? null : GetPPDifferenceText(live.CognitionPP ?? 0, local.CognitionPP.Value);
-    string hits = $"{local.Count300} {_emojis["300"]} {local.Count100} {_emojis["100"]} {local.Count50} {_emojis["50"]} {local.Misses} {_emojis["miss"]}";
-    string combo = $"{local.MaxCombo}/{beatmap.MaxCombo}x";
+    // Construct the PP info string.
+    string ppStr = $"▸ **PP**: {GetPPDifferenceText(live.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
+    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(live.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
+    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(live.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
+    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
+    if (local.PerformanceAttributes.FLPP is not null)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
+    if (local.PerformanceAttributes.CogPP is not null)
+      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.PerformanceAttributes.CogPP ?? 0, local.PerformanceAttributes.CogPP.Value)}";
+
+    // Construct some more strings for the embed.
+    string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
+    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Mods):0.#}** " +
-                    $"▸ **{beatmap.GetBPM(local.Mods):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Mods):0.#}**";
-    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Count300, local.Count100, local.Count50, local.Misses, beatmap.CircleCount,
-                                                        beatmap.SliderCount, beatmap.GetAdjustedOD(local.Mods), local.Mods.ClockRate):F2}** eUR";
+    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** " +
+                    $"▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}**";
+    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
@@ -217,14 +227,12 @@ internal static class Embeds
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Mods.PlusString} ({difficultyRating:N2}→{local.NewDifficultyRating}★)")
-      .AddField("PP Comparison (Live → Local)", $"▸ **PP**: {total}\n▸ **Aim**: {aim}\n▸ **Tap**: {tap}\n▸ **Acc**: {acc}\n▸ **FL**: {fl}"
-              + (cognition is null ? "" : $"\n▸ **Cog**: {cognition}")
-              + $"\n{visualizer} • {osu}\n{huisRework} • {github}", true)
-      .AddField("Score Info", $"▸ {local.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({live.DifficultyAttributes.DifficultyRating:N2}→{local.DifficultyAttributes.DifficultyRating:N2}★)")
+      .AddField("PP Comparison (Reference → Local)", $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
-      .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+      .WithFooter($"{referenceRework.Name} → {rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
 
