@@ -72,7 +72,7 @@ public class SimulateCommandModule : ModuleBase
     // If a score was specified, get the score and fill the unset parameters with it's attributes.
     if (scoreId is not null)
     {
-      OsuScore? score = await GetScoreAsync(rework.RulesetId, scoreId);
+      OsuScore? score = await GetScoreAsync(scoreId);
       if (score is null)
         return;
 

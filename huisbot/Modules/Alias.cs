@@ -169,7 +169,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Get the score.
-      OsuScore? score = await GetScoreAsync(0 /* TODO: Support for other rulsets */, scoreId.ToString());
+      OsuScore? score = await GetScoreAsync(scoreId.ToString());
       if (score is null)
         return;
 
