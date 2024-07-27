@@ -39,15 +39,10 @@ public class HuisScore
   public double LocalPP { get; private set; }
 
   /// <summary>
-  /// The string representation of the mods of the score. Null if no mods are present.
+  /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string? ModsStr { get; private set; }
-
-  /// <summary>
-  /// The mods of the score. Defaults to an empty <see cref="Utilities.Mods"/> object if <see cref="ModsStr"/> is null.
-  /// </summary>
-  public Mods Mods => Mods.Parse(ModsStr ?? "");
+  public Mods Mods { get; private set; } = null!;
 
   /// <summary>
   /// The amount of 300s/greats of the score.
