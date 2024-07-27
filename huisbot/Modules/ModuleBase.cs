@@ -48,7 +48,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     }
 
     // Order the reworks by relevancy for the user and return them.
-    return reworks.OrderByRelevancy();
+    return reworks.OrderBy(x => !x.IsLive).ThenBy(x => x.IsConfirmed).ThenBy(x => x.IsHistoric)
+                   .ThenBy(x => !x.IsActive).ThenBy(x => !x.IsPublic).ToArray();
   }
 
   /// <summary>
