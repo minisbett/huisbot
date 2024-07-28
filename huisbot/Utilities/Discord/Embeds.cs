@@ -182,7 +182,7 @@ internal static class Embeds
   public static Embed Simulating(HuisRework local, HuisRework reference, bool localDone, bool localOnly = false)
   {
     // Build the status string.
-    string status = localDone ?  "*Calculating reference score...*" : "*Calculating local score...*";
+    string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
     status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
     if (!localOnly)
       status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
@@ -195,24 +195,29 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the difference between two simulated scores.
   /// </summary>
-  /// <param name="local">The first simulated score for comparison.</param>
-  /// <param name="live">The second simulated for score for comparison.</param>
+  /// <param name="local">The local simulated score for comparison.</param>
+  /// <param name="reference">The simulated reference for score for comparison.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
-  /// <returns>An embed for displaying a calculated score</returns>
-  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse live, HuisRework rework, HuisRework referenceRework, OsuBeatmap beatmap)
+  /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
+  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
   {
     // Construct the PP info string.
-    string ppStr = $"▸ **PP**: {GetPPDifferenceText(live.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
-    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(live.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
-    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(live.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
-    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
+    string ppStr = $"▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
+    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
+    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
+    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
     if (local.PerformanceAttributes.FLPP is not null)
-      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
     if (local.PerformanceAttributes.CogPP is not null)
-      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.PerformanceAttributes.CogPP ?? 0, local.PerformanceAttributes.CogPP.Value)}";
+      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(reference.PerformanceAttributes.CogPP ?? 0, local.PerformanceAttributes.CogPP.Value)}";
 
     // Construct some more strings for the embed.
+    double refDiff = reference.DifficultyAttributes.DifficultyRating;
+    double localDiff = local.DifficultyAttributes.DifficultyRating;
+    string comparison1 = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
+    string comparison2 = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
+    string comparison3 = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
     string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
     string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
@@ -227,12 +232,12 @@ internal static class Embeds
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({live.DifficultyAttributes.DifficultyRating:N2}→{local.DifficultyAttributes.DifficultyRating:N2}★)")
-      .AddField("PP Comparison (Reference → Local)", $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({comparison1}★)")
+      .AddField(comparison2, $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
-      .WithFooter($"{referenceRework.Name} → {rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+      .WithFooter($"{comparison3} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
 
@@ -479,19 +484,16 @@ internal static class Embeds
   /// <returns>A string representing the difference between two PP values.</returns>
   private static string GetPPDifferenceText(double oldPP, double newPP)
   {
-    // Round the PP values if they're above 1000, as that's irrelevant info and hurts the display flexibility.
-    if (oldPP >= 1000)
-      oldPP = Math.Round(oldPP);
-    if (newPP >= 1000)
-      newPP = Math.Round(newPP);
+    // Round the PP values, as decimals are irrelevant info and hurts the display flexibility.
+    oldPP = Math.Round(oldPP);
+    newPP = Math.Round(newPP);
 
-    // Calculate the difference between the two PP values. If it's less than 0.01, the PP values are the same.
-    double difference = newPP - oldPP;
-    if (Math.Abs(difference) < 0.01)
+    // If the PP do not differ, simply return the PP value.
+    if (newPP == oldPP)
       return $"**{newPP:0.##}pp**";
 
     // Otherwise return the difference string.
-    return $"{oldPP:0.##} → **{newPP:0.##}pp** *({difference:+#,##0.##;-#,##0.##}pp)*";
+    return $"{oldPP:0.##}pp → **{newPP:0.##}pp** ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)";
   }
 
   /// <summary>

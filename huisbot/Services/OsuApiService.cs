@@ -198,30 +198,20 @@ public class OsuApiService
   }
 
   /// <summary>
-  /// Returns the score with the specified ID in the specified ruleset.
+  /// Returns the score with the specified ID.
   /// </summary>
-  /// <param name="rulesetId">The ruleset ID.</param>
   /// <param name="scoreId">The score ID.</param>
   /// <returns>The score with the specified ID./returns>
-  public async Task<NotFoundOr<OsuScore>?> GetScoreAsync(int rulesetId, long scoreId)
+  public async Task<NotFoundOr<OsuScore>?> GetScoreAsync(long scoreId)
   {
     // Make sure a valid access token exists. If not, return null.
     if (!await EnsureAccessTokenAsync())
       return null;
 
-    // Get the string version of the ruleset ID.
-    string ruleset = rulesetId switch
-    {
-      1 => "taiko",
-      2 => "fruits",
-      3 => "mania",
-      _ => "osu"
-    };
-
     try
     {
       // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
-      HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{ruleset}/{scoreId}");
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{scoreId}");
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
 
@@ -231,8 +221,8 @@ public class OsuApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the score with ID {Id} in ruleset {Ruleset} from the osu! API: {Message}",
-        scoreId, rulesetId, ex.Message);
+      _logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}",
+        scoreId, ex.Message);
       return null;
     }
   }

@@ -72,7 +72,7 @@ public class SimulateCommandModule : ModuleBase
     // If a score was specified, get the score and fill the unset parameters with it's attributes.
     if (scoreId is not null)
     {
-      OsuScore? score = await GetScoreAsync(rework.RulesetId, scoreId);
+      OsuScore? score = await GetScoreAsync(scoreId);
       if (score is null)
         return;
 
@@ -104,7 +104,7 @@ public class SimulateCommandModule : ModuleBase
     };
 
     // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false, rework.Id == refRework.Id));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false, rework == refRework));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
@@ -113,7 +113,7 @@ public class SimulateCommandModule : ModuleBase
 
     // If the requested rework is the same as the reference, simulation is done here.
     HuisSimulationResponse? refScore = localScore;
-    if (rework.Id != refRework.Id)
+    if (rework != refRework)
     {
       // Switch the request to target the reference rework and update the simulation progress embed.
       request.Rework = refRework;

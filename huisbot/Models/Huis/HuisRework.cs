@@ -154,4 +154,14 @@ public class HuisRework
       _ => "Unknown"
     };
   }
+
+  public override int GetHashCode()
+  {
+    return Id.GetHashCode();
+  }
+
+  public override bool Equals(object? obj)
+  {
+    return obj is HuisRework rework && Id == rework.Id;
+  }
 }

@@ -299,7 +299,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
   /// </summary>
   /// <param name="scoreId">An identifier for the score. (Score ID or alias)</param>
   /// <returns>The score.</returns>
-  public async Task<OsuScore?> GetScoreAsync(int rulesetId, string scoreId)
+  public async Task<OsuScore?> GetScoreAsync(string scoreId)
   {
     // If the identifier is not a number, try to find a score alias.
     if (!scoreId.All(char.IsDigit))
@@ -315,7 +315,7 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
         scoreId = alias.ScoreId.ToString();
     }
     // Get the score from the osu! API. If it failed or the score was not found, notify the user.
-    NotFoundOr<OsuScore>? score = await _osu.GetScoreAsync(rulesetId, long.Parse(scoreId));
+    NotFoundOr<OsuScore>? score = await _osu.GetScoreAsync(long.Parse(scoreId));
     if (score is null)
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the score from the osu! API."));
     else if (!score.Found)
