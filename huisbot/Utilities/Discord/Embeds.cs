@@ -96,7 +96,7 @@ internal static class Embeds
     foreach (string part in descriptionParts.Skip(1))
       embed = embed.AddField("\u200B", part);
 
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     embed = embed
       .AddField("Ruleset", rework.RulesetName, true)
       .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • {github}", true)
@@ -127,7 +127,7 @@ internal static class Embeds
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
     string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
       .WithColor(new Color(0x58A1FF))
@@ -228,7 +228,7 @@ internal static class Embeds
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
@@ -313,7 +313,7 @@ internal static class Embeds
   public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
@@ -362,7 +362,7 @@ internal static class Embeds
   public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
@@ -418,7 +418,7 @@ internal static class Embeds
     HuisPlayer[] players = allPlayers.Skip((page - 1) * 20).Take(20).ToArray();
 
     // Generate the embed description.
-    string github = rework.CommitUrl is "" ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
       $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • {github}",
