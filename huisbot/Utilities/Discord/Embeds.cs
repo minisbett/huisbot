@@ -85,11 +85,25 @@ internal static class Embeds
   public static Embed Rework(HuisRework rework)
   {
     // Divide the description in multiple parts due to the 1024 character limit.
-    string[] descriptionParts = (rework.Description ?? "") != "" ? rework.Description!.Split("\n\n") : new string[] { "*No description available.*" };
+    List<string> descriptionParts = string.IsNullOrEmpty(rework.Description) ? new List<string>() { "*No description available.*" }
+                                                                             : rework.Description!.Split("\n\n").ToList();
+
+    // If any description parts are still too long, split them further.
+    for (int i = 0; i < descriptionParts.Count; i++)
+      if (descriptionParts[i].Length > 1024)
+      {
+        // Split the description part into two by the first newline.
+        descriptionParts.Insert(i + 1, descriptionParts[i].Split('\n', 2)[1]);
+        descriptionParts[i] = descriptionParts[i].Split('\n', 2)[0];
+
+        // If the part is still too long, truncate it.
+        if (descriptionParts[i].Length > 1024)
+          descriptionParts[i] = descriptionParts[i].Substring(0, 1021) + "...";
+      }
 
     EmbedBuilder embed = BaseEmbed
     .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
-    .WithUrl($"https://pp.huismetbenen.nl/rankings/info/{rework.Code}")
+    .WithUrl($"{rework.Url}")
     .AddField("Description", descriptionParts[0]);
 
     // Add the description parts to the embed.
@@ -99,7 +113,7 @@ internal static class Embeds
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     embed = embed
       .AddField("Ruleset", rework.RulesetName, true)
-      .AddField("Links", $"[Huismetbenen](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • {github}", true)
+      .AddField("Links", $"[Huismetbenen]({rework.Url}) • {github}", true)
       .AddField("Status", rework.ReworkTypeString, true);
 
     return embed.Build();
@@ -126,7 +140,7 @@ internal static class Embeds
     // Constructs some more strings for the embed.
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
     string huisProfile = $"[Huis Profile](https://pp.huismetbenen.nl/player/{local.Id}/{rework.Code})";
-    string huisRework = $"[Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
+    string huisRework = $"[Rework]({rework.Url})";
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
@@ -227,7 +241,7 @@ internal static class Embeds
     string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
     string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
-    string huisRework = $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code})";
+    string huisRework = $"[Huis Rework]({rework.Url})";
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
@@ -317,7 +331,7 @@ internal static class Embeds
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) •  {github}",
+      $"[Huis Rework]({rework.Url}) •  {github}",
       ""
     };
 
@@ -367,7 +381,7 @@ internal static class Embeds
     {
       $"*{rework.Name}*",
       $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code}) • " +
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • {github}",
+      $"[Huis Rework]({rework.Url}) • {github}",
       ""
     };
 
@@ -421,7 +435,7 @@ internal static class Embeds
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
-      $"[Huis Rework](https://pp.huismetbenen.nl/rankings/info/{rework.Code}) • {github}",
+      $"[Huis Rework]({rework.Url}) • {github}",
       ""
     };
     foreach (HuisPlayer player in players)

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using static System.Net.WebRequestMethods;
 
 namespace huisbot.Models.Huis;
 
@@ -7,6 +8,11 @@ namespace huisbot.Models.Huis;
 /// </summary>
 public class HuisRework
 {
+  /// <summary>
+  /// The rework ID of the live pp system.
+  /// </summary>
+  public const int LiveId = 1;
+
   /// <summary>
   /// The internal id of the rework. 1 is always the live pp system.
   /// </summary>
@@ -93,14 +99,9 @@ public class HuisRework
   public bool IsConfirmed => ReworkType == "MASTER";
 
   /// <summary>
-  /// The rework ID of the live pp system.
+  /// The URL to the rework on the Huismetbenen website.
   /// </summary>
-  public const int LiveId = 1;
-
-  public override string ToString()
-  {
-    return $"{Id} {Name} ({Code})";
-  }
+  public string Url => $"https://pp.huismetbenen.nl/rankings/info/{Code}";
 
   /// <summary>
   /// The GitHub URL to the commit of the rework.
@@ -150,6 +151,11 @@ public class HuisRework
       3 => "osu!mania",
       _ => "Unknown"
     };
+  }
+
+  public override string ToString()
+  {
+    return $"{Id} {Name} ({Code})";
   }
 
   public override int GetHashCode()
