@@ -22,6 +22,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.13" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="OpenAI" Version="2.0.0-beta.7" />
     <PackageReference Include="ScottPlot" Version="4.1.68" />
   </ItemGroup>
 

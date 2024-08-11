@@ -491,6 +491,39 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an embed for displaying that the specified rework is being analysed.
+  /// </summary>
+  /// <param name="rework">The rework being analysed.</param>
+  /// <returns>An embed for displaying the on-going analysis.</returns>
+  public static Embed AnalysisRunning(HuisRework rework) => BaseEmbed
+    .WithAuthor(rework.Name, url: rework.Url)
+    .WithTitle("Rework analysis is running... :hourglass:")
+    .WithDescription($"The rework changes are being analyzed... This may take a moment.\n<t:{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}:R>")
+    .Build();
+
+  /// <summary>
+  /// Returns an embed containing the specified analysis result for the specified rework.
+  /// </summary>
+  /// <param name="rework">The analysed rework.</param>
+  /// <param name="analysis">The analysis.</param>
+  /// <returns>An embed for displaying the analysis result.</returns>
+  public static Embed Analysis(HuisRework rework, string analysis)
+  {
+    EmbedBuilder embed = BaseEmbed
+      .WithColor(Color.Green)
+      .WithAuthor(rework.Name, url: rework.Url)
+      .WithTitle(":mag_right: Rework analysis");
+
+    // Add the analysis to the embed via invisible embeds to avoid the character limit.
+    string[] parts = analysis.Split("\n\n");
+    embed = embed.WithDescription(parts[0]);
+    foreach (string part in parts.Skip(1))
+      embed = embed.AddField("\u200B", part);
+
+    return embed.Build();
+  }
+
+  /// <summary>
   /// Returns a string representing the difference between two PP values, including the old and new PP values.
   /// </summary>
   /// <param name="oldPP">The old PP.</param>

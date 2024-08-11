@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
+using OpenAI;
 using System.Globalization;
 
 namespace huisbot;
@@ -123,8 +124,12 @@ public class Program
         // Register the persistence service, responsible for providing logic for accessing the persistence database.
         services.AddScoped<PersistenceService>();
 
-        // Add the caching service.
+        // Add the caching service, responsible for caching simulated scores.
         services.AddScoped<CachingService>();
+
+        // Add the OpenAI API service, allowing interactions with AI.
+        services.AddSingleton(new OpenAIClient(context.Configuration["OPENAI_API_KEY"]
+          ?? throw new InvalidOperationException("The environment variable 'OPENAI_API_KEY' is not set.")));
 
         // Add an http client for communicating with the Huis API.
         services.AddHttpClient("huisapi", client =>
