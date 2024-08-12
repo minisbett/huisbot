@@ -85,21 +85,31 @@ internal static class Embeds
   public static Embed Rework(HuisRework rework)
   {
     // Divide the description in multiple parts due to the 1024 character limit.
-    List<string> descriptionParts = string.IsNullOrEmpty(rework.Description) ? new List<string>() { "*No description available.*" }
-                                                                             : rework.Description!.Split("\n\n").ToList();
+    List<string> descriptionParts = rework.Description!
+        .Split("\n\n")
+        .SelectMany(section =>
+        {
+          List<string> result = new List<string>();
 
-    // If any description parts are still too long, split them further.
-    for (int i = 0; i < descriptionParts.Count; i++)
-      if (descriptionParts[i].Length > 1024)
-      {
-        // Split the description part into two by the first newline.
-        descriptionParts.Insert(i + 1, descriptionParts[i].Split('\n', 2)[1]);
-        descriptionParts[i] = descriptionParts[i].Split('\n', 2)[0];
+          // If the section is more than 1024 characters, split it up further.
+          while (section.Length > 1024)
+          {
+            // Find the last \n before the 1024-character limit. If no newline is found, cut off at 1024 characters.
+            int splitIndex = section.LastIndexOf('\n', 1024);
+            if (splitIndex <= 0) splitIndex = 1024;
 
-        // If the part is still too long, truncate it.
-        if (descriptionParts[i].Length > 1024)
-          descriptionParts[i] = descriptionParts[i].Substring(0, 1021) + "...";
-      }
+            // Add the part before the split index to the result and remove it from the section.
+            result.Add(section.Substring(0, splitIndex).Trim() + (splitIndex == 1024 ? "..." : string.Empty));
+            section = section.Substring(splitIndex).Trim();
+          }
+
+          // Add any remaining part that is less than or equal to 1024 characters
+          if (section.Length > 0)
+            result.Add(section);
+
+          return result;
+        })
+        .ToList();
 
     EmbedBuilder embed = BaseEmbed
     .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
