@@ -144,8 +144,8 @@ internal static class Embeds
     ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}";
     if (local.FLPP + live.FLPP > 0)
       ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}";
-    if (local.CogPP + live.CogPP > 0)
-      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(live.CogPP, local.CogPP)}";
+    if (local.ReadingPP + live.ReadingPP > 0)
+      ppStr += $"\n▸ **Read**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}";
 
     // Constructs some more strings for the embed.
     string osuProfile = $"[osu! profile](https://osu.ppy.sh/u/{local.Id})";
@@ -233,8 +233,8 @@ internal static class Embeds
     ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
     if (local.PerformanceAttributes.FLPP is not null)
       ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
-    if (local.PerformanceAttributes.CogPP is not null)
-      ppStr += $"\n▸ **Cog**: {GetPPDifferenceText(reference.PerformanceAttributes.CogPP ?? 0, local.PerformanceAttributes.CogPP.Value)}";
+    if (local.PerformanceAttributes.ReadingPP is not null)
+      ppStr += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
 
     // Construct some more strings for the embed.
     double refDiff = reference.DifficultyAttributes.DifficultyRating;
