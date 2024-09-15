@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using static System.Net.WebRequestMethods;
 
 namespace huisbot.Models.Huis;
 
@@ -7,6 +8,11 @@ namespace huisbot.Models.Huis;
 /// </summary>
 public class HuisRework
 {
+  /// <summary>
+  /// The rework ID of the live pp system.
+  /// </summary>
+  public const int LiveId = 1;
+
   /// <summary>
   /// The internal id of the rework. 1 is always the live pp system.
   /// </summary>
@@ -35,10 +41,10 @@ public class HuisRework
   /// The URL to the rework on GitHub. This may or may not be targetting the correct branch directly.
   /// </summary>
   [JsonProperty("url")]
-  public string? Url { get; private set; }
+  public string? GitHubUrl { get; private set; }
 
   /// <summary>
-  /// The ID of the current commit. The corresponding GitHub repository can be found in <see cref="Url"/>.
+  /// The ID of the current commit. The corresponding GitHub repository can be found in <see cref="GitHubUrl"/>.
   /// </summary>
   [JsonProperty("commit")]
   public string? Commit { get; private set; }
@@ -93,31 +99,23 @@ public class HuisRework
   public bool IsConfirmed => ReworkType == "MASTER";
 
   /// <summary>
-  /// The rework ID of the live pp system.
+  /// The URL to the rework on the Huismetbenen website.
   /// </summary>
-  public const int LiveId = 1;
-
-  public override string ToString()
-  {
-    return $"{Id} {Name} ({Code})";
-  }
+  public string Url => $"https://pp.huismetbenen.nl/rankings/info/{Code}";
 
   /// <summary>
-  /// A URL to the commit of the rework.
+  /// The GitHub URL to the commit of the rework.
   /// </summary>
-  public string CommitUrl
+  public string? CommitUrl
   {
     get
     {
-      if (Url is null || Commit is null)
-        return "";
+      // If the GitHub URL or commit is missing (eg. on the historic 2016 rework where no source code is available), return null.
+      if (GitHubUrl is null || Commit is null)
+        return null;
 
-      // If the URL of the rework points to a non-master branch or a commit on the ppy/osu repository, return the URL as-is.
-      if (Url.StartsWith("https://github.com/ppy/osu/tree") && !Url.Contains("/tree/master"))
-        return Url;
-
-      // Otherwise, get the base repository URL (there might be something appending it) and append the commit.
-      return string.Join('/', Url.Split('/').Take(5)) + $"/tree/{Commit}";
+      // Get the base URL of the GitHub repository and append the commit hash.
+      return string.Join('/', GitHubUrl.Split('/').Take(5)) + $"/tree/{Commit}";
     }
   }
 
@@ -134,8 +132,8 @@ public class HuisRework
       { IsConfirmed: true } => "✅ Confirmed for next deploy",
       { IsPublic: true, IsActive: true } => "🌐 Public • ✅ Active",
       { IsPublic: true, IsActive: false } => "🌐 Public • 💀 Inactive",
-      { IsPublic: false, IsActive: true } => "🔒 Private • ✅ Active",
-      { IsPublic: false, IsActive: false } => "🔒 Private • 💀 Inactive",
+      { IsPublic: false, IsActive: true } => "🔒 Onion-only • ✅ Active",
+      { IsPublic: false, IsActive: false } => "🔒 Onion-only • 💀 Inactive",
       _ => ReworkType ?? "null"
     };
   }
@@ -153,6 +151,11 @@ public class HuisRework
       3 => "osu!mania",
       _ => "Unknown"
     };
+  }
+
+  public override string ToString()
+  {
+    return $"{Id} {Name} ({Code})";
   }
 
   public override int GetHashCode()

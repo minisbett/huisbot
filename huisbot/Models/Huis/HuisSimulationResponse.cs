@@ -73,10 +73,10 @@ public class HuisSimulationResponse
     public double? FLPP { get; private set; }
 
     /// <summary>
-    /// The cognition PP of the simulated score.
+    /// The reading PP of the simulated score.
     /// </summary>
-    [JsonProperty("cognition")]
-    public double? CogPP { get; private set; }
+    [JsonProperty("reading")]
+    public double? ReadingPP { get; private set; }
   }
 
   /// <summary>
@@ -106,7 +106,7 @@ public class HuisSimulationResponse
     /// The mods of the score, in the osu-tools format.
     /// </summary>
     [JsonProperty("mods")]
-    public HuisSimulationScoreMod[] OsuMods { get; private set; } = null!;
+    private HuisSimulationScoreMod[] OsuMods { get; set; } = null!;
 
     /// <summary>
     /// The hit statistics of the score.

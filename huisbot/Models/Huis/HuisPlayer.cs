@@ -74,11 +74,11 @@ public class HuisPlayer
   public double FLPP { get; private set; }
 
   /// <summary>
-  /// The weighted cognition PP of the player in the rework the player object is from.
+  /// The weighted reading PP of the player in the rework the player object is from.
   /// This skill only exists in some reworks, and therefore may be null.
   /// </summary>
-  [JsonProperty("weighted_cognition_pp")]
-  public double CogPP { get; private set; }
+  [JsonProperty("weighted_reading_pp")]
+  public double ReadingPP { get; private set; }
 
   /// <summary>
   /// The last time the player got updated on Huismetbenen.

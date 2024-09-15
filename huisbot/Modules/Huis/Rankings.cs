@@ -13,6 +13,28 @@ namespace huisbot.Modules.Huis;
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
 public class RankingsCommandModule : ModuleBase
 {
+  /// <summary>
+  /// Represents the cached score values for providing pagination via Discord message components.
+  /// This prevents those values from having to be fetched everytime the page is switched.
+  /// </summary>
+  private record ScorePaginationCacheEntry(HuisScore[] Scores, HuisRework Rework, Sort Sort);
+
+  /// <summary>
+  /// Represents the cached player values for providing pagination via Discord message components.
+  /// This prevents those values from having to be fetched everytime the page is switched.
+  /// </summary>
+  private record PlayerPaginationCacheEntry(HuisPlayer[] Players, HuisRework Rework, Sort Sort);
+
+  /// <summary>
+  /// A dictionary of entries of cached score values for providing pagination via Discord message components with their unique ID.
+  /// </summary>
+  private static readonly Dictionary<string, ScorePaginationCacheEntry> _scorePaginationCache = new Dictionary<string, ScorePaginationCacheEntry>();
+
+  /// <summary>
+  /// A dictionary of entries of cached player values for providing pagination via Discord message components with their unique ID.
+  /// </summary>
+  private static readonly Dictionary<string, PlayerPaginationCacheEntry> _playerPaginationCache = new Dictionary<string, PlayerPaginationCacheEntry>();
+
   public RankingsCommandModule(HuisApiService huis) : base(huis) { }
 
   [SlashCommand("player", "Displays the global player leaderboard of the specified rework.")]
@@ -42,8 +64,16 @@ public class RankingsCommandModule : ModuleBase
     if (players is null)
       return;
 
+    // Cache the results and build a message component for pagination navigation.
+    string cacheId = Guid.NewGuid().ToString();
+    _playerPaginationCache[cacheId] = new PlayerPaginationCacheEntry(players, rework, sort);
+    int maxPage = (int)Math.Ceiling(players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, sort, page));
+    await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, sort, page), components: builder.Build());
   }
 
   [SlashCommand("score", "Displays the global score leaderboard of the specified rework.")]
@@ -71,8 +101,62 @@ public class RankingsCommandModule : ModuleBase
     if (scores is null)
       return;
 
+    // Cache the results and build a message component for pagination navigation.
+    string cacheId = Guid.NewGuid().ToString();
+    _scorePaginationCache[cacheId] = new ScorePaginationCacheEntry(scores, rework, sort);
+    int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, sort, page));
+    await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, sort, page), components: builder.Build());
+  }
+
+  [ComponentInteraction("rankings_score:page:*,*", ignoreGroupNames: true)]
+  public async Task HandleScorePageAsync(string cacheId, int page)
+  {
+    await DeferAsync();
+
+    // Get the message and cache entry.
+    IUserMessage msg = (Context.Interaction as IComponentInteraction)!.Message;
+    ScorePaginationCacheEntry entry = _scorePaginationCache[cacheId];
+
+    // Re-build the message component for the pagination navigation.
+    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
+    // Modify the message with a new embed based on the cached values and requested page.
+    await msg.ModifyAsync(x =>
+    {
+      x.Embed = Embeds.ScoreRankings(entry.Scores, entry.Rework, entry.Sort, page);
+      x.Components = builder.Build();
+    });
+  }
+
+  [ComponentInteraction("rankings_player:page:*,*", ignoreGroupNames: true)]
+  public async Task HandlePlayerPageAsync(string cacheId, int page)
+  {
+    await DeferAsync();
+
+    // Get the message and cache entry.
+    IUserMessage msg = (Context.Interaction as IComponentInteraction)!.Message;
+    PlayerPaginationCacheEntry entry = _playerPaginationCache[cacheId];
+
+    // Re-build the message component for the pagination navigation.
+    int maxPage = (int)Math.Ceiling(entry.Players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
+    // Modify the message with a new embed based on the cached values and requested page.
+    await msg.ModifyAsync(x =>
+    {
+      x.Embed = Embeds.PlayerRankings(entry.Players, entry.Rework, entry.Sort, page);
+      x.Components = builder.Build();
+    });
   }
 
   /// <summary>
