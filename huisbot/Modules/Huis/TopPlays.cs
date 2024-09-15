@@ -6,6 +6,8 @@ using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
 using huisbot.Utilities.Discord;
+using System.Diagnostics.CodeAnalysis;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace huisbot.Modules.Huis;
 
@@ -14,6 +16,18 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 public class TopPlaysCommandModule : ModuleBase
 {
+  /// <summary>
+  /// Represents the cached values for providing pagination via Discord message components.
+  /// This prevents those values from having to be fetched everytime the page is switched.
+  /// </summary>
+  private record PaginationCacheEntry(
+    OsuUser User, HuisScore[] Scores, HuisScore[] SortedScores, HuisRework Rework, Sort Sort);
+
+  /// <summary>
+  /// A dictionary of entries of cached values for providing pagination via Discord message components with their unique ID.
+  /// </summary>
+  private static readonly Dictionary<string, PaginationCacheEntry> _paginationCache = new Dictionary<string, PaginationCacheEntry>();
+
   public TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
 
   [SlashCommand("topplays", "Displays the top plays of you or the specified player in the specified rework.")]
@@ -73,8 +87,39 @@ public class TopPlaysCommandModule : ModuleBase
     };
     HuisScore[] sortedScores = (sort.IsAscending ? scores.OrderBy(selector) : scores.OrderByDescending(selector)).ToArray();
 
+    // Cache the results and build a message component for pagination navigation.
+    string cacheId = Guid.NewGuid().ToString();
+    _paginationCache[cacheId] = new PaginationCacheEntry(user, scores, sortedScores, rework, sort);
+    int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.TopPlays(user, scores, sortedScores, rework, sort, page));
+    await FollowupAsync(embed: Embeds.TopPlays(user, scores, sortedScores, rework, sort, page), components: builder.Build());
+  }
+
+  [ComponentInteraction("topplays:page:*,*")]
+  public async Task HandlePageAsync(string cacheId, int page)
+  {
+    await DeferAsync();
+
+    // Get the message and cache entry.
+    IUserMessage msg = (Context.Interaction as IComponentInteraction)!.Message;
+    PaginationCacheEntry entry = _paginationCache[cacheId];
+
+    // Re-build the message component for the pagination navigation.
+    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    ComponentBuilder builder = new ComponentBuilder()
+      .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
+      .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
+
+    // Modify the message with a new embed based on the cached values and requested page.
+    await msg.ModifyAsync(x =>
+    {
+      x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, page);
+      x.Components = builder.Build();
+    });
   }
 
   /// <summary>

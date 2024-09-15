@@ -12,6 +12,19 @@ namespace huisbot.Utilities.Discord;
 internal static class Embeds
 {
   /// <summary>
+  /// The amount of top plays to display per page.<br/>
+  /// <see cref="TopPlays(OsuUser, HuisScore[], HuisScore[], HuisRework, Sort, int)"/><br/>
+  /// <see cref="ScoreRankings(HuisScore[], HuisRework, Sort, int)"/>
+  /// </summary>
+  public const int SCORES_PER_PAGE = 10;
+
+  /// <summary>
+  /// The amount of top players to display per page.<br/>
+  /// <see cref="PlayerRankings(HuisPlayer[], HuisRework, Sort, int)"/>
+  /// </summary>
+  public const int PLAYERS_PER_PAGE = 20;
+
+  /// <summary>
   /// Returns a base embed all other embeds should be based on.
   /// </summary>
   private static EmbedBuilder BaseEmbed => new EmbedBuilder()
@@ -337,35 +350,26 @@ internal static class Embeds
   public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
-      $"[Huis Rework]({rework.Url}) •  {github}",
+      $"[Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
     };
 
-    int offset = (page - 1) * 10;
-    foreach (HuisScore score in allScores.Skip((page - 1) * 10).Take(10))
+    int offset = (page - 1) * SCORES_PER_PAGE;
+    foreach (HuisScore score in allScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE))
     {
-      // Trim the version if title + version is too long. If it's still too long, trim title as well.
-      string title = score.Title ?? "";
-      string version = score.Version ?? "";
-      if ($"{title} [{version}]".Length > 60 && version.Length > 27)
-        version = $"{version.Substring(0, 27)}...";
-      if ($"{title} [{version}]".Length > 60 && title.Length > 27)
-        title = $"{title.Substring(0, 27)}...";
-
       // Add the info to the description lines.
-      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on [{title} [{version}]{score.Mods.PlusString}]" +
-                      $"(https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on " +
+                      $"[{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
                       $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
-    // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {allScores.Length} on page {page} of " +
-                    $"{Math.Ceiling(allScores.Length / 10d)}.*");
+    description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
+                    $"{Math.Min(allScores.Length, page * SCORES_PER_PAGE)} of {allScores.Length} on page {page} of " +
+                    $"{Math.Ceiling(allScores.Length *1d / SCORES_PER_PAGE)}.*");
 
     return BaseEmbed
       .WithTitle($"Score Rankings ({sort.DisplayName})")
@@ -386,41 +390,31 @@ internal static class Embeds
   public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
       $"*{rework.Name}*",
-      $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code}) • " +
-      $"[Huis Rework]({rework.Url}) • {github}",
+      $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code})"
+    + $" • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
     };
 
     // Go through all scores and populate the description.
-    foreach (HuisScore score in sortedScores.Skip((page - 1) * 10).Take(10).ToArray())
+    foreach (HuisScore score in sortedScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE).ToArray())
     {
-      // Trim the version if title + version is too long. If it's still too long, trim title as well.
-      string title = score.Title ?? "";
-      string version = score.Version ?? "";
-      if ($"{title} [{version}]".Length > 80 && version.Length > 37)
-        version = $"{version.Substring(0, 37)}...";
-      if ($"{title} [{version}]".Length > 80 && title.Length > 37)
-        title = $"{title.Substring(0, 37)}...";
-
       // Get the placement of each score, as well as the difference.
       int placement = rawScores.ToList().IndexOf(score) + 1;
       int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) + 1 - placement;
-      string placementStr = $"**#{placement}**";
-      if (placementDiff != 0)
-        placementStr += $" ({placementDiff:+#;-#;0})";
+      string placementStr = $"**#{placement}**" + (placementDiff != 0 ? $" ({placementDiff:+#;-#;0})" : "");
 
       // Add the info to the description lines.
-      description.Add($"{placementStr} [{title} [{version}]{score.Mods.PlusString}](https://osu.ppy.sh/b/{score.BeatmapId})");
+      description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
                       $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
     }
 
-    // Add hyperlinks to useful urls.
-    description.Add($"\n*Displaying scores {page * 10 - 9}-{page * 10} of {rawScores.Length} on page {page} of {Math.Ceiling(rawScores.Length / 10d)}.*");
+    description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
+                    $"{Math.Min(rawScores.Length, page * SCORES_PER_PAGE)} of {rawScores.Length} on page {page} of " +
+                    $"{Math.Ceiling(rawScores.Length * 1d / SCORES_PER_PAGE)}.*");
 
     return BaseEmbed
       .WithTitle($"Top Plays of {user.Name} ({sort.DisplayName})")
@@ -439,25 +433,38 @@ internal static class Embeds
   public static Embed PlayerRankings(HuisPlayer[] allPlayers, HuisRework rework, Sort sort, int page)
   {
     // Get the players to be displayed.
-    HuisPlayer[] players = allPlayers.Skip((page - 1) * 20).Take(20).ToArray();
+    HuisPlayer[] players = allPlayers.Skip((page - 1) * PLAYERS_PER_PAGE).Take(PLAYERS_PER_PAGE).ToArray();
 
     // Generate the embed description.
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
     List<string> description = new List<string>()
     {
+      $"*{rework.Name}*",
       $"[Huis Rework]({rework.Url}) • {github}",
       ""
     };
+    List<string> playerStrs = new List<string>();
+    List<string> ppOldStrs = new List<string>();
+    List<string> ppNewStrs = new List<string>();
     foreach (HuisPlayer player in players)
-      // Add the info to the description lines.
-      description.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id}) {GetPPDifferenceText(player.OldPP, player.NewPP)} ▸ " +
-                      $"[Huis Profile](https://pp.huismetbenen.nl/player{player.Id}/{rework.Code})");
+    {
+      playerStrs.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
+      ppOldStrs.Add($"{GetPPDifferenceText(player.OldPP, player.NewPP, true).Split('→')[0].Trim()}");
+      ppNewStrs.Add($"{GetPPDifferenceText(player.OldPP, player.NewPP, true).Split('→')[1].Trim()}");
+    }
 
-    description.Add($"\n*Displaying players {page * 20 - 19}-{page * 20} on page {page} of {Math.Ceiling(allPlayers.Length / 20d)}.*");
+    // Generate the page information footer.
+    string pageInfo = $"\n*Displaying players {page * PLAYERS_PER_PAGE - (PLAYERS_PER_PAGE - 1)}-" +
+                      $"{Math.Min(players.Length, page * PLAYERS_PER_PAGE)} on page {page} of " +
+                      $"{Math.Ceiling(allPlayers.Length * 1d / PLAYERS_PER_PAGE)}.*";
 
     return BaseEmbed
       .WithTitle($"Player Rankings ({sort.DisplayName})")
       .WithDescription(string.Join("\n", description))
+      .AddField("Player", string.Join("\n", playerStrs), true)
+      .AddField("Live PP", string.Join("\n", ppOldStrs), true)
+      .AddField("Local PP", string.Join("\n", ppNewStrs), true)
+      .AddField("\u200B", pageInfo)
       .Build();
   }
 
@@ -505,19 +512,43 @@ internal static class Embeds
   /// </summary>
   /// <param name="oldPP">The old PP.</param>
   /// <param name="newPP">The new PP.</param>
+  /// <param name="thousandSeparator">Bool whether a thousand separator should be applied.</param>
   /// <returns>A string representing the difference between two PP values.</returns>
-  private static string GetPPDifferenceText(double oldPP, double newPP)
+  private static string GetPPDifferenceText(double oldPP, double newPP, bool thousandSeparator = false)
   {
     // Round the PP values, as decimals are irrelevant info and hurts the display flexibility.
     oldPP = Math.Round(oldPP);
     newPP = Math.Round(newPP);
 
+    // Apply a thousand operator if requested.
+    string oldPPStr = oldPP.ToString(thousandSeparator ? "#,##0.##" : "0.##");
+    string newPPStr = newPP.ToString(thousandSeparator ? "#,##0.##" : "0.##");
+
     // If the PP do not differ, simply return the PP value.
     if (newPP == oldPP)
-      return $"**{newPP:0.##}pp**";
+      return $"**{newPPStr}pp**";
 
     // Otherwise return the difference string.
-    return $"{oldPP:0.##}pp → **{newPP:0.##}pp** ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)";
+    return $"{oldPPStr}pp → **{newPPStr}pp** ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)";
+  }
+
+  /// <summary>
+  /// Shortens the display text (eg. "Save Me [Nightmare] +HDDTCL") of a score to fit better into an embed.
+  /// - If the title + version > 60 and version > 27, it trims the version to 27 characters
+  /// - If title + version still > 60, it trims the title to 27 characters
+  /// </summary>
+  /// <returns>The shortened display text.</returns>
+  private static string FormatScoreText(HuisScore score)
+  {
+    // Trim the version if title + version is too long. If it's still too long, trim title as well.
+    string title = score.Title ?? "";
+    string version = score.Version ?? "";
+    if ($"{title} [{version}]".Length > 60 && version.Length > 27)
+      version = $"{version.Substring(0, 27)}...";
+    if ($"{title} [{version}]".Length > 60)
+      title = $"{title.Substring(0, 27)}...";
+
+    return $"{title} [{version}] {score.Mods.PlusString}".TrimEnd(' ');
   }
 
   /// <summary>
