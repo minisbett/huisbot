@@ -448,9 +448,11 @@ internal static class Embeds
     List<string> ppNewStrs = new List<string>();
     foreach (HuisPlayer player in players)
     {
+      double oldPP = Math.Round(player.OldPP);
+      double newPP = Math.Round(player.NewPP);
       playerStrs.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
-      ppOldStrs.Add($"{GetPPDifferenceText(player.OldPP, player.NewPP, true).Split('→')[0].Trim()}");
-      ppNewStrs.Add($"{GetPPDifferenceText(player.OldPP, player.NewPP, true).Split('→')[1].Trim()}");
+      ppOldStrs.Add(oldPP.ToString("#,##0.##"));
+      ppNewStrs.Add($"**{newPP:#,##0.##}pp**" + (oldPP != newPP ? $" ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)" : ""));
     }
 
     // Generate the page information footer.
@@ -512,24 +514,19 @@ internal static class Embeds
   /// </summary>
   /// <param name="oldPP">The old PP.</param>
   /// <param name="newPP">The new PP.</param>
-  /// <param name="thousandSeparator">Bool whether a thousand separator should be applied.</param>
   /// <returns>A string representing the difference between two PP values.</returns>
-  private static string GetPPDifferenceText(double oldPP, double newPP, bool thousandSeparator = false)
+  private static string GetPPDifferenceText(double oldPP, double newPP)
   {
     // Round the PP values, as decimals are irrelevant info and hurts the display flexibility.
     oldPP = Math.Round(oldPP);
     newPP = Math.Round(newPP);
 
-    // Apply a thousand operator if requested.
-    string oldPPStr = oldPP.ToString(thousandSeparator ? "#,##0.##" : "0.##");
-    string newPPStr = newPP.ToString(thousandSeparator ? "#,##0.##" : "0.##");
-
     // If the PP do not differ, simply return the PP value.
     if (newPP == oldPP)
-      return $"**{newPPStr}pp**";
+      return $"**{oldPP:0.##}pp**";
 
     // Otherwise return the difference string.
-    return $"{oldPPStr}pp → **{newPPStr}pp** ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)";
+    return $"{oldPP:0.##}pp → **{newPP:0.##}pp** ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)";
   }
 
   /// <summary>
