@@ -106,7 +106,7 @@ public class HuisSimulationResponse
     /// The mods of the score, in the osu-tools format.
     /// </summary>
     [JsonProperty("mods")]
-    public HuisSimulationScoreMod[] OsuMods { get; private set; } = null!;
+    private HuisSimulationScoreMod[] OsuMods { get; set; } = null!;
 
     /// <summary>
     /// The hit statistics of the score.
