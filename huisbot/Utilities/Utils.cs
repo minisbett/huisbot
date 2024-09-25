@@ -98,7 +98,7 @@ internal static class Utils
       return null;
 
     // Try to find further information in the embed by generating a big score info string with the author, description and fields.
-    string? scoreInfo = beatmapEmbed!.Author + "\n" + beatmapEmbed.Description + "\n" 
+    string? scoreInfo = beatmapEmbed!.Author + "\n" + beatmapEmbed.Description + "\n"
                       + string.Join("\n", beatmapEmbed.Fields.Select(x => $"{x.Name}\n{x.Value}"));
     scoreInfo = scoreInfo.Replace("**", ""); // We ignore any bold text
 

@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using static System.Net.WebRequestMethods;
 
 namespace huisbot.Models.Huis;
 

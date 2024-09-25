@@ -4,7 +4,6 @@ using Discord.Addons.Hosting.Util;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using System.Reflection;
 
 namespace huisbot.Services;

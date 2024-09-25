@@ -2,7 +2,6 @@
 using Discord.Interactions;
 using huisbot.Services;
 using huisbot.Utilities;
-using System.Text;
 
 namespace huisbot.Modules;
 
