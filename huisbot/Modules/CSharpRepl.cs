@@ -1,11 +1,13 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using huisbot.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -26,10 +28,12 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     "System",
     "System.Linq",
     "System.IO",
-    "System.Collections.Generic",
     "System.Threading",
     "System.Threading.Tasks",
+    "System.Collections.Generic",
+    "Microsoft.EntityFrameworkCore",
     "Microsoft.Extensions.Configuration",
+    "Microsoft.Extensions.DependencyInjection",
     "Discord",
     "Discord.Rest",
     "Discord.WebSocket",
@@ -43,8 +47,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     "huisbot.Modules.Miscellaneous",
     "huisbot.Persistence",
     "huisbot.Services",
-    "huisbot.Utilities",
-    "huisbot.Utilities.Discord"
+    "huisbot.Utilities"
   };
 
   /// <summary>
@@ -106,6 +109,8 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       Config = _config,
       OsuApi = _osu,
       HuisApi = _huis,
+      Caching = _provider.GetRequiredService<CachingService>(),
+      Database = _provider.GetRequiredService<Database>()
     };
 
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
@@ -298,5 +303,15 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     /// The huis api service.
     /// </summary>
     public required HuisApiService HuisApi { get; init; }
+    
+    /// <summary>
+    /// The caching service.
+    /// </summary>
+    public required CachingService Caching {  get; init; }
+
+    /// <summary>
+    /// The EF MySQL database object.
+    /// </summary>
+    public required Database Database { get; init; }
   }
 }
