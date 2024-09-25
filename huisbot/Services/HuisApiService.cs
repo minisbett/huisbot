@@ -326,8 +326,7 @@ public class HuisApiService
       if (scores is null)
         throw new Exception("Deserialization of JSON returned null.");
 
-      // Filter all scores with null live PP as Huisbot still returns them despite being uninteresting.
-      return scores.Where(x => x.LivePP.HasValue).ToArray();
+      return scores;
     }
     catch (Exception ex)
     {
