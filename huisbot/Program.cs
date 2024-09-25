@@ -86,31 +86,31 @@ public class Program
         logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
       })
 
-      // Configure the Discord host (bot token, log level, bot behavior etc.)
-      .ConfigureDiscordHost((context, config) =>
-      {
-        config.SocketConfig = new DiscordSocketConfig()
-        {
-          LogLevel = LogSeverity.Verbose,
-          AlwaysDownloadUsers = true,
-          MessageCacheSize = 100,
-          GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
-        };
-
-        config.Token = context.Configuration["BOT_TOKEN"]
-          ?? throw new InvalidOperationException("The environment variable 'BOT_TOKEN' is not set.");
-      })
-
-      // Configure Discord.NET's interaction service.
-      .UseInteractionService((context, config) =>
-      {
-        config.LogLevel = LogSeverity.Verbose;
-        config.UseCompiledLambda = true;
-      })
-
       // Configure further services necessary in the application's lifetime.
       .ConfigureServices((context, services) =>
       {
+        // Configure the Discord host (bot token, log level, bot behavior etc.)
+        services.AddDiscordHost((config, _) =>
+        {
+          config.SocketConfig = new DiscordSocketConfig()
+          {
+            LogLevel = LogSeverity.Verbose,
+            AlwaysDownloadUsers = true,
+            MessageCacheSize = 100,
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+          };
+
+          config.Token = context.Configuration["BOT_TOKEN"]
+            ?? throw new InvalidOperationException("The environment variable 'BOT_TOKEN' is not set.");
+        });
+
+        // Configure Discord.NET's interaction service.
+        services.AddInteractionService((config, _) =>
+        {
+          config.LogLevel = LogSeverity.Verbose;
+          config.UseCompiledLambda = true;
+        });
+
         // Add the handler for Discord interactions.
         services.AddHostedService<InteractionHandler>();
 
