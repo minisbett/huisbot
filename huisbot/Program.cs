@@ -94,7 +94,7 @@ public class Program
           LogLevel = LogSeverity.Verbose,
           AlwaysDownloadUsers = true,
           MessageCacheSize = 100,
-          GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.MessageContent
+          GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
         };
 
         config.Token = context.Configuration["BOT_TOKEN"]
