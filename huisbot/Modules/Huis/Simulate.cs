@@ -10,6 +10,8 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the simulate command, calculating the score of a player in a rework.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class SimulateCommandModule : ModuleBase
 {
   public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }

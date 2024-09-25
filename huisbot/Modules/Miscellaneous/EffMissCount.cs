@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Models.Osu;
 using huisbot.Utilities;
 
@@ -7,6 +8,8 @@ namespace huisbot.Modules.Miscellaneous;
 /// <summary>
 /// The partial interaction module for the effmisscount command.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public partial class MiscellaneousCommandModule : ModuleBase
 {
   [SlashCommand("effmisscount", "Calculates the effective misscount based off the comboes, slider count, 100s & 50s and misses.")]

@@ -10,6 +10,8 @@ namespace huisbot.Modules;
 /// <summary>
 /// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class ReworksCommandModule : ModuleBase
 {
   public ReworksCommandModule(HuisApiService huis) : base(huis) { }

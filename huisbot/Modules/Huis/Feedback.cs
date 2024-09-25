@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 
 namespace huisbot.Modules.Huis;
 
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class FeedbackCommandModule : ModuleBase
 {
   public FeedbackCommandModule(HuisApiService huis) : base(huis) { }
