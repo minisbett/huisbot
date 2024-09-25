@@ -30,7 +30,7 @@ public class HuisScore
   /// The PP in the live PP system.
   /// </summary>
   [JsonProperty("live_pp")]
-  public double LivePP { get; private set; }
+  public double? LivePP { get; private set; }
 
   /// <summary>
   /// The PP in the rework.
