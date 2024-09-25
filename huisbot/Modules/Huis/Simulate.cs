@@ -38,14 +38,14 @@ public class SimulateCommandModule : ModuleBase
     {
       // Look for a message with a score in the last 100 messages.
       foreach (IMessage message in (await Context.Channel.GetMessagesAsync(100).FlattenAsync()))
-        if (Utils.TryFindScore(message, out (int? beatmapId, int? score100, int? score50, int? scoreMiss, int? combo, string? mods) score))
+        if (Utils.FindScore(message) is EmbedScoreInfo score)
         {
-          beatmapId = score.beatmapId.ToString();
-          combo ??= score.combo;
-          count100 ??= score.score100;
-          count50 ??= score.score50;
-          misses ??= score.scoreMiss;
-          modsStr ??= score.mods;
+          beatmapId = score.BeatmapId.ToString();
+          combo ??= score.Combo;
+          count100 ??= score.Count100;
+          count50 ??= score.Count50;
+          misses ??= score.Misses;
+          modsStr ??= score.Mods;
           break;
         }
 
