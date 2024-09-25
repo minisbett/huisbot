@@ -5,7 +5,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
 using System.Diagnostics.CodeAnalysis;
 using static System.Formats.Asn1.AsnWriter;
 

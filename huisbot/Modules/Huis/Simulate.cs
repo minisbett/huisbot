@@ -4,7 +4,6 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 

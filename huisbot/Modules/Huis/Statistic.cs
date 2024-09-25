@@ -1,7 +1,7 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;

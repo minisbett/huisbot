@@ -6,7 +6,6 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 

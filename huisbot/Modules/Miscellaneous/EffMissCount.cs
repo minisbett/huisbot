@@ -1,6 +1,6 @@
 ﻿using Discord.Interactions;
 using huisbot.Models.Osu;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 
 namespace huisbot.Modules.Miscellaneous;
 

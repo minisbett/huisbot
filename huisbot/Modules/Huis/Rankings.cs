@@ -3,7 +3,6 @@ using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 

@@ -2,7 +2,7 @@
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 
 namespace huisbot.Modules;
 

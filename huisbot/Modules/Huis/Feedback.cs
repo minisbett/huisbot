@@ -5,7 +5,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
