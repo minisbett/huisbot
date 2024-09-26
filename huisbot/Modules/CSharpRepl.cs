@@ -1,11 +1,13 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using huisbot.Persistence;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -16,7 +18,10 @@ namespace huisbot.Modules;
 /// This module introduces a "csharprepl" command which allows the owner of the application to execute C# code.
 /// Microsoft's script engine is used to execute the code, with a global context containing important objects.
 /// </summary>
-public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
+
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
+public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionContext>
 {
   /// <summary>
   /// A list of namespaces to import in the script context.
@@ -26,10 +31,12 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     "System",
     "System.Linq",
     "System.IO",
-    "System.Collections.Generic",
     "System.Threading",
     "System.Threading.Tasks",
+    "System.Collections.Generic",
+    "Microsoft.EntityFrameworkCore",
     "Microsoft.Extensions.Configuration",
+    "Microsoft.Extensions.DependencyInjection",
     "Discord",
     "Discord.Rest",
     "Discord.WebSocket",
@@ -43,8 +50,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     "huisbot.Modules.Miscellaneous",
     "huisbot.Persistence",
     "huisbot.Services",
-    "huisbot.Utilities",
-    "huisbot.Utilities.Discord"
+    "huisbot.Utilities"
   };
 
   /// <summary>
@@ -59,7 +65,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
   private readonly OsuApiService _osu;
   private readonly HuisApiService _huis;
 
-  public CSharpReplModule(IServiceProvider provider, IConfiguration config, OsuApiService osu, HuisApiService huis)
+  public CSharpReplCommandModule(IServiceProvider provider, IConfiguration config, OsuApiService osu, HuisApiService huis)
   {
     _provider = provider;
     _config = config;
@@ -106,6 +112,8 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
       Config = _config,
       OsuApi = _osu,
       HuisApi = _huis,
+      Caching = _provider.GetRequiredService<CachingService>(),
+      Database = _provider.GetRequiredService<Database>()
     };
 
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
@@ -138,7 +146,7 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
 
     // As a safety measure, replace secrets from the config with a placeholder.
     foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
-      str = str.Replace(_config.GetValue<string>(secret), "<censored>");
+      str = str.Replace(_config.GetValue<string>(secret)!, "<censored>");
 
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000 - 8 /* ```\n\n``` */)
@@ -298,5 +306,15 @@ public class CSharpReplModule : InteractionModuleBase<SocketInteractionContext>
     /// The huis api service.
     /// </summary>
     public required HuisApiService HuisApi { get; init; }
+
+    /// <summary>
+    /// The caching service.
+    /// </summary>
+    public required CachingService Caching { get; init; }
+
+    /// <summary>
+    /// The EF MySQL database object.
+    /// </summary>
+    public required Database Database { get; init; }
   }
 }

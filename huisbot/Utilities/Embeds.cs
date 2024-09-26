@@ -4,7 +4,7 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using DEmoji = Discord.Emoji;
 
-namespace huisbot.Utilities.Discord;
+namespace huisbot.Utilities;
 
 /// <summary>
 /// Provides embeds for the application.
@@ -369,7 +369,7 @@ internal static class Embeds
 
     description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
                     $"{Math.Min(allScores.Length, page * SCORES_PER_PAGE)} of {allScores.Length} on page {page} of " +
-                    $"{Math.Ceiling(allScores.Length *1d / SCORES_PER_PAGE)}.*");
+                    $"{Math.Ceiling(allScores.Length * 1d / SCORES_PER_PAGE)}.*");
 
     return BaseEmbed
       .WithTitle($"Score Rankings ({sort.DisplayName})")
@@ -580,4 +580,41 @@ internal static class Embeds
     { "fruits", new Emoji("fruits", 1159888328984903700) },
     { "mania", new Emoji("mania", 1159888330637463623) },
   };
+}
+
+/// <summary>
+/// Represents a Discord emoji with a name and ID.
+/// </summary>
+public class Emoji
+{
+  /// <summary>
+  /// The name of the emoji.
+  /// </summary>
+  public string Name { get; }
+
+  /// <summary>
+  /// The snowflake ID of the emoji.
+  /// </summary>
+  public ulong Id { get; }
+
+  /// <summary>
+  /// Returns the asset url of this emoji.
+  /// </summary>
+  public string Url => $"https://cdn.discordapp.com/emojis/{Id}.webp";
+
+  /// <summary>
+  /// Returns the emoji string representation of this emoji.
+  /// </summary>
+  public override string ToString() => $"<:{Name}:{Id}>";
+
+  /// <summary>
+  /// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
+  /// </summary>
+  /// <param name="name">The name of the emoji.</param>
+  /// <param name="id">The ID of the emoji.</param>
+  public Emoji(string name, ulong id)
+  {
+    Name = name;
+    Id = id;
+  }
 }

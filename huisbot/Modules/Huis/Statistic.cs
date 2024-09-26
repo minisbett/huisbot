@@ -1,7 +1,8 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
@@ -13,6 +14,8 @@ namespace huisbot.Modules.Huis;
 /// <summary>
 /// The interaction module for the statistic command, displaying graphs for the top-statistics of a rework.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class StatisticCommandModule : ModuleBase
 {
   public StatisticCommandModule(HuisApiService huis) : base(huis) { }

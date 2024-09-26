@@ -1,12 +1,15 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 
 namespace huisbot.Modules;
 
 /// <summary>
 /// The interaction module for the info command, displaying general info about the bot.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class InfoCommandModule : InteractionModuleBase<SocketInteractionContext>
 {
   private readonly OsuApiService _osu;

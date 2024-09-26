@@ -5,15 +5,14 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
-using System.Diagnostics.CodeAnalysis;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace huisbot.Modules.Huis;
 
 /// <summary>
 /// The interaction module for the topplays command, displaying the top plays of a player in a rework.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class TopPlaysCommandModule : ModuleBase
 {
   /// <summary>

@@ -2,19 +2,13 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
-using huisbot.Models.Osu;
-using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+using huisbot.Utilities;
 
 namespace huisbot.Modules.Huis;
 
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 public class FeedbackCommandModule : ModuleBase
 {
   public FeedbackCommandModule(HuisApiService huis) : base(huis) { }
@@ -30,7 +24,7 @@ public class FeedbackCommandModule : ModuleBase
       return;
 
     // Make sure the rework is eligible.
-    if(rework.IsLive || !rework.IsActive || rework.IsHistoric || rework.IsConfirmed)
+    if (rework.IsLive || !rework.IsActive || rework.IsHistoric || rework.IsConfirmed)
     {
       await RespondAsync(embed: Embeds.Error("The specified rework cannot receive feedback."));
       return;

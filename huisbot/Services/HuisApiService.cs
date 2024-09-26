@@ -91,10 +91,7 @@ public class HuisApiService
       HuisQueue? queue = JsonConvert.DeserializeObject<HuisQueue>(json);
 
       // Check whether the deserialized json is valid.
-      if (queue is null || queue.Entries is null)
-        throw new Exception("Deserialization of JSON returned null.");
-
-      return queue;
+      return queue is null || queue.Entries is null ? throw new Exception("Deserialization of JSON returned null.") : queue;
     }
     catch (Exception ex)
     {
@@ -262,10 +259,7 @@ public class HuisApiService
       HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
 
       // Check whether the deserialized json is valid.
-      if (scores is null)
-        throw new Exception("Deserialization of JSON returned null.");
-
-      return scores;
+      return scores is null ? throw new Exception("Deserialization of JSON returned null.") : scores;
     }
     catch (Exception ex)
     {
@@ -294,10 +288,7 @@ public class HuisApiService
       HuisPlayer[]? players = JsonConvert.DeserializeObject<HuisPlayer[]>(json);
 
       // Check whether the deserialized json is valid.
-      if (players is null)
-        throw new Exception("Deserialization of JSON returned null.");
-
-      return players;
+      return players is null ? throw new Exception("Deserialization of JSON returned null.") : players;
     }
     catch (Exception ex)
     {
@@ -323,10 +314,7 @@ public class HuisApiService
       HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
 
       // Check whether the deserialized json is valid.
-      if (scores is null)
-        throw new Exception("Deserialization of JSON returned null.");
-
-      return scores;
+      return scores is null ? throw new Exception("Deserialization of JSON returned null.") : scores;
     }
     catch (Exception ex)
     {

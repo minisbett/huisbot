@@ -1,14 +1,17 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities.Discord;
+using huisbot.Utilities;
 
 namespace huisbot.Modules;
 
 /// <summary>
 /// The interaction module for the alias group & add, remove and list subcommand, listing and modifying the different aliases.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("alias", "Commands for adding, removing and listing aliases.")]
 public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 {

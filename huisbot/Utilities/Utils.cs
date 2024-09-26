@@ -78,53 +78,63 @@ internal static class Utils
   public static string GetFormattedAlias(string alias) => new string(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
   /// <summary>
-  /// Tries to parse osu! score information from common Discord bots from the specified message.
+  /// Tries to find osu! score information from common Discord bots in embeds of the specified message.
   /// </summary>
   /// <param name="message">The discord message.</param>
-  /// <param name="score">The parsed score.</param>
-  /// <returns>Bool whether parsing was successful (a score was found).</returns>
-  public static bool TryFindScore(IMessage message, out (int? beatmapId, int? count100, int? count50, int? countMiss, int? combo, string? mods) score)
+  /// <param name="score">The parsed score or null if no score could be found.</param>
+  /// <returns>Bool whether a score was found.</returns>
+  public static EmbedScoreInfo? FindScore(IMessage message)
   {
-    score = (null, null, null, null, null, null);
-
-    int? FindBeatmap(IEmbed embed) => new string[] { embed.Author?.Url ?? "", embed.Url ?? "" }
-      .FirstOrDefault(x => x.StartsWith("https://osu.ppy.sh/b/"))?
-      .Split('/').Last() is { } id ? int.Parse(id) : null;
-
-    // Go through all embeds in the message and check if any of them contain a beatmap URL.
+    // Go through all embeds in the message and check if the author URl or normal URL of any of them contain a beatmap URL.
     IEmbed? beatmapEmbed = null;
+    int? beatmapId = null;
     foreach (IEmbed embed in message.Embeds)
-      (score.beatmapId, beatmapEmbed) = (FindBeatmap(embed), embed);
+      foreach (string str in new string[] { embed.Author?.Url ?? "", embed.Url ?? "" })
+        if (str.StartsWith("https://osu.ppy.sh/b/") && int.TryParse(str.Split('/').Last(), out int id))
+          (beatmapId, beatmapEmbed) = (id, embed);
 
-    // If no beatmap URL was found, return false.
-    if (score.beatmapId is null)
-      return false;
+    // If no beatmap URL was found, abort and return null.
+    if (beatmapId is null)
+      return null;
 
-    // Try to find further information in the embed by generating a big score info string from the author, description and fields.
-    string? scoreInfo = beatmapEmbed!.Author + "\n"
-                      + beatmapEmbed.Description + "\n"
+    // Try to find further information in the embed by generating a big score info string with the author, description and fields.
+    string? scoreInfo = beatmapEmbed!.Author + "\n" + beatmapEmbed.Description + "\n"
                       + string.Join("\n", beatmapEmbed.Fields.Select(x => $"{x.Name}\n{x.Value}"));
-    scoreInfo = scoreInfo.Replace("**", ""); // bathbot puts combo in bold text
+    scoreInfo = scoreInfo.Replace("**", ""); // We ignore any bold text
+
+    // Try to find hits in the format of " [300/100/50/miss]" (owo) or " {300/100/50/miss}" (bathbot).
+    Match match = Regex.Match(scoreInfo, "[\\[{]\\s*\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\s*[\\]}]");
+    int? count100 = match.Success ? int.Parse(match.Groups[1].Value) : null;
+    int? count50 = match.Success ? int.Parse(match.Groups[2].Value) : null;
+    int? misses = match.Success ? int.Parse(match.Groups[3].Value) : null;
 
     // Try to find a combo in the format of " x<number>/<number> " (owo) or " <number>x/<number>x " (bathbot).
-    Match match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
-    string? combo = match.Groups.Count == 3 ? match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value : null;
-    
-    // Try to find hits in the format of " [300/100/50/miss]" (owo) or " {300/100/50/miss}" (bathbot).
-    match = Regex.Match(scoreInfo, "[\\[{]\\s*\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\s*[\\]}]");
-    string? count100 = match.Groups.Count == 4 ? match.Groups[1].Value : null;
-    string? count50 = match.Groups.Count == 4 ? match.Groups[2].Value : null;
-    string? countMiss = match.Groups.Count == 4 ? match.Groups[3].Value : null;
+    match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
+    int? combo = match.Success ? int.Parse(match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value) : null;
 
-    // Try to find the mods in the format of " +<mod1><mod2>... ".
+    // Try to find the mods in the format of " +<mod1><mod2...> ".
     match = Regex.Match(scoreInfo, "\\+\\s*([A-Z]+)");
-    string? mods = match.Groups.Count == 2 ? match.Groups[1].Value : null;
+    string? mods = match.Success ? match.Groups[1].Value : null;
 
-    // If not all information was found, return false.
-    if (combo is null || count100 is null || count50 is null || countMiss is null || mods is null)
-      return false;
+    // If not all information was found, only return the beatmap id.
+    if (combo is null || count100 is null || count50 is null || misses is null || mods is null)
+      return new EmbedScoreInfo(beatmapId.Value);
 
-    score = (score.beatmapId, int.Parse(count100), int.Parse(count50), int.Parse(countMiss), int.Parse(combo), mods);
-    return true;
+    // Return the embed score info with all found values.
+    return new EmbedScoreInfo(beatmapId.Value, count100.Value, count50.Value, misses.Value, combo.Value, mods);
   }
 }
+
+/// <summary>
+/// Represents a score parsed from a Discord embed from another osu!-related Discord bot.
+/// If any of <see cref="Count100"/>, <see cref="Count50"/>, <see cref="Misses"/>, <see cref="Combo"/> or <see cref="Mods"/>
+/// is null, all of them will be null and only the beatmap id is provided, since a complete score could not be parsed.
+/// </summary>
+/// <param name="BeatmapId">The ID of the beatmap.</param>
+/// <param name="Count100">The amount of 100s in the score.</param>
+/// <param name="Count50">The amount of 50s in the score.</param>
+/// <param name="Misses">The amount of misses in the score.</param>
+/// <param name="Combo">The amount of combo in the score.</param>
+/// <param name="Mods">The mods applied to the score.</param>
+public record EmbedScoreInfo(int BeatmapId, int? Count100 = null, int? Count50 = null, int? Misses = null,
+                             int? Combo = null, string? Mods = null);

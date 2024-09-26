@@ -3,13 +3,14 @@ using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
 using huisbot.Utilities;
-using huisbot.Utilities.Discord;
 
 namespace huisbot.Modules.Huis;
 
 /// <summary>
 /// The interaction module for the rankings group & player and score subcommand, displaying the global leaderboard in a rework.
 /// </summary>
+[IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
+[CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
 public class RankingsCommandModule : ModuleBase
 {

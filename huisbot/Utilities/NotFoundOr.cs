@@ -1,13 +1,4 @@
-﻿using Discord.Commands;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SQLitePCL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace huisbot.Utilities;
+﻿namespace huisbot.Utilities;
 
 /// <summary>
 /// A wrapper around a type that can be considered "Not Found".
@@ -22,7 +13,7 @@ public class NotFoundOr<T> where T : class
   /// <summary>
   /// The possibly not found value.
   /// </summary>
-  private T? _value;
+  private readonly T? _value;
 
   /// <summary>
   /// Bool whether the value was found.

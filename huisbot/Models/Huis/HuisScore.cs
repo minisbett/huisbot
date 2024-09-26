@@ -27,16 +27,27 @@ public class HuisScore
   public int BeatmapId { get; private set; }
 
   /// <summary>
-  /// The PP in the live PP system.
+  /// The PP in the live PP system. If the information is not available (eg. osu! API does not provide PP for this score), this is 0.
   /// </summary>
-  [JsonProperty("live_pp")]
-  public double LivePP { get; private set; }
+  public double LivePP => LivePPInternal ?? 0;
 
   /// <summary>
-  /// The PP in the rework.
+  /// The PP in the live PP system. This may be null if Huismetbenen returned a score where it couldn't get the live PP.
+  /// This can happen when a user manually adds a score to the Huismetbenen database, and the osu! API does not provide the live PP.
+  /// </summary>
+  [JsonProperty("live_pp")]
+  private double? LivePPInternal { get; set; }
+
+  /// <summary>
+  /// The PP in the local PP system. If the information is not available (Huismetbenen did not calculate it), this is 0.
+  /// </summary>
+  public double LocalPP => LocalPPInternal ?? 0;
+
+  /// <summary>
+  /// The PP in the local PP system. This may be null if <see cref="LivePPInternal"/>, as Huismetbenen then does not calculate it.
   /// </summary>
   [JsonProperty("local_pp")]
-  public double LocalPP { get; private set; }
+  private double? LocalPPInternal { get; set; }
 
   /// <summary>
   /// The mods of the score.
