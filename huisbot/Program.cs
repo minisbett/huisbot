@@ -21,7 +21,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.5.0";
+  public const string VERSION = "2.5.1";
 
   /// <summary>
   /// The startup time of the application.
@@ -97,7 +97,7 @@ public class Program
             LogLevel = LogSeverity.Verbose,
             AlwaysDownloadUsers = true,
             MessageCacheSize = 100,
-            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
           };
 
           config.Token = context.Configuration["BOT_TOKEN"]

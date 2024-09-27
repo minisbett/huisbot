@@ -1,4 +1,5 @@
 ﻿using Discord.Interactions;
+using Discord.Rest;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
@@ -354,7 +355,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 #endif
 
     // Check whether the user is the owner of the application.
-    if (context.User.Id == (await context.Client.GetApplicationInfoAsync()).Owner.Id)
+    RestApplication app = await context.Client.GetApplicationInfoAsync();
+    if (context.User.Id == app.Owner.Id || context.User.Id != app.Team.OwnerUserId)
       return true;
 
     // Get the PP Discord guild.
@@ -377,7 +379,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
 #endif
 
     // Check whether the user is the owner of the application.
-    if (context.User.Id == (await context.Client.GetApplicationInfoAsync()).Owner.Id)
+    RestApplication app = await context.Client.GetApplicationInfoAsync();
+    if (context.User.Id == app.Owner.Id || context.User.Id != app.Team.OwnerUserId)
       return true;
 
     // Get the PP Discord guild.
