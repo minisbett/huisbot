@@ -83,7 +83,7 @@ public class HuisRework
   public bool IsPublic => ReworkType?.StartsWith("REWORK_PUBLIC") ?? false;
 
   /// <summary>
-  /// Bool whether the rework is active or not.
+  /// Bool whether the rework is marked as active or not.
   /// </summary>
   public bool IsActive => !ReworkType?.EndsWith("INACTIVE") ?? false;
 

@@ -17,7 +17,7 @@ public class Mods
   /// <summary>
   /// The mods of this <see cref="Mods"/> instance.
   /// </summary>
-  private string[] _mods = new string[0];
+  private string[] _mods = [];
 
   /// <summary>
   /// An array of the mods in this instance.

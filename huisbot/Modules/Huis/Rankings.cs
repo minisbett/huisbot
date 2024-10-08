@@ -12,7 +12,7 @@ namespace huisbot.Modules.Huis;
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
-public class RankingsCommandModule : ModuleBase
+public class RankingsCommandModule(HuisApiService huis) : ModuleBase(huis)
 {
   /// <summary>
   /// Represents the cached score values for providing pagination via Discord message components.
@@ -29,14 +29,12 @@ public class RankingsCommandModule : ModuleBase
   /// <summary>
   /// A dictionary of entries of cached score values for providing pagination via Discord message components with their unique ID.
   /// </summary>
-  private static readonly Dictionary<string, ScorePaginationCacheEntry> _scorePaginationCache = new Dictionary<string, ScorePaginationCacheEntry>();
+  private static readonly Dictionary<string, ScorePaginationCacheEntry> _scorePaginationCache = [];
 
   /// <summary>
   /// A dictionary of entries of cached player values for providing pagination via Discord message components with their unique ID.
   /// </summary>
-  private static readonly Dictionary<string, PlayerPaginationCacheEntry> _playerPaginationCache = new Dictionary<string, PlayerPaginationCacheEntry>();
-
-  public RankingsCommandModule(HuisApiService huis) : base(huis) { }
+  private static readonly Dictionary<string, PlayerPaginationCacheEntry> _playerPaginationCache = [];
 
   [SlashCommand("player", "Displays the global player leaderboard of the specified rework.")]
   public async Task HandlePlayerAsync(

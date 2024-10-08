@@ -5,17 +5,15 @@ using huisbot.Models.Huis;
 using huisbot.Services;
 using huisbot.Utilities;
 
-namespace huisbot.Modules;
+namespace huisbot.Modules.Huis;
 
 /// <summary>
 /// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ReworksCommandModule : ModuleBase
+public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public ReworksCommandModule(HuisApiService huis) : base(huis) { }
-
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
   {
@@ -57,9 +55,8 @@ public class ReworksCommandModule : ModuleBase
 /// <summary>
 /// The interaction module for the rework select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule : ModuleBase
+public class ReworksComponentModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public ReworksComponentModule(HuisApiService huis) : base(huis) { }
 
   /// <summary>
   /// Callback for interactions with the "rework" select menu from the <see cref="ReworksAsync"/> command.

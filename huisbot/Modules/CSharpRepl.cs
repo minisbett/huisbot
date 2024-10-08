@@ -27,8 +27,8 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   /// <summary>
   /// A list of namespaces to import in the script context.
   /// </summary>
-  private readonly string[] _imports = new string[]
-  {
+  private readonly string[] _imports =
+  [
     "System",
     "System.Linq",
     "System.IO",
@@ -52,7 +52,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     "huisbot.Persistence",
     "huisbot.Services",
     "huisbot.Utilities"
-  };
+  ];
 
   /// <summary>
   /// The references of the entry assembly of the application. This will be loaded on command execution
@@ -77,7 +77,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     if (_references is null)
     {
       AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
-      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat(new Assembly[] { Assembly.GetEntryAssembly()! }).ToArray();
+      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
       _references = references;
     }
   }
@@ -95,7 +95,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     }
 
     // If the code does not end with a semicolon, add one.
-    if (!code.EndsWith(";"))
+    if (!code.EndsWith(';'))
       code += ";";
 
     // Construct the script options using the loaded references and the specified namespaces to import.
@@ -155,10 +155,10 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
       {
         msg.Embed = null;
         msg.Content = "The result was too long to be displayed in a message.";
-        msg.Attachments = new Optional<IEnumerable<FileAttachment>>(new List<FileAttachment>
-        {
+        msg.Attachments = new Optional<IEnumerable<FileAttachment>>(
+        [
           new FileAttachment(new MemoryStream(Encoding.UTF8.GetBytes(str)), "result.txt")
-        });
+        ]);
       });
 
       return;
@@ -181,7 +181,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   /// <returns>A string representation of the specified object.</returns>
   public static string Inspect(object value)
   {
-    string InspectProperty(object obj)
+    static string InspectProperty(object obj)
     {
       // If the specified propety is null, return "null".
       if (obj == null)
@@ -210,7 +210,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
       return obj.ToString()!;
     }
 
-    StringBuilder builder = new StringBuilder();
+    StringBuilder builder = new();
 
     if (value != null)
     {

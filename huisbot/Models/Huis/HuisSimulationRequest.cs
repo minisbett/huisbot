@@ -6,13 +6,18 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents the body of a score calculation request to be sent to Huismetbenen.
 /// </summary>
-public class HuisSimulationRequest
+/// <remarks>
+/// Creates a new <see cref="HuisSimulationRequest"/> for the specified beatmap and rework.
+/// </remarks>
+/// <param name="beatmapId">The ID of the beatmap.</param>
+/// <param name="rework">The rework.</param>
+public class HuisSimulationRequest(int beatmapId, HuisRework rework)
 {
   /// <summary>
   /// The ID of the beatmap.
   /// </summary>
   [JsonProperty("map_id")]
-  public int BeatmapId { get; }
+  public int BeatmapId { get; } = beatmapId;
 
   /// <summary>
   /// The maximum combo of the score.
@@ -54,18 +59,7 @@ public class HuisSimulationRequest
   /// The rework.
   /// </summary>
   [JsonIgnore]
-  public HuisRework Rework { get; set; }
-
-  /// <summary>
-  /// Creates a new <see cref="HuisSimulationRequest"/> for the specified beatmap and rework.
-  /// </summary>
-  /// <param name="beatmapId">The ID of the beatmap.</param>
-  /// <param name="rework">The rework.</param>
-  public HuisSimulationRequest(int beatmapId, HuisRework rework)
-  {
-    BeatmapId = beatmapId;
-    Rework = rework;
-  }
+  public HuisRework Rework { get; set; } = rework;
 
   /// <summary>
   /// Returns the JSON string for this calculation request, removing all json properties with null values.

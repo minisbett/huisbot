@@ -11,7 +11,7 @@ public class HuisPlayer
   /// <summary>
   /// Returns a player object representing an outdated player.
   /// </summary>
-  public static HuisPlayer Outdated => new HuisPlayer() { IsOutdated = true };
+  public static HuisPlayer Outdated => new() { IsOutdated = true };
 
   /// <summary>
   /// Bool whether the player is outdated or not. This property is used in <see cref="HuisApiService.GetPlayerAsync(int, HuisRework)"/>, which returns

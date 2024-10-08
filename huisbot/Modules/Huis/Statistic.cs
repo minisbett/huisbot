@@ -16,10 +16,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class StatisticCommandModule : ModuleBase
+public class StatisticCommandModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public StatisticCommandModule(HuisApiService huis) : base(huis) { }
-
   [SlashCommand("statistic", "Displays the specific top-statistic in the specified rework.")]
   public async Task HandleAsync(
     [Summary("statistic", "The top-statistic to display.")]
@@ -29,7 +27,7 @@ public class StatisticCommandModule : ModuleBase
     [Summary("amount", "Amount of entries to include, up to 500. Default is 500.")][MinValue(1)][MaxValue(500)] int amount = 500)
   {
     await DeferAsync();
-    string target = statisticId.Substring(3, 1) + statisticId.Substring(4).TrimEnd('s'); // topscores or topplayers => Score or Player
+    string target = $"{statisticId.Substring(3, 1)}{statisticId[4..].TrimEnd('s')}"; // topscores or topplayers => Score or Player
 
     // Get the matching rework for the specified rework identifier.
     HuisRework? rework = await GetReworkAsync(reworkId);
@@ -49,7 +47,7 @@ public class StatisticCommandModule : ModuleBase
       return;
 
     // Configure the plot with a size of 1000x600 and it's colors.
-    Plot liveLocal = new Plot(1000, 600);
+    Plot liveLocal = new(1000, 600);
     liveLocal.Style(Color.FromArgb(63, 66, 66), Color.FromArgb(63, 66, 66), Color.FromArgb(57, 59, 59), null, null, Color.White);
     liveLocal.Title($"Top {target}s - Live vs {rework.Name} @ {DateTime.UtcNow.ToShortDateString()} " +
                     $"{DateTime.UtcNow.ToLongTimeString()} (commit {rework.Commit})");
@@ -84,7 +82,7 @@ public class StatisticCommandModule : ModuleBase
     diff.YAxisIndex = liveLocal.RightAxis.AxisIndex; // Make sure the difference is plotted on the right axis.
 
     // Render the plot to a bitmap and send it.
-    using MemoryStream ms = new MemoryStream();
+    using MemoryStream ms = new();
     liveLocal.Render().Save(ms, ImageFormat.Png);
     await FollowupWithFileAsync(ms, "plot.png");
   }

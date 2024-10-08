@@ -12,17 +12,8 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class LinkCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class LinkCommandModule(OsuApiService osuApi, PersistenceService links) : InteractionModuleBase<SocketInteractionContext>
 {
-  private readonly OsuApiService _osu;
-  private readonly PersistenceService _links;
-
-  public LinkCommandModule(OsuApiService osuApi, PersistenceService links)
-  {
-    _osu = osuApi;
-    _links = links;
-  }
-
   [SlashCommand("link", "Links your Discord account to the specified osu! user by it's ID or name.")]
   public async Task LinkAsync(
     [Summary("user", "The osu! ID or name of the player.")] string userId)
@@ -30,7 +21,7 @@ public class LinkCommandModule : InteractionModuleBase<SocketInteractionContext>
     await DeferAsync();
 
     // Get the user from the osu! api. If it failed or the user could not be found, notify the user.
-    NotFoundOr<OsuUser>? user = await _osu.GetUserAsync(userId);
+    NotFoundOr<OsuUser>? user = await osuApi.GetUserAsync(userId);
     if (user is null)
     {
       await FollowupAsync(embed: Embeds.InternalError("Failed to resolve the user from the osu! API."));
@@ -43,7 +34,7 @@ public class LinkCommandModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     // Otherwise add/update the link in the database and notify the user about the change.
-    await _links.SetOsuDiscordLinkAsync(Context.User.Id, ((OsuUser)user).Id);
+    await links.SetOsuDiscordLinkAsync(Context.User.Id, ((OsuUser)user).Id);
     await FollowupAsync(embed: Embeds.LinkSuccessful(user));
   }
 }

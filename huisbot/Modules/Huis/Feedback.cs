@@ -9,10 +9,8 @@ namespace huisbot.Modules.Huis;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class FeedbackCommandModule : ModuleBase
+public class FeedbackCommandModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public FeedbackCommandModule(HuisApiService huis) : base(huis) { }
-
   [SlashCommand("feedback", "Feedback")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
@@ -38,17 +36,15 @@ public class FeedbackCommandModule : ModuleBase
 /// <summary>
 /// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class FeedbackModalModule : ModuleBase
+public class FeedbackModalModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public FeedbackModalModule(HuisApiService huis) : base(huis) { }
-
   [ModalInteraction("pp_feedback_.*", TreatAsRegex = true)]
   public async Task HandleAsync(FeedbackModal modal)
   {
     await DeferAsync();
 
     // Get the rework from it's ID.
-    HuisRework? rework = await GetReworkAsync(((SocketModal)Context.Interaction).Data.CustomId.Substring(12) /* pp_feedback_<rework ID> */);
+    HuisRework? rework = await GetReworkAsync(((SocketModal)Context.Interaction).Data.CustomId[12..] /* pp_feedback_<rework ID> */);
     if (rework is null)
       return;
 

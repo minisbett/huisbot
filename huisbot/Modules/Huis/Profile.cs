@@ -13,10 +13,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ProfileCommandModule : ModuleBase
+public class ProfileCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
-  public ProfileCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
-
   [SlashCommand("profile", "Displays info about you or the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
@@ -54,7 +52,7 @@ public class ProfileCommandModule : ModuleBase
       return;
 
     // Loop through the following logic, getting the player in both the local and the live rework.
-    List<HuisPlayer> players = new List<HuisPlayer>();
+    List<HuisPlayer> players = [];
     foreach (HuisRework _rework in new HuisRework[] { rework, live })
     {
       // Get the player in the current rework.

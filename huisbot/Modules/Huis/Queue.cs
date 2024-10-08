@@ -13,10 +13,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class QueueCommandModule : ModuleBase
+public class QueueCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
-  public QueueCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
-
   [SlashCommand("queue", "Queues you or the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]

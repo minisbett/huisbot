@@ -10,18 +10,9 @@ namespace huisbot.Services;
 /// <summary>
 /// The Huis API service is responsible for communicating with the Huis API @ https://pp-api.huismetbenen.nl/.
 /// </summary>
-public class HuisApiService
+public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
 {
-  private readonly HttpClient _http;
-  private readonly CachingService _caching;
-  private readonly ILogger<HuisApiService> _logger;
-
-  public HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
-  {
-    _http = httpClientFactory.CreateClient("huisapi");
-    _caching = caching;
-    _logger = logger;
-  }
+  private readonly HttpClient _http = httpClientFactory.CreateClient("huisapi");
 
   /// <summary>
   /// Returns a bool whether a connection to the Huis API can be established.
@@ -42,7 +33,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("IsAvailable() returned false: {Message}", ex.Message);
+      logger.LogError("IsAvailable() returned false: {Message}", ex.Message);
       return false;
     }
   }
@@ -54,7 +45,7 @@ public class HuisApiService
   public async Task<HuisRework[]?> GetReworksAsync()
   {
     // Check whether the cached reworks are valid. If so, return them.
-    if (_caching.GetReworks() is HuisRework[] r)
+    if (caching.GetReworks() is HuisRework[] r)
       return r;
 
     try
@@ -68,12 +59,12 @@ public class HuisApiService
         throw new Exception("Deserialization of JSON returned null.");
 
       // Cache the reworks and return them.
-      _caching.SetReworks(reworks);
+      caching.SetReworks(reworks);
       return reworks;
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the list of reworks from the Huis API: {Message} https://pp-api.huismetbenen.nl/reworks/list", ex.Message);
+      logger.LogError("Failed to get the list of reworks from the Huis API: {Message} https://pp-api.huismetbenen.nl/reworks/list", ex.Message);
       return null;
     }
   }
@@ -95,7 +86,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list",
+      logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list",
         ex.Message);
       return null;
     }
@@ -133,7 +124,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player calculation queue from the Huis API: {Message}", ex.Message);
+      logger.LogError("Failed to get the player calculation queue from the Huis API: {Message}", ex.Message);
       return null;
     }
   }
@@ -157,11 +148,7 @@ public class HuisApiService
         return HuisPlayer.Outdated;
 
       // Otherwise, deserialize the json.
-      HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json);
-
-      // Check whether the deserialized json is valid.
-      if (player is null)
-        throw new Exception("Deserialization of JSON returned null.");
+      HuisPlayer? player = JsonConvert.DeserializeObject<HuisPlayer>(json) ?? throw new Exception("Deserialization of JSON returned null.");
 
       // Check whether the player is outdated. In that case, return an outdated player object.
       if (player.PPVersion != rework.PPVersion)
@@ -171,7 +158,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -184,7 +171,7 @@ public class HuisApiService
   public async Task<HuisSimulationResponse?> SimulateAsync(HuisSimulationRequest request)
   {
     // Check whether a score for the score simulation request is cached.
-    if (await _caching.GetCachedScoreSimulationAsync(request) is HuisSimulationResponse s)
+    if (await caching.GetCachedScoreSimulationAsync(request) is HuisSimulationResponse s)
       return s;
 
     try
@@ -193,11 +180,8 @@ public class HuisApiService
       HttpResponseMessage response = await _http.PatchAsync("/calculate-score", new StringContent(request.ToJson(),
         Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisSimulationResponse? simResponse = JsonConvert.DeserializeObject<HuisSimulationResponse>(json);
-
-      // Check whether the deserialized json is valid.
-      if (simResponse is null)
-        throw new Exception("Deserialization of JSON returned null.");
+      HuisSimulationResponse? simResponse = JsonConvert.DeserializeObject<HuisSimulationResponse>(json)
+        ?? throw new Exception("Deserialization of JSON returned null.");
 
       // Check whether the json contains an error.
       string? error = JsonConvert.DeserializeObject<dynamic>(json)?.error;
@@ -205,12 +189,12 @@ public class HuisApiService
         throw new Exception($"API returned {error}");
 
       // Cache the simulation response and return it.
-      await _caching.AddCachedScoreSimulationAsync(request, simResponse);
+      await caching.AddCachedScoreSimulationAsync(request, simResponse);
       return simResponse;
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to process the calculation on the Huis API: {Message}", ex.Message);
+      logger.LogError("Failed to process the calculation on the Huis API: {Message}", ex.Message);
       return null;
     }
   }
@@ -238,7 +222,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -263,7 +247,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+      logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
         ex.Message, url);
       return null;
     }
@@ -280,7 +264,7 @@ public class HuisApiService
   public async Task<HuisPlayer[]?> GetPlayerRankingsAsync(int reworkId, Sort sort, bool onlyUpToDate, bool hideUnranked)
   {
     string url = $"/rankings/players/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}" +
-                 $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={onlyUpToDate.ToString().ToLower()}";
+                 $"&onlyUpToDate={onlyUpToDate.ToString().ToLower()}&hideUnranked={hideUnranked.ToString().ToLower()}";
     try
     {
       // Get the ranking data from the API.
@@ -292,7 +276,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+      logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
         ex.Message, url);
       return null;
     }
@@ -318,7 +302,7 @@ public class HuisApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the top plays from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the top plays from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }

@@ -12,10 +12,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule : ModuleBase
+public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
-  public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
-
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
@@ -95,7 +93,7 @@ public class SimulateCommandModule : ModuleBase
       return;
 
     // Construct the simulation request.
-    HuisSimulationRequest request = new HuisSimulationRequest(beatmap.Id, rework)
+    HuisSimulationRequest request = new(beatmap.Id, rework)
     {
       Combo = combo,
       Count100 = count100,

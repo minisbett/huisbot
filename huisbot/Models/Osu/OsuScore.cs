@@ -29,7 +29,7 @@ public class OsuScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string[] Mods { get; private set; } = new string[0];
+  public string[] Mods { get; private set; } = [];
 
   /// <summary>
   /// The statistics (300s, 100s, 50s, misses) of the score.

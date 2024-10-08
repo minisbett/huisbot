@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class TopPlaysCommandModule : ModuleBase
+public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
   /// <summary>
   /// Represents the cached values for providing pagination via Discord message components.
@@ -25,9 +25,7 @@ public class TopPlaysCommandModule : ModuleBase
   /// <summary>
   /// A dictionary of entries of cached values for providing pagination via Discord message components with their unique ID.
   /// </summary>
-  private static readonly Dictionary<string, PaginationCacheEntry> _paginationCache = new Dictionary<string, PaginationCacheEntry>();
-
-  public TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
+  private static readonly Dictionary<string, PaginationCacheEntry> _paginationCache = [];
 
   [SlashCommand("topplays", "Displays the top plays of you or the specified player in the specified rework.")]
   public async Task HandleScoreAsync(
@@ -84,7 +82,7 @@ public class TopPlaysCommandModule : ModuleBase
       "pp_diff" => x => x.LocalPP - x.LivePP,
       _ => x => x.LocalPP
     };
-    HuisScore[] sortedScores = (sort.IsAscending ? scores.OrderBy(selector) : scores.OrderByDescending(selector)).ToArray();
+    HuisScore[] sortedScores = [.. sort.IsAscending ? scores.OrderBy(selector) : scores.OrderByDescending(selector)];
 
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();

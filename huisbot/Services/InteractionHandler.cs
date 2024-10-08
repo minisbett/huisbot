@@ -50,7 +50,7 @@ public class InteractionHandler : DiscordClientService
   private Task OnSlashCommandExecuted(SocketSlashCommand command)
   {
     // Go through all slash command data options and combine them to an argument string.
-    string parse(IReadOnlyCollection<SocketSlashCommandDataOption> data, string str = "")
+    static string parse(IReadOnlyCollection<SocketSlashCommandDataOption> data, string str = "")
     {
       foreach (var i in data)
         str += " " + (i.Type == ApplicationCommandOptionType.SubCommand ? $"{i.Name}{parse(i.Options, str)}" : $"{i.Name}:{i.Value}");
