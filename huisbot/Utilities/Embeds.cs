@@ -102,7 +102,7 @@ internal static class Embeds
         .Split("\n\n")
         .SelectMany(section =>
         {
-          List<string> result = new List<string>();
+          List<string> result = [];
 
           // If the section is more than 1024 characters, split it up further.
           while (section.Length > 1024)
@@ -112,8 +112,8 @@ internal static class Embeds
             if (splitIndex <= 0) splitIndex = 1024;
 
             // Add the part before the split index to the result and remove it from the section.
-            result.Add(section.Substring(0, splitIndex).Trim() + (splitIndex == 1024 ? "..." : string.Empty));
-            section = section.Substring(splitIndex).Trim();
+            result.Add(section[..splitIndex].Trim() + (splitIndex == 1024 ? "..." : string.Empty));
+            section = section[splitIndex..].Trim();
           }
 
           // Add any remaining part that is less than or equal to 1024 characters
@@ -294,14 +294,14 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The beatmap aliases.</param>
   /// <returns>An embed for displaying the beatmap aliases.</returns>
-  public static Embed BeatmapAliases(BeatmapAlias[] aliases)
+  public static Embed BeatmapAliases(IEnumerable<BeatmapAlias> aliases)
   {
     // Sort the aliases by alphabetical order.
-    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+    aliases = aliases.OrderBy(x => x.Alias);
 
     // Build the alias string.
     string aliasesStr = "*There are no beatmap aliases. You can add some via `/alias beatmap add`.*";
-    if (aliases.Length > 0)
+    if (aliases.Any())
     {
       aliasesStr = "";
       foreach (IGrouping<long, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
@@ -319,14 +319,14 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The score aliases.</param>
   /// <returns>An embed for displaying the score aliases.</returns>
-  public static Embed ScoreAliases(ScoreAlias[] aliases)
+  public static Embed ScoreAliases(IEnumerable<ScoreAlias> aliases)
   {
     // Sort the aliases by alphabetical order.
-    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+    aliases = aliases.OrderBy(x => x.Alias);
 
     // Build the alias string.
     string aliasesStr = "*There are no score aliases. You can add some via `/alias score add`.*";
-    if (aliases.Length > 0)
+    if (aliases.Any())
     {
       aliasesStr = "";
       foreach (IGrouping<long, ScoreAlias> group in aliases.GroupBy(x => x.ScoreId))
@@ -350,12 +350,12 @@ internal static class Embeds
   public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
-    };
+    ];
 
     int offset = (page - 1) * SCORES_PER_PAGE;
     foreach (HuisScore score in allScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE))
@@ -390,13 +390,13 @@ internal static class Embeds
   public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code})"
     + $" • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
-    };
+    ];
 
     // Go through all scores and populate the description.
     foreach (HuisScore score in sortedScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE).ToArray())
@@ -437,15 +437,15 @@ internal static class Embeds
 
     // Generate the embed description.
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[Huis Rework]({rework.Url}) • {github}",
       ""
-    };
-    List<string> playerStrs = new List<string>();
-    List<string> ppOldStrs = new List<string>();
-    List<string> ppNewStrs = new List<string>();
+    ];
+    List<string> playerStrs = [];
+    List<string> ppOldStrs = [];
+    List<string> ppNewStrs = [];
     foreach (HuisPlayer player in players)
     {
       double oldPP = Math.Round(player.OldPP);
@@ -541,9 +541,9 @@ internal static class Embeds
     string title = score.Title ?? "";
     string version = score.Version ?? "";
     if ($"{title} [{version}]".Length > 60 && version.Length > 27)
-      version = $"{version.Substring(0, 27)}...";
+      version = $"{version[..27]}...";
     if ($"{title} [{version}]".Length > 60)
-      title = $"{title.Substring(0, 27)}...";
+      title = $"{title[..27]}...";
 
     return $"{title} [{version}] {score.Mods.PlusString}".TrimEnd(' ');
   }
@@ -551,7 +551,7 @@ internal static class Embeds
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
   /// </summary>
-  private static readonly Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
+  private static readonly Dictionary<string, Emoji> _emojis = new()
   {
     { "XH", new Emoji("rankSSH", 1159888184600170627) },
     { "X", new Emoji("rankSS", 1159888182075207740) },
@@ -585,17 +585,22 @@ internal static class Embeds
 /// <summary>
 /// Represents a Discord emoji with a name and ID.
 /// </summary>
-public class Emoji
+/// <remarks>
+/// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
+/// </remarks>
+/// <param name="name">The name of the emoji.</param>
+/// <param name="id">The ID of the emoji.</param>
+public class Emoji(string name, ulong id)
 {
   /// <summary>
   /// The name of the emoji.
   /// </summary>
-  public string Name { get; }
+  public string Name { get; } = name;
 
   /// <summary>
   /// The snowflake ID of the emoji.
   /// </summary>
-  public ulong Id { get; }
+  public ulong Id { get; } = id;
 
   /// <summary>
   /// Returns the asset url of this emoji.
@@ -606,15 +611,4 @@ public class Emoji
   /// Returns the emoji string representation of this emoji.
   /// </summary>
   public override string ToString() => $"<:{Name}:{Id}>";
-
-  /// <summary>
-  /// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
-  /// </summary>
-  /// <param name="name">The name of the emoji.</param>
-  /// <param name="id">The ID of the emoji.</param>
-  public Emoji(string name, ulong id)
-  {
-    Name = name;
-    Id = id;
-  }
 }

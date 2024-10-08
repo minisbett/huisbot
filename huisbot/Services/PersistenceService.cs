@@ -9,15 +9,8 @@ namespace huisbot.Services;
 /// <summary>
 /// The persistence service is responsible for managing the access to the persistence database.
 /// </summary>
-public class PersistenceService
+public class PersistenceService(Database database)
 {
-  private readonly Database _database;
-
-  public PersistenceService(Database database)
-  {
-    _database = database;
-  }
-
   /// <summary>
   /// Returns the link between the specified discord user and the linked osu! user or null if no link exists.
   /// </summary>
@@ -25,7 +18,7 @@ public class PersistenceService
   /// <returns>The link between the specified discord user and the linked osu! user or null if no link exists.</returns>
   public async Task<OsuDiscordLink?> GetOsuDiscordLinkAsync(ulong discordId)
   {
-    return await _database.OsuDiscordLinks.FirstOrDefaultAsync(x => x.DiscordId == discordId);
+    return await database.OsuDiscordLinks.FirstOrDefaultAsync(x => x.DiscordId == discordId);
   }
 
   /// <summary>
@@ -37,11 +30,11 @@ public class PersistenceService
   {
     // Check whether the link already exists. If it does, remove it first.
     if (await GetOsuDiscordLinkAsync(discordId) is OsuDiscordLink link)
-      _database.OsuDiscordLinks.Remove(link);
+      database.OsuDiscordLinks.Remove(link);
 
     // Add the link to the database.
-    _database.OsuDiscordLinks.Add(new OsuDiscordLink(discordId, osuId));
-    await _database.SaveChangesAsync();
+    database.OsuDiscordLinks.Add(new OsuDiscordLink(discordId, osuId));
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -50,7 +43,7 @@ public class PersistenceService
   /// <returns>The beatmap aliases.</returns>
   public async Task<BeatmapAlias[]> GetBeatmapAliasesAsync()
   {
-    return await _database.BeatmapAliases.ToArrayAsync();
+    return await database.BeatmapAliases.ToArrayAsync();
   }
 
   /// <summary>
@@ -61,7 +54,7 @@ public class PersistenceService
   public async Task<BeatmapAlias?> GetBeatmapAliasAsync(string alias)
   {
     // Get all beatmap aliases and try to find the specified one.
-    return await _database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
+    return await database.BeatmapAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
   }
 
   /// <summary>
@@ -73,8 +66,8 @@ public class PersistenceService
   public async Task AddBeatmapAliasAsync(string alias, long beatmapId, string displayName)
   {
     // Add the beatmap alias to the database.
-    _database.BeatmapAliases.Add(new BeatmapAlias(Utils.GetFormattedAlias(alias), beatmapId, displayName));
-    await _database.SaveChangesAsync();
+    database.BeatmapAliases.Add(new BeatmapAlias(Utils.GetFormattedAlias(alias), beatmapId, displayName));
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -84,8 +77,8 @@ public class PersistenceService
   public async Task RemoveBeatmapAliasAsync(BeatmapAlias alias)
   {
     // Remove the beatmap alias from the database.
-    _database.BeatmapAliases.Remove(alias);
-    await _database.SaveChangesAsync();
+    database.BeatmapAliases.Remove(alias);
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -94,7 +87,7 @@ public class PersistenceService
   /// <returns>The score aliases.</returns>
   public async Task<ScoreAlias[]> GetScoreAliasesAsync()
   {
-    return await _database.ScoreAliases.ToArrayAsync();
+    return await database.ScoreAliases.ToArrayAsync();
   }
 
   /// <summary>
@@ -105,7 +98,7 @@ public class PersistenceService
   public async Task<ScoreAlias?> GetScoreAliasAsync(string alias)
   {
     // Get all score aliases and try to find the specified one.
-    return await _database.ScoreAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
+    return await database.ScoreAliases.FirstOrDefaultAsync(x => x.Alias == Utils.GetFormattedAlias(alias));
   }
 
   /// <summary>
@@ -117,8 +110,8 @@ public class PersistenceService
   public async Task AddScoreAliasAsync(string alias, long scoreId, string displayName)
   {
     // Add the score alias to the database.
-    _database.ScoreAliases.Add(new ScoreAlias(Utils.GetFormattedAlias(alias), scoreId, displayName));
-    await _database.SaveChangesAsync();
+    database.ScoreAliases.Add(new ScoreAlias(Utils.GetFormattedAlias(alias), scoreId, displayName));
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -128,8 +121,8 @@ public class PersistenceService
   public async Task RemoveScoreAliasAsync(ScoreAlias alias)
   {
     // Remove the score alias from the database.
-    _database.ScoreAliases.Remove(alias);
-    await _database.SaveChangesAsync();
+    database.ScoreAliases.Remove(alias);
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -140,12 +133,12 @@ public class PersistenceService
   public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
   {
     // To make this thread-safe, make sure there is no cache entry at this point in time (again).
-    if (await GetCachedScoreSimulationAsync(request) is HuisSimulationResponse)
+    if (await GetCachedScoreSimulationAsync(request) is not null)
       return;
 
     // Add the cached simulation to the database.
-    _database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, response));
-    await _database.SaveChangesAsync();
+    database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, response));
+    await database.SaveChangesAsync();
   }
 
   /// <summary>
@@ -156,7 +149,7 @@ public class PersistenceService
   /// <returns>The cached simulation response or null, if no cache entry exists.</returns>
   public async Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
   {
-    return (await _database.CachedScoreSimulations.FirstOrDefaultAsync(
+    return (await database.CachedScoreSimulations.FirstOrDefaultAsync(
       x => x.RequestIdentifier == CachedScoreSimulation.GetRequestIdentifier(request)))?.Response;
   }
 }

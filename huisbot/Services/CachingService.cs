@@ -6,17 +6,8 @@ namespace huisbot.Services;
 /// <summary>
 /// The caching service handles all kind of caching of values in both memory and database.
 /// </summary>
-public class CachingService
+public class CachingService(PersistenceService persistence, ILogger<CachingService> logger)
 {
-  private readonly PersistenceService _persistence;
-  private readonly ILogger<CachingService> _logger;
-
-  public CachingService(PersistenceService persistence, ILogger<CachingService> logger)
-  {
-    _persistence = persistence;
-    _logger = logger;
-  }
-
   /// <summary>
   /// The cache for the reworks. This is cached as reworks are frequently accessed, e.g. via autocompletes.
   /// </summary>
@@ -44,7 +35,7 @@ public class CachingService
   {
     _reworksCache = reworks;
     _reworksCacheExpiryDate = DateTime.UtcNow.AddMinutes(5);
-    _logger.LogInformation("Updated reworks cache, expiring on {DateTime}.", _reworksCacheExpiryDate);
+    logger.LogInformation("Updated reworks cache, expiring on {DateTime}.", _reworksCacheExpiryDate);
   }
 
   /// <summary>
@@ -54,7 +45,7 @@ public class CachingService
   /// <returns>The simulation response or null, if no score is cached.</returns>
   public Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
   {
-    return _persistence.GetCachedScoreSimulationAsync(request);
+    return persistence.GetCachedScoreSimulationAsync(request);
   }
 
   /// <summary>
@@ -64,6 +55,6 @@ public class CachingService
   /// <param name="response">The simulation response.</param>
   public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
   {
-    await _persistence.AddCachedScoreSimulationAsync(request, response);
+    await persistence.AddCachedScoreSimulationAsync(request, response);
   }
 }
