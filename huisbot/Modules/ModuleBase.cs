@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using huisbot.Models.Huis;
@@ -20,23 +21,33 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   /// Returns all available reworks on Huismetbenen.<br/>
   /// If it failed, the user will automatically be notified, unless the seeError parameter is set. In this case, this method returns null.
   /// </summary>
-  /// <param name="showError">Bool whether an error should be displayed to the user.</param>
   /// <returns>The available reworks.</returns>
-  public async Task<HuisRework[]?> GetReworksAsync(bool showError = true)
+  public async Task<HuisRework[]?> GetReworksAsync()
   {
     // Get all reworks and check whether the request was successful. If not, notify the user.
     HuisRework[]? reworks = await huis.GetReworksAsync();
     if (reworks is null)
     {
-      if (showError)
-        await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
+      Embed embed = Embeds.InternalError("Failed to get the reworks from the Huis API.");
+
+      if (Context.Interaction is SocketMessageComponent interaction)
+        await interaction.UpdateAsync(msg => msg.Embed = embed);
+      else
+        await FollowupAsync(embed: embed);
 
       return null;
     }
 
     // Order the reworks by relevancy for the user and return them.
-    return [.. reworks.OrderBy(x => !x.IsLive).ThenBy(x => x.IsConfirmed).ThenBy(x => x.IsHistoric)
-                   .ThenBy(x => !x.IsActive).ThenBy(x => !x.IsPublic)];
+    return [
+      .. reworks.Where(x => x.IsLive),
+      .. reworks.Where(x => x.IsConfirmed),
+      .. reworks.Where(x => x.IsPublic && x.IsActive),
+      // exclude confirmed, historic & live because they are non-public, active
+      .. reworks.Where(x => !x.IsPublic && x.IsActive && !x.IsConfirmed && !x.IsHistoric && !x.IsLive),
+      .. reworks.Where(x => !x.IsActive),
+      .. reworks.Where(x => x.IsHistoric)
+    ];
   }
 
   /// <summary>

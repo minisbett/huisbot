@@ -125,7 +125,7 @@ internal static class Embeds
         .ToList();
 
     EmbedBuilder embed = BaseEmbed
-    .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
+    .WithTitle($"{rework.Id} {rework.Name} ({rework.Code}) v{rework.PPVersion}")
     .WithUrl($"{rework.Url}")
     .AddField("Description", descriptionParts[0]);
 
