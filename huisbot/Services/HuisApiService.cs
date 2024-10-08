@@ -8,7 +8,7 @@ using System.Text;
 namespace huisbot.Services;
 
 /// <summary>
-/// The Huis API service is responsible for communicating with the Huis API @ https://pp-api.huismetbenen.nl/.
+/// The Huis API service is responsible for communicating with the Huis API @ https://api.pp.huismetbenen.nl/.
 /// </summary>
 public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService caching, ILogger<HuisApiService> logger)
 {
@@ -64,7 +64,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the list of reworks from the Huis API: {Message} https://pp-api.huismetbenen.nl/reworks/list", ex.Message);
+      logger.LogError("Failed to get the list of reworks from the Huis API: {Message} https://api.pp.huismetbenen.nl/reworks/list", ex.Message);
       return null;
     }
   }
@@ -86,7 +86,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://pp-api.huismetbenen.nl/queue/list",
+      logger.LogError("Failed to get the player calculation queue from the Huis API: {Message} https://api.pp.huismetbenen.nl/queue/list",
         ex.Message);
       return null;
     }
@@ -158,7 +158,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the player from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the player from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -222,7 +222,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the statistic from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the statistic from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
@@ -247,7 +247,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+      logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}",
         ex.Message, url);
       return null;
     }
@@ -276,7 +276,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}",
+      logger.LogError("Failed to get the global player leaderboard from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}",
         ex.Message, url);
       return null;
     }
@@ -302,7 +302,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the top plays from the Huis API: {Message} https://pp-api.huismetbenen.nl{Url}", ex.Message, url);
+      logger.LogError("Failed to get the top plays from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}", ex.Message, url);
       return null;
     }
   }
