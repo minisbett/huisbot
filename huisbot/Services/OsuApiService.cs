@@ -200,6 +200,8 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
     try
     {
       // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
+      _http.DefaultRequestHeaders.Remove("x-api-version");
+      _http.DefaultRequestHeaders.Add("x-api-version", "20220705");
       HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{scoreId}");
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
