@@ -238,7 +238,7 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
     else
       await FollowupAsync(embed: Embeds.Neutral($"`{player.Name}` has been queued. You will be notified once it completed."));
 
-    return queued.HasValue ? queued.Value : false;
+    return queued ?? false;
   }
 
   /// <summary>

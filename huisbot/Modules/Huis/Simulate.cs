@@ -36,18 +36,16 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     // Check if either a beatmap ID or a score ID was specified, or if a recent bot message with a beatmap URL can be found.
     if (beatmapId is null && scoreId is null)
     {
-      // Look for a message with a score in the last 100 messages.
-      foreach (IMessage message in (await Context.Channel.GetMessagesAsync(100).FlattenAsync()))
-        if (Utils.FindScore(message) is EmbedScoreInfo score)
-        {
-          beatmapId = score.BeatmapId.ToString();
-          combo ??= score.Combo;
-          count100 ??= score.Count100;
-          count50 ??= score.Count50;
-          misses ??= score.Misses;
-          modsStr ??= score.Mods;
-          break;
-        }
+      // Look for a message with a score in the channel.
+      if (await Utils.FindOsuBotScore(Context) is EmbedScoreInfo score)
+      {
+        beatmapId = score.BeatmapId.ToString();
+        combo ??= score.Combo;
+        count100 ??= score.Count100;
+        count50 ??= score.Count50;
+        misses ??= score.Misses;
+        modsStr ??= score.Mods;
+      }
 
 
       // If there was no beatmap ID found in the last 100 messages, respond with an error.
