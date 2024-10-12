@@ -216,12 +216,12 @@ internal static class Embeds
   /// <param name="reference">The reference rework to simulate.</param>
   /// <param name="localDone">Bool whether the local score finished simulation.</param>
   /// <returns>An embed for displaying the score simulation progress.</returns>
-  public static Embed Simulating(HuisRework local, HuisRework reference, bool localDone, bool localOnly = false)
+  public static Embed Simulating(HuisRework local, HuisRework? reference, bool localDone)
   {
     // Build the status string.
     string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
     status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
-    if (!localOnly)
+    if (reference is not null)
       status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
 
     return BaseEmbed
@@ -270,7 +270,8 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({comparison1}★)")
-      .AddField(comparison2, $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
+      .WithDescription($"{huisRework} • {github} • {visualizer} • {osu}")
+      .AddField(comparison2, $"{ppStr}", true)
       .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
@@ -494,6 +495,40 @@ internal static class Embeds
                      $"```" +
                      $"*The reference code can be found [here](https://github.com/ppy/osu/blob/3d569850b15ad66b3c95e009f173298d65a8e3de/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L249).*")
     .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying the difficulty attributes of a score.
+  /// </summary>
+  /// <param name="score">The simulated score.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="beatmap">The beatmap.</param>
+  /// <returns>An embed for displaying the difficulty attributes.</returns>
+  public static Embed DifficultyAttributes(HuisSimulationResponse score, HuisRework rework, OsuBeatmap beatmap)
+  {
+    // Construct some strings for the embed.
+    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";
+    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2}★**";
+    string strainCounts = $"Aim: **{score.DifficultyAttributes.AimDifficultStrainCount:N2}**\n"
+                        + $"Speed: **{score.DifficultyAttributes.SpeedDifficultStrainCount:N2}**";
+    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
+    string huisRework = $"[Huis Rework]({rework.Url})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+
+    return BaseEmbed
+    .WithColor(new Color(0x4061E9))
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
+      .AddField("Difficulty", difficulty, true)
+      .AddField("Difficult Strains", strainCounts, true)
+      .AddField("Slider Factor", $"{score.DifficultyAttributes.SliderFactor:N5}", true)
+      .AddField($"Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}", visualizer, true)
+      .AddField($"Max Combo: {beatmap.MaxCombo}x", osu, true)
+      .AddField($"OD {beatmap.GetAdjustedOD(score.Score.Mods):0.##} AR {beatmap.GetAdjustedAR(score.Score.Mods):0.##}", $"{huisRework} • {github}", true)
+      .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
+      .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
+      .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+    .Build();
+  }
 
   /// <summary>
   /// Returns an embed for displaying the feedback of a user.
