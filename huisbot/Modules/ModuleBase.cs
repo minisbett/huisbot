@@ -201,14 +201,15 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns the current calculation queue on Huismetbenen, including all reworks.<br/>
+  /// Returns the current calculation queue of the specified rework on Huismetbenen.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
+  /// <param name="reworkId">The ID of the rework.</param>
   /// <returns>The calculation queue.</returns>
-  public async Task<HuisQueue?> GetHuisQueueAsync()
+  public async Task<int[]?> GetHuisQueueAsync(int reworkId)
   {
     // Get the queue and check whether the request was successful. If not, notify the user.
-    HuisQueue? queue = await huis.GetQueueAsync();
+    int[]? queue = await huis.GetQueueAsync(reworkId);
     if (queue is null)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the player calculation queue from the Huis API."));
 
