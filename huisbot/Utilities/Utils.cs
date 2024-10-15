@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
-using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using MathNet.Numerics;
 using System.Text.RegularExpressions;
@@ -19,7 +17,7 @@ internal static class Utils
   /// will always return the same deviation. Sliders are treated as circles with a 50 hit window. Misses are ignored because they are usually due to misaiming.
   /// 300s and 100s are assumed to follow a normal distribution, whereas 50s are assumed to follow a uniform distribution.
   /// </summary>
-  public static double? CalculateEstimatedUR(HuisSimulationResponse.HuisSimulationScoreStatistics statistics, OsuBeatmap beatmap, Mods mods)
+  public static double? CalculateEstimatedUR(OsuScore.OsuScoreStatistics statistics, OsuBeatmap beatmap, Mods mods)
   {
     // If there's no hits at all, the UR is infinity.
     if (statistics.Count50 + statistics.Count100 + statistics.Count300 == 0)
