@@ -81,25 +81,25 @@ public class OsuScore
     /// <summary>
     /// The amount of 300s in the score.
     /// </summary>
-    [JsonProperty("count_300")]
+    [JsonProperty("great")]
     public int Count300 { get; private set; }
 
     /// <summary>
     /// The amount of 100s in the score.
     /// </summary>
-    [JsonProperty("count_100")]
+    [JsonProperty("ok")]
     public int Count100 { get; private set; }
 
     /// <summary>
     /// The amount of 50s in the score.
     /// </summary>
-    [JsonProperty("count_50")]
+    [JsonProperty("meh")]
     public int Count50 { get; private set; }
 
     /// <summary>
     /// The amount of misses in the score.
     /// </summary>
-    [JsonProperty("count_miss")]
+    [JsonProperty("miss")]
     public int Misses { get; private set; }
   }
 
