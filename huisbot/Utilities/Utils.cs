@@ -1,4 +1,6 @@
 ﻿using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using MathNet.Numerics;
@@ -78,50 +80,58 @@ internal static class Utils
   public static string GetFormattedAlias(string alias) => new string(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
   /// <summary>
-  /// Tries to find osu! score information from common Discord bots in embeds of the specified message.
+  /// Tries to find osu! score information from common Discord bots in the last 100 messages of the channel of the interaction context.
   /// </summary>
-  /// <param name="message">The discord message.</param>
-  /// <param name="score">The parsed score or null if no score could be found.</param>
-  /// <returns>Bool whether a score was found.</returns>
-  public static EmbedScoreInfo? FindScore(IMessage message)
+  /// <param name="interaction">The interaction context of the command execution.</param>
+  /// <returns>The embed score info.</returns>
+  public static async Task<EmbedScoreInfo?> FindOsuBotScore(SocketInteractionContext interaction)
   {
-    // Go through all embeds in the message and check if the author URl or normal URL of any of them contain a beatmap URL.
-    IEmbed? beatmapEmbed = null;
-    int? beatmapId = null;
-    foreach (IEmbed embed in message.Embeds)
-      foreach (string str in new string[] { embed.Author?.Url ?? "", embed.Url ?? "" })
-        if (str.StartsWith("https://osu.ppy.sh/b/") && int.TryParse(str.Split('/').Last(), out int id))
-          (beatmapId, beatmapEmbed) = (id, embed);
+    foreach (IMessage message in await interaction.Channel.GetMessagesAsync(100).FlattenAsync())
+    {
+      // If the message is from the bot itself, ignore it.
+      if (message.Author.Id == interaction.Client.CurrentUser.Id)
+        continue;
 
-    // If no beatmap URL was found, abort and return null.
-    if (beatmapId is null)
-      return null;
+      // Go through all embeds in the message and check if the author URL or normal URL of any of them contain a beatmap URL.
+      IEmbed? beatmapEmbed = null;
+      int? beatmapId = null;
+      foreach (IEmbed embed in message.Embeds)
+        foreach (string str in new string[] { embed.Author?.Url ?? "", embed.Url ?? "" })
+          if (str.StartsWith("https://osu.ppy.sh/b/") && int.TryParse(str.Split('/').Last(), out int id))
+            (beatmapId, beatmapEmbed) = (id, embed);
 
-    // Try to find further information in the embed by generating a big score info string with the author, description and fields.
-    string? scoreInfo = beatmapEmbed!.Author + "\n" + beatmapEmbed.Description + "\n"
-                      + string.Join("\n", beatmapEmbed.Fields.Select(x => $"{x.Name}\n{x.Value}"));
-    scoreInfo = scoreInfo.Replace("**", ""); // We ignore any bold text
+      // If no beatmap URL was found, continue with the next message.
+      if (beatmapId is null)
+        continue;
 
-    // Try to find hits in the format of " [300/100/50/miss]" (owo) or " {300/100/50/miss}" (bathbot).
-    Match match = Regex.Match(scoreInfo, "[\\[{]\\s*\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\s*[\\]}]");
-    int? count100 = match.Success ? int.Parse(match.Groups[1].Value) : null;
-    int? count50 = match.Success ? int.Parse(match.Groups[2].Value) : null;
-    int? misses = match.Success ? int.Parse(match.Groups[3].Value) : null;
+      // Try to find further information in the embed by generating a big score info string with the author, description and fields.
+      string? scoreInfo = beatmapEmbed!.Author + "\n" + beatmapEmbed.Description + "\n"
+                        + string.Join("\n", beatmapEmbed.Fields.Select(x => $"{x.Name}\n{x.Value}"));
+      scoreInfo = scoreInfo.Replace("**", ""); // We ignore any bold text
 
-    // Try to find a combo in the format of " x<number>/<number> " (owo) or " <number>x/<number>x " (bathbot).
-    match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
-    int? combo = match.Success ? int.Parse(match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value) : null;
+      // Try to find hits in the format of " [300/100/50/miss]" (owo) or " {300/100/50/miss}" (bathbot).
+      Match match = Regex.Match(scoreInfo, "[\\[{]\\s*\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\s*[\\]}]");
+      int? count100 = match.Success ? int.Parse(match.Groups[1].Value) : null;
+      int? count50 = match.Success ? int.Parse(match.Groups[2].Value) : null;
+      int? misses = match.Success ? int.Parse(match.Groups[3].Value) : null;
 
-    // Try to find the mods in the format of " +<mod1><mod2...> ".
-    match = Regex.Match(scoreInfo, "\\+\\s*([A-Z]+)");
-    string? mods = match.Success ? match.Groups[1].Value : null;
+      // Try to find a combo in the format of " x<number>/<number> " (owo) or " <number>x/<number>x " (bathbot).
+      match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
+      int? combo = match.Success ? int.Parse(match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value) : null;
 
-    // If not all information was found, only return the beatmap id.
-    if (combo is null || count100 is null || count50 is null || misses is null || mods is null)
-      return new EmbedScoreInfo(beatmapId.Value);
+      // Try to find the mods in the format of " +<mod1><mod2...> ".
+      match = Regex.Match(scoreInfo, "\\+\\s*([A-Z]+)");
+      string? mods = match.Success ? match.Groups[1].Value : null;
 
-    // Return the embed score info with all found values.
-    return new EmbedScoreInfo(beatmapId.Value, count100.Value, count50.Value, misses.Value, combo.Value, mods);
+      // If not all information was found, only return the beatmap id.
+      if (combo is null || count100 is null || count50 is null || misses is null || mods is null)
+        return new EmbedScoreInfo(beatmapId.Value);
+
+      // Return the embed score info with all found values.
+      return new EmbedScoreInfo(beatmapId.Value, count100.Value, count50.Value, misses.Value, combo.Value, mods);
+    }
+
+    return null;
   }
 }
 

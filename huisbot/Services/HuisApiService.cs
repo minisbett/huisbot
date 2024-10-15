@@ -2,6 +2,7 @@
 using huisbot.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
 
@@ -70,19 +71,20 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   }
 
   /// <summary>
-  /// Returns the player calculation queue of all of Huismetbenen from the API.
+  /// Returns the player calculation queue of the specified rework from the API.
   /// </summary>
+  /// <param name="reworkId">The ID of the rework.</param>
   /// <returns>The player calculation queue.</returns>
-  public async Task<HuisQueue?> GetQueueAsync()
+  public async Task<int[]?> GetQueueAsync(int reworkId)
   {
     try
     {
-      // Get the reworks from the API.
-      string json = await _http.GetStringAsync("queue/list");
-      HuisQueue? queue = JsonConvert.DeserializeObject<HuisQueue>(json);
-
-      // Check whether the deserialized json is valid.
-      return queue is null || queue.Entries is null ? throw new Exception("Deserialization of JSON returned null.") : queue;
+      // Get the json from the Huis API and parse the objects in the queue property.
+      string json = await _http.GetStringAsync($"queue/list?rework={reworkId}");
+      JObject[]? entries = JObject.Parse(json)["queue"]?.ToObject<JObject[]>();
+      
+      // Check whether the deserialized json is valid and select the user id of each entry.
+      return entries?.Select(x => x["user_id"]!.Value<int>()).ToArray() ?? throw new Exception("Deserialization of JSON returned null.");
     }
     catch (Exception ex)
     {
