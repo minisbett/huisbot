@@ -1,4 +1,5 @@
-﻿using huisbot.Utilities;
+﻿using huisbot.Models.Osu;
+using huisbot.Utilities;
 using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
@@ -149,25 +150,13 @@ public class HuisSimulationResponse
     /// The mods of the score, in the osu-tools format.
     /// </summary>
     [JsonProperty("mods")]
-    private HuisSimulationScoreMod[] OsuMods { get; set; } = [];
+    private OsuMod[] OsuMods { get; set; } = [];
 
     /// <summary>
     /// The hit statistics of the score.
     /// </summary>
     [JsonProperty("statistics")]
     public HuisSimulationScoreStatistics Statistics { get; private set; } = null!;
-  }
-
-  /// <summary>
-  /// Represents a mod of a <see cref="HuisSimulatedScore"/> in the osu-tools format.
-  /// </summary>
-  public class HuisSimulationScoreMod
-  {
-    /// <summary>
-    /// The acronym of the mod.
-    /// </summary>
-    [JsonProperty("acronym")]
-    public string Acronym { get; private set; } = null!;
   }
 
   /// <summary>

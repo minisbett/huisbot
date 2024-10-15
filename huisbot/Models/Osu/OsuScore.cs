@@ -4,7 +4,6 @@ namespace huisbot.Models.Osu;
 
 /// <summary>
 /// Represents a score from the osu! API v2.
-/// Precise Model documented in osu-web: https://github.com/ppy/osu-web/blob/master/resources/js/interfaces/score-json.ts
 /// </summary>
 public class OsuScore
 {
@@ -30,7 +29,7 @@ public class OsuScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string[] Mods { get; private set; } = [];
+  public OsuMod[] Mods { get; private set; } = [];
 
     /// <summary>
   /// The user of the score.
