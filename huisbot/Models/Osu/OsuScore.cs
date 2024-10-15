@@ -7,6 +7,13 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuScore
 {
+
+  /// <summary>
+  /// The accuracy of the score.
+  /// </summary>
+  [JsonProperty("accuracy")]
+  public double Accuracy { get; private set; }
+
   /// <summary>
   /// The beatmap of the score.
   /// </summary>
@@ -27,6 +34,12 @@ public class OsuScore
 
   /// <summary>
   /// The mods of the score.
+  /// </summary>
+  [JsonIgnore]
+  public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
+
+  /// <summary>
+  /// The mods of the score, in the osu!lazer APIMod format.
   /// </summary>
   [JsonProperty("mods")]
   public OsuMod[] Mods { get; private set; } = [];

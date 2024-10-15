@@ -25,7 +25,7 @@ public class HuisSimulationResponse
   /// The simulated score.
   /// </summary>
   [JsonProperty("score")]
-  public HuisSimulationScore Score { get; private set; } = null!;
+  public OsuScore Score { get; private set; } = null!;
 
   /// <summary>
   /// Represents the difficulty attributes in a <see cref="HuisSimulationResponse"/>.
@@ -121,71 +121,5 @@ public class HuisSimulationResponse
     /// </summary>
     [JsonProperty("reading")]
     public double? ReadingPP { get; private set; }
-  }
-
-  /// <summary>
-  /// Represents the score in a <see cref="HuisSimulationResponse"/>.
-  /// </summary>
-  public class HuisSimulationScore
-  {
-    /// <summary>
-    /// The accuracy of the score.
-    /// </summary>
-    [JsonProperty("accuracy")]
-    public double Accuracy { get; private set; }
-
-    /// <summary>
-    /// The maximum combo of the score.
-    /// </summary>
-    [JsonProperty("combo")]
-    public int MaxCombo { get; private set; }
-
-    /// <summary>
-    /// The mods of the score.
-    /// </summary>
-    [JsonIgnore]
-    public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
-
-    /// <summary>
-    /// The mods of the score, in the osu!lazer APIMod format.
-    /// </summary>
-    [JsonProperty("mods")]
-    private OsuMod[] OsuMods { get; set; } = [];
-
-    /// <summary>
-    /// The hit statistics of the score.
-    /// </summary>
-    [JsonProperty("statistics")]
-    public HuisSimulationScoreStatistics Statistics { get; private set; } = null!;
-  }
-
-  /// <summary>
-  /// Represents the hit statistics of a <see cref="HuisSimulatedScore"/>.
-  /// </summary>
-  public class HuisSimulationScoreStatistics
-  {
-    /// <summary>
-    /// The amount of 300s/greats in the score.
-    /// </summary>
-    [JsonProperty("great")]
-    public int Count300 { get; private set; }
-
-    /// <summary>
-    /// The amount of 100s/oks in the score.
-    /// </summary>
-    [JsonProperty("ok")]
-    public int Count100 { get; private set; }
-
-    /// <summary>
-    /// The amount of 50s/mehs in the score.
-    /// </summary>
-    [JsonProperty("meh")]
-    public int Count50 { get; private set; }
-
-    /// <summary>
-    /// The amount of misses in the score.
-    /// </summary>
-    [JsonProperty("miss")]
-    public int Misses { get; private set; }
   }
 }
