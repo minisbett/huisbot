@@ -205,7 +205,8 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
         return NotFoundOr<OsuScore>.NotFound;
 
       // Parse the score object and either return it or null.
-      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(await response.Content.ReadAsStringAsync());
+      string json = await response.Content.ReadAsStringAsync();
+      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
       return score?.WasFound();
     }
     catch (Exception ex)

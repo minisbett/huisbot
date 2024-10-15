@@ -56,7 +56,7 @@ public partial class MiscellaneousCommandModule
 
       // Replace all unset parameters with the attributes of the score.
       beatmapId = score.Beatmap.Id.ToString();
-      modsStr ??= string.Join("", score.Mods);
+      modsStr ??= score.Mods.ToString();
     }
 
     // Parse the mods into a mods object.

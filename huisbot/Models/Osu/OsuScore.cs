@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Utilities;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
@@ -7,6 +8,12 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuScore
 {
+  /// <summary>
+  /// The accuracy of the score.
+  /// </summary>
+  [JsonProperty("accuracy")]
+  public double Accuracy { get; private set; }
+
   /// <summary>
   /// The beatmap of the score.
   /// </summary>
@@ -20,7 +27,7 @@ public class OsuScore
   public OsuScoreBeatmapSet BeatmapSet { get; private set; } = new OsuScoreBeatmapSet();
 
   /// <summary>
-  /// The maximum combo of the score.
+  /// The maximum achieved combo of the score.
   /// </summary>
   [JsonProperty("max_combo")]
   public int MaxCombo { get; private set; }
@@ -28,20 +35,26 @@ public class OsuScore
   /// <summary>
   /// The mods of the score.
   /// </summary>
+  [JsonIgnore]
+  public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
+
+  /// <summary>
+  /// The mods of the score, in the osu!lazer APIMod format.
+  /// </summary>
   [JsonProperty("mods")]
-  public string[] Mods { get; private set; } = [];
+  private OsuMod[] OsuMods { get; set; } = [];
+
+    /// <summary>
+  /// The user of the score.
+  /// </summary>
+  [JsonProperty("user")]
+  public OsuScoreUser User { get; private set; } = new OsuScoreUser();
 
   /// <summary>
   /// The statistics (300s, 100s, 50s, misses) of the score.
   /// </summary>
   [JsonProperty("statistics")]
   public OsuScoreStatistics Statistics { get; private set; } = new OsuScoreStatistics();
-
-  /// <summary>
-  /// The user of the score.
-  /// </summary>
-  [JsonProperty("user")]
-  public OsuScoreUser User { get; private set; } = new OsuScoreUser();
 
   /// <summary>
   /// Represents the <see cref="Beatmap"/> component of the <see cref="OsuScore"/> type.
@@ -81,25 +94,25 @@ public class OsuScore
     /// <summary>
     /// The amount of 300s in the score.
     /// </summary>
-    [JsonProperty("count_300")]
+    [JsonProperty("great")]
     public int Count300 { get; private set; }
 
     /// <summary>
     /// The amount of 100s in the score.
     /// </summary>
-    [JsonProperty("count_100")]
+    [JsonProperty("ok")]
     public int Count100 { get; private set; }
 
     /// <summary>
     /// The amount of 50s in the score.
     /// </summary>
-    [JsonProperty("count_50")]
+    [JsonProperty("meh")]
     public int Count50 { get; private set; }
 
     /// <summary>
     /// The amount of misses in the score.
     /// </summary>
-    [JsonProperty("count_miss")]
+    [JsonProperty("miss")]
     public int Misses { get; private set; }
   }
 

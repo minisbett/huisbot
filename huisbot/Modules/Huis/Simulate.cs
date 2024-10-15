@@ -78,7 +78,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
       count100 ??= score.Statistics.Count100;
       count50 ??= score.Statistics.Count50;
       misses ??= score.Statistics.Misses;
-      modsStr ??= string.Join("", score.Mods);
+      modsStr ??= score.Mods.ToString();
     }
 
     // Parse the mods into a mods object.
