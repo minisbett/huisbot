@@ -3,11 +3,10 @@ using Newtonsoft.Json;
 namespace huisbot.Models.Osu;
 
 /// <summary>
-/// Represents an osu!lazer API Mod from the osu! API or Huismetbenen's score simulation.
+/// Represents an osu!lazer API Mod from the osu! API (<see cref="OsuScore"/>) or Huismetbenen score simulation (<see cref="Huis.HuisSimulationResponse"/>).
 /// </summary>
 public class OsuMod
 {
-
   /// <summary>
   /// The mod acronym. (eg. "DT")
   /// </summary>
