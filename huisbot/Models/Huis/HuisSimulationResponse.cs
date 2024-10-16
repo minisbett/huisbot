@@ -28,6 +28,42 @@ public class HuisSimulationResponse
   public OsuScore Score { get; private set; } = null!;
 
   /// <summary>
+  /// Represents the score in a <see cref="HuisSimulationResponse"/>.
+  /// </summary>
+  public class HuisSimulationScore
+  {
+    /// <summary>
+    /// The accuracy of the score.
+    /// </summary>
+    [JsonProperty("accuracy")]
+    public double Accuracy { get; private set; }
+
+    /// <summary>
+    /// The maximum combo of the score.
+    /// </summary>
+    [JsonProperty("combo")]
+    public int MaxCombo { get; private set; }
+
+    /// <summary>
+    /// The mods of the score.
+    /// </summary>
+    [JsonIgnore]
+    public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
+
+    /// <summary>
+    /// The mods of the score, in the osu!lazer APIMod format.
+    /// </summary>
+    [JsonProperty("mods")]
+    private OsuMod[] OsuMods { get; set; } = [];
+
+    /// <summary>
+    /// The hit statistics of the score.
+    /// </summary>
+    [JsonProperty("statistics")]
+    public OsuScore.OsuScoreStatistics Statistics { get; private set; } = null!;
+  }
+
+  /// <summary>
   /// Represents the difficulty attributes in a <see cref="HuisSimulationResponse"/>.
   /// </summary>
   public class HuisSimulationDifficultyAttributes
@@ -114,7 +150,7 @@ public class HuisSimulationResponse
     /// The flashlight PP of the simulated score.
     /// </summary>
     [JsonProperty("flashlight")]
-    public double? FLPP { get; private set; }
+    public double FLPP { get; private set; }
 
     /// <summary>
     /// The reading PP of the simulated score.

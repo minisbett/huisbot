@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Utilities;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
@@ -7,7 +8,6 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuScore
 {
-
   /// <summary>
   /// The accuracy of the score.
   /// </summary>
@@ -33,6 +33,12 @@ public class OsuScore
   public int MaxCombo { get; private set; }
 
   /// <summary>
+  /// The ID of the ruleset this score was set in. (0 = osu!std, 1 = osu!taiko, ...)
+  /// </summary>
+  [JsonProperty("ruleset_id")]
+  public int RulesetId { get; private set; }
+
+  /// <summary>
   /// The mods of the score.
   /// </summary>
   [JsonIgnore]
@@ -42,7 +48,7 @@ public class OsuScore
   /// The mods of the score, in the osu!lazer APIMod format.
   /// </summary>
   [JsonProperty("mods")]
-  public OsuMod[] Mods { get; private set; } = [];
+  private OsuMod[] OsuMods { get; set; } = [];
 
     /// <summary>
   /// The user of the score.
