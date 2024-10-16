@@ -249,6 +249,9 @@ internal static class Embeds
     if (local.PerformanceAttributes.ReadingPP is not null)
       ppStr += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
 
+    // Add blank lines to fill up the pp comparison to match the line count of the score info (6 lines in total).
+    ppStr += string.Join("", Enumerable.Repeat("\n", Math.Max(0, 5 - ppStr.Count(x => x == '\n'))));
+
     // Construct some more strings for the embed.
     double refDiff = reference.DifficultyAttributes.DifficultyRating;
     double localDiff = local.DifficultyAttributes.DifficultyRating;
@@ -257,21 +260,19 @@ internal static class Embeds
     string comparison3 = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
     string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
     string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
+    string visualizer = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
     string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** " +
                     $"▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}**";
+    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ {visualizer}";
     string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
-    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
     string huisRework = $"[Huis Rework]({rework.Url})";
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({comparison1}★)")
-      .WithDescription($"{huisRework} • {github} • {visualizer} • {osu}")
-      .AddField(comparison2, $"{ppStr}", true)
+      .AddField(comparison2, $"{ppStr}▸ {huisRework} • {github}", true)
       .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
