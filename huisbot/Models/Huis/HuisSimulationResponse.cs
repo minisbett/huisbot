@@ -150,7 +150,7 @@ public class HuisSimulationResponse
     /// The flashlight PP of the simulated score.
     /// </summary>
     [JsonProperty("flashlight")]
-    public double? FLPP { get; private set; }
+    public double FLPP { get; private set; }
 
     /// <summary>
     /// The reading PP of the simulated score.

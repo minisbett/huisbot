@@ -244,9 +244,9 @@ internal static class Embeds
     ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
     ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
     ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
-    if (local.PerformanceAttributes.FLPP is not null)
-      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
-    if (local.PerformanceAttributes.ReadingPP is not null)
+    if (local.PerformanceAttributes.FLPP + reference.PerformanceAttributes.FLPP > 0) // Check if both are 0 => FL PP probably doesn't exist
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
+    if (local.PerformanceAttributes.ReadingPP is not null) // For reading PP, if not available it's null instead of 0 as it is with FL
       ppStr += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
 
     // Add blank lines to fill up the pp comparison to match the line count of the score info (6 lines in total).
