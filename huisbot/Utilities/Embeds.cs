@@ -239,44 +239,44 @@ internal static class Embeds
   /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
   public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
   {
-    // Construct the PP info string.
-    string ppStr = $"▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
-    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
-    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
-    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
+    // Construct the PP info field.
+    string ppFieldTitle = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
+    string ppFieldText = $"▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
+    ppFieldText += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
+    ppFieldText += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
+    ppFieldText += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
     if (local.PerformanceAttributes.FLPP + reference.PerformanceAttributes.FLPP > 0) // Check if both are 0 => FL PP probably doesn't exist
-      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
+      ppFieldText += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
     if (local.PerformanceAttributes.ReadingPP is not null) // For reading PP, if not available it's null instead of 0 as it is with FL
-      ppStr += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
+      ppFieldText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
 
-    // Add blank lines to fill up the pp comparison to match the line count of the score info (6 lines in total).
-    ppStr += string.Join("", Enumerable.Repeat("\n", Math.Max(0, 5 - ppStr.Count(x => x == '\n'))));
+    // Construct the score info field.
+    string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
+    scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
+    scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    if(local.PerformanceAttributes.Deviation is not null)
+      scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
+
+    // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
+    ppFieldText += "".PadLeft(scoreFieldText.Split('\n').Length - ppFieldText.Split('\n').Length, '\n');
+    ppFieldText += $"▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
 
     // Construct some more strings for the embed.
-    double refDiff = reference.DifficultyAttributes.DifficultyRating;
-    double localDiff = local.DifficultyAttributes.DifficultyRating;
-    string comparison1 = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
-    string comparison2 = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
-    string comparison3 = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
-    string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
-    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
-    string visualizer = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** " +
-                    $"▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ {visualizer}";
-    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
-    string huisRework = $"[Huis Rework]({rework.Url})";
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
+    string diffComparison = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
+    string title = $"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)";
+    string reworkComparison = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({comparison1}★)")
-      .AddField(comparison2, $"{ppStr}▸ {huisRework} • {github}", true)
-      .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
+      .WithTitle(title)
+      .AddField(ppFieldTitle, ppFieldText, true)
+      .AddField("Score Info", scoreFieldText, true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
-      .WithFooter($"{comparison3} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+      .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
 
