@@ -93,7 +93,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     HuisSimulationRequest request = new(beatmap.Id, rework, mods.Array, combo, count100, count50, misses);
 
     // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, rework == refRework ? null : refRework, false));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
