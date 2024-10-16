@@ -10,39 +10,29 @@ namespace huisbot.Services;
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
 /// </summary>
-public class OsuApiService
+public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
 {
-  private readonly HttpClient _http;
-  private readonly ILogger<OsuApiService> _logger;
+  private readonly HttpClient _http = httpClientFactory.CreateClient("osuapi");
 
   /// <summary>
   /// The API key for the osu! v1 API.
   /// </summary>
-  private readonly string _apiKey;
+  private readonly string _apiKey = config["OSU_API_KEY"] ?? throw new InvalidOperationException("The environment variable 'OSU_API_KEY' is not set.");
 
   /// <summary>
   /// The client ID for the osu! v2 API.
   /// </summary>
-  private readonly string _clientId;
+  private readonly string _clientId = config["OSU_OAUTH_CLIENT_ID"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_ID' is not set.");
 
   /// <summary>
   /// The client secret for the osu! v2 API.
   /// </summary>
-  private readonly string _clientSecret;
+  private readonly string _clientSecret = config["OSU_OAUTH_CLIENT_SECRET"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_SECRET' is not set.");
 
   /// <summary>
   /// The date when the API v2 access token expires.
   /// </summary>
   private DateTimeOffset _accessTokenExpiresAt = DateTimeOffset.MinValue;
-
-  public OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
-  {
-    _http = httpClientFactory.CreateClient("osuapi");
-    _apiKey = config["OSU_API_KEY"] ?? throw new InvalidOperationException("The environment variable 'OSU_API_KEY' is not set.");
-    _clientId = config["OSU_OAUTH_CLIENT_ID"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_ID' is not set.");
-    _clientSecret = config["OSU_OAUTH_CLIENT_SECRET"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_SECRET' is not set.");
-    _logger = logger;
-  }
 
   /// <summary>
   /// Returns a bool whether a connection to the osu! v1 API can be established.
@@ -63,7 +53,7 @@ public class OsuApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
+      logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
       return false;
     }
   }
@@ -91,7 +81,7 @@ public class OsuApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("IsV2Available() returned false: {Message}", ex.Message);
+      logger.LogError("IsV2Available() returned false: {Message}", ex.Message);
       return false;
     }
   }
@@ -106,7 +96,7 @@ public class OsuApiService
     if (DateTimeOffset.Now < _accessTokenExpiresAt)
       return true;
 
-    _logger.LogInformation("The osu! API v2 access token has expired. Requesting a new one...");
+    logger.LogInformation("The osu! API v2 access token has expired. Requesting a new one...");
 
     try
     {
@@ -133,11 +123,11 @@ public class OsuApiService
       _http.DefaultRequestHeaders.Remove("Authorization");
       _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.access_token}");
       _accessTokenExpiresAt = DateTimeOffset.Now.AddSeconds((int)result.expires_in - 10);
-      _logger.LogInformation("The osu! API v2 access token has been updated and expires at {date}.", _accessTokenExpiresAt);
+      logger.LogInformation("The osu! API v2 access token has been updated and expires at {date}.", _accessTokenExpiresAt);
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to request an osu! API v2 access token: {Message}", ex.Message);
+      logger.LogError("Failed to request an osu! API v2 access token: {Message}", ex.Message);
       return false;
     }
 
@@ -165,7 +155,7 @@ public class OsuApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the user with identifier \"{Identifier}\" from the osu! API: {Message}", identifier, ex.Message);
+      logger.LogError("Failed to get the user with identifier \"{Identifier}\" from the osu! API: {Message}", identifier, ex.Message);
       return null;
     }
   }
@@ -191,7 +181,7 @@ public class OsuApiService
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
+      logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
       return null;
     }
   }
@@ -214,13 +204,16 @@ public class OsuApiService
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
 
-      // Parse the score object and either return it or null.
-      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(await response.Content.ReadAsStringAsync());
-      return score?.WasFound();
+      // Parse the score object.
+      string json = await response.Content.ReadAsStringAsync();
+      OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
+
+      // If the score is non-standard, reject it as only standard is supported.
+      return score?.RulesetId > 0 ? NotFoundOr<OsuScore>.NotFound : score?.WasFound();
     }
     catch (Exception ex)
     {
-      _logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}",
+      logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}",
         scoreId, ex.Message);
       return null;
     }

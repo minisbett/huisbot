@@ -75,20 +75,20 @@ public class HuisRework
   /// <summary>
   /// Bool whether the rework is the live pp system.
   /// </summary>
-  public bool IsLive => Id == LiveId;
+  public bool IsLive => ReworkType == "LIVE";
 
   /// <summary>
-  /// Bool whether the rework is public or not.
+  /// Bool whether the rework is public or not. If the rework is live, confirmed or historic this is false.
   /// </summary>
   public bool IsPublic => ReworkType?.StartsWith("REWORK_PUBLIC") ?? false;
 
   /// <summary>
-  /// Bool whether the rework is active or not.
+  /// Bool whether the rework is marked as active or not.
   /// </summary>
   public bool IsActive => !ReworkType?.EndsWith("INACTIVE") ?? false;
 
   /// <summary>
-  /// Bool whether the rework is historic.
+  /// Bool whether the rework is historic. 
   /// </summary>
   public bool IsHistoric => ReworkType == "HISTORIC";
 

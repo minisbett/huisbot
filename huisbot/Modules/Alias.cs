@@ -16,22 +16,15 @@ namespace huisbot.Modules;
 public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 {
   [Group("beatmap", "Commands for adding, removing and listing beatmap aliases.")]
-  public class BeatmapAliasCommandModule : ModuleBase
+  public class BeatmapAliasCommandModule(OsuApiService osu, PersistenceService persistence) : ModuleBase(osu: osu)
   {
-    private readonly PersistenceService _persistence;
-
-    public BeatmapAliasCommandModule(OsuApiService osu, PersistenceService persistence) : base(osu: osu)
-    {
-      _persistence = persistence;
-    }
-
     [SlashCommand("list", "Lists all existing beatmap aliases.")]
     public async Task HandleListAsync()
     {
       await DeferAsync();
 
       // Return the list of beatmap aliases in an embed.
-      await FollowupAsync(embed: Embeds.BeatmapAliases(await _persistence.GetBeatmapAliasesAsync()));
+      await FollowupAsync(embed: Embeds.BeatmapAliases(await persistence.GetBeatmapAliasesAsync()));
     }
 
     [SlashCommand("add", "Adds a beatmap alias.")]
@@ -49,7 +42,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias already exists.
-      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{alias.BeatmapId})"));
@@ -63,7 +56,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Add the beatmap alias.
       string displayName = $"{beatmap.Title} [{beatmap.Version}]";
-      await _persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
+      await persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
       await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/b/{beatmapId})"));
     }
 
@@ -81,7 +74,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias exists.
-      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` does not exist."));
@@ -89,7 +82,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the beatmap alias.
-      await _persistence.RemoveBeatmapAliasAsync(alias);
+      await persistence.RemoveBeatmapAliasAsync(alias);
       await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` was successfully removed."));
     }
 
@@ -108,7 +101,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias exists.
-      BeatmapAlias? alias = await _persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await base.FollowupAsync(embed: Embeds.Error($"The beatmap alias `{alias}` does not exist."));
@@ -116,7 +109,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the new name is already taken.
-      BeatmapAlias? _alias = await _persistence.GetBeatmapAliasAsync(newName);
+      BeatmapAlias? _alias = await persistence.GetBeatmapAliasAsync(newName);
       if (_alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{newName}` already exists.\n[{_alias.DisplayName}](https://osu.ppy.sh/b/{_alias.BeatmapId})"));
@@ -124,29 +117,22 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the beatmap alias and add the new one.
-      await _persistence.RemoveBeatmapAliasAsync(alias);
-      await _persistence.AddBeatmapAliasAsync(newName, alias.BeatmapId, alias.DisplayName);
+      await persistence.RemoveBeatmapAliasAsync(alias);
+      await persistence.AddBeatmapAliasAsync(newName, alias.BeatmapId, alias.DisplayName);
       await base.FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has been renamed to `{newName}`."));
     }
   }
 
   [Group("score", "Commands for adding, removing and listing score aliases.")]
-  public class ScoreAliasCommandModule : ModuleBase
+  public class ScoreAliasCommandModule(OsuApiService osu, PersistenceService persistence) : ModuleBase(osu: osu)
   {
-    private readonly PersistenceService _persistence;
-
-    public ScoreAliasCommandModule(OsuApiService osu, PersistenceService persistence) : base(osu: osu)
-    {
-      _persistence = persistence;
-    }
-
     [SlashCommand("list", "Lists all existing score aliases.")]
     public async Task HandleListAsync()
     {
       await DeferAsync();
 
       // Return the list of score aliases in an embed.
-      await FollowupAsync(embed: Embeds.ScoreAliases(await _persistence.GetScoreAliasesAsync()));
+      await FollowupAsync(embed: Embeds.ScoreAliases(await persistence.GetScoreAliasesAsync()));
     }
 
     [SlashCommand("add", "Adds a score alias.")]
@@ -164,7 +150,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the score alias already exists.
-      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await persistence.GetScoreAliasAsync(aliasText);
       if (alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{alias.ScoreId})"));
@@ -178,7 +164,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Add the score alias. 
       string displayName = $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]";
-      await _persistence.AddScoreAliasAsync(aliasText, scoreId, displayName);
+      await persistence.AddScoreAliasAsync(aliasText, scoreId, displayName);
       await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
     }
 
@@ -196,7 +182,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the score alias exists.
-      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await persistence.GetScoreAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` does not exist."));
@@ -204,7 +190,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the score alias.
-      await _persistence.RemoveScoreAliasAsync(alias);
+      await persistence.RemoveScoreAliasAsync(alias);
       await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` was successfully removed."));
     }
 
@@ -223,7 +209,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the score alias exists.
-      ScoreAlias? alias = await _persistence.GetScoreAliasAsync(aliasText);
+      ScoreAlias? alias = await persistence.GetScoreAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{alias}` does not exist."));
@@ -231,7 +217,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the new name is already taken.
-      ScoreAlias? _alias = await _persistence.GetScoreAliasAsync(newName);
+      ScoreAlias? _alias = await persistence.GetScoreAliasAsync(newName);
       if (_alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{newName}` already exists.\n[{_alias.DisplayName}](https://osu.ppy.sh/scores/osu/{_alias.ScoreId})"));
@@ -239,8 +225,8 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the score alias and add the new one.
-      await _persistence.RemoveScoreAliasAsync(alias);
-      await _persistence.AddScoreAliasAsync(newName, alias.ScoreId, alias.DisplayName);
+      await persistence.RemoveScoreAliasAsync(alias);
+      await persistence.AddScoreAliasAsync(newName, alias.ScoreId, alias.DisplayName);
       await base.FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has been renamed to `{newName}`."));
     }
   }

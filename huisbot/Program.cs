@@ -21,7 +21,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.5.1";
+  public const string VERSION = "2.6.0";
 
   /// <summary>
   /// The startup time of the application.
@@ -143,6 +143,7 @@ public class Program
         {
           client.BaseAddress = new Uri("https://osu.ppy.sh/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
+          client.DefaultRequestHeaders.Add("x-api-version", "20220705");
         });
 
         // Register our data context for accessing our database.

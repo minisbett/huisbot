@@ -10,7 +10,7 @@ namespace huisbot.Modules.Miscellaneous;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public partial class MiscellaneousCommandModule : ModuleBase
+public partial class MiscellaneousCommandModule
 {
   [SlashCommand("effmisscount", "Calculates the effective misscount based off the comboes, slider count, 100s & 50s and misses.")]
   public async Task HandleEffMissCountAsync(

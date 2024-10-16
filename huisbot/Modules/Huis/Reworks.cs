@@ -5,17 +5,15 @@ using huisbot.Models.Huis;
 using huisbot.Services;
 using huisbot.Utilities;
 
-namespace huisbot.Modules;
+namespace huisbot.Modules.Huis;
 
 /// <summary>
 /// The interaction module for the reworks command, displaying info about all reworks.
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ReworksCommandModule : ModuleBase
+public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public ReworksCommandModule(HuisApiService huis) : base(huis) { }
-
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
   {
@@ -31,8 +29,6 @@ public class ReworksCommandModule : ModuleBase
       reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
 
     // Filter out some rather uninteresting reworks if more than 25 reworks exist, as only up to 25 items can be displayed in a select menu.
-    if (reworks.Length > 25)
-      reworks = reworks.Where(x => !x.IsConfirmed).ToArray();
     if (reworks.Length > 25)
       reworks = reworks.Where(x => !x.IsHistoric).ToArray();
     if (reworks.Length > 25)
@@ -50,33 +46,26 @@ public class ReworksCommandModule : ModuleBase
       .Build();
 
     // Show the live "rework" by default and add the select menu to the reply.
-    await FollowupAsync(embed: Embeds.Rework(reworks.First(x => x.Code == "live")), components: component);
+    await FollowupAsync(embed: Embeds.Rework(reworks.First(x => x.Id == HuisRework.LiveId)), components: component);
   }
 }
 
 /// <summary>
 /// The interaction module for the rework select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule : ModuleBase
+public class ReworksComponentModule(HuisApiService huis) : ModuleBase(huis)
 {
-  public ReworksComponentModule(HuisApiService huis) : base(huis) { }
 
   /// <summary>
   /// Callback for interactions with the "rework" select menu from the <see cref="ReworksAsync"/> command.
   /// </summary>
-  /// <returns></returns>
   [ComponentInteraction("rework")]
   public async Task HandleAsync(string code)
   {
-    SocketMessageComponent interaction = (SocketMessageComponent)Context.Interaction;
-
     // Get all reworks and check whether the request was successful. If not, notify the user.
-    HuisRework? rework = (await GetReworksAsync(false))?.FirstOrDefault(x => x.Code == code);
+    HuisRework? rework = (await GetReworksAsync())?.FirstOrDefault(x => x.Code == code);
     if (rework is null)
-    {
-      await interaction.UpdateAsync(msg => msg.Embed = Embeds.InternalError("Failed to get the reworks from the Huis API."));
       return;
-    }
 
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
     if (rework.IsOnionLevel && !await IsOnionAsync(Context))
@@ -86,6 +75,6 @@ public class ReworksComponentModule : ModuleBase
     }
 
     // Show the selected rework.
-    await interaction.UpdateAsync(msg => msg.Embed = Embeds.Rework(rework));
+    await ((SocketMessageComponent)Context.Interaction).UpdateAsync(msg => msg.Embed = Embeds.Rework(rework));
   }
 }

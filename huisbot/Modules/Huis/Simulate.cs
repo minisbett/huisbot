@@ -12,10 +12,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule : ModuleBase
+public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
-  public SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : base(huis, osu, persistence) { }
-
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
@@ -38,21 +36,18 @@ public class SimulateCommandModule : ModuleBase
     // Check if either a beatmap ID or a score ID was specified, or if a recent bot message with a beatmap URL can be found.
     if (beatmapId is null && scoreId is null)
     {
-      // Look for a message with a score in the last 100 messages.
-      foreach (IMessage message in (await Context.Channel.GetMessagesAsync(100).FlattenAsync()))
-        if (Utils.FindScore(message) is EmbedScoreInfo score)
-        {
-          beatmapId = score.BeatmapId.ToString();
-          combo ??= score.Combo;
-          count100 ??= score.Count100;
-          count50 ??= score.Count50;
-          misses ??= score.Misses;
-          modsStr ??= score.Mods;
-          break;
-        }
+      // Look for a message with a score in the channel.
+      if (await Utils.FindOsuBotScore(Context) is EmbedScoreInfo score)
+      {
+        beatmapId = score.BeatmapId.ToString();
+        combo ??= score.Combo;
+        count100 ??= score.Count100;
+        count50 ??= score.Count50;
+        misses ??= score.Misses;
+        modsStr ??= score.Mods;
+      }
 
-
-      // If there was no beatmap ID found in the last 100 messages, respond with an error.
+      // If there was no beatmap ID found, respond with an error.
       if (beatmapId is null)
       {
         await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
@@ -83,7 +78,7 @@ public class SimulateCommandModule : ModuleBase
       count100 ??= score.Statistics.Count100;
       count50 ??= score.Statistics.Count50;
       misses ??= score.Statistics.Misses;
-      modsStr ??= string.Join("", score.Mods);
+      modsStr ??= score.Mods.ToString();
     }
 
     // Parse the mods into a mods object.
@@ -95,17 +90,10 @@ public class SimulateCommandModule : ModuleBase
       return;
 
     // Construct the simulation request.
-    HuisSimulationRequest request = new HuisSimulationRequest(beatmap.Id, rework)
-    {
-      Combo = combo,
-      Count100 = count100,
-      Count50 = count50,
-      Misses = misses,
-      Mods = mods.Array
-    };
+    HuisSimulationRequest request = new(beatmap.Id, rework, mods.Array, combo, count100, count50, misses);
 
     // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false, rework == refRework));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, rework == refRework ? null : refRework, false));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
@@ -116,12 +104,11 @@ public class SimulateCommandModule : ModuleBase
     HuisSimulationResponse? refScore = localScore;
     if (rework != refRework)
     {
-      // Switch the request to target the reference rework and update the simulation progress embed.
-      request.Rework = refRework;
+      // Update the simulation progress embed.
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Simulating(rework, refRework, true));
 
-      // Get the live result from the Huis API and check whether it was successful.
-      refScore = await SimulateScoreAsync(request);
+      // Get the reference rework result from the Huis API and check whether it was successful.
+      refScore = await SimulateScoreAsync(request.WithRework(refRework));
       if (refScore is null)
         return;
     }

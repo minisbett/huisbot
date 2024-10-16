@@ -6,7 +6,7 @@ namespace huisbot.Persistence;
 /// <summary>
 /// The database context for the SQL persistence in the application.
 /// </summary>
-public class Database : DbContext
+public class Database(DbContextOptions<Database> options) : DbContext(options)
 {
   /// <summary>
   /// The table containing links between osu! accounts and Discord accounts.
@@ -27,6 +27,4 @@ public class Database : DbContext
   /// The cache for scores simulated on Huismetbenen.
   /// </summary>
   public DbSet<CachedScoreSimulation> CachedScoreSimulations { get; set; }
-
-  public Database(DbContextOptions<Database> options) : base(options) { }
 }

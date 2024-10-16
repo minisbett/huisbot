@@ -102,7 +102,7 @@ internal static class Embeds
         .Split("\n\n")
         .SelectMany(section =>
         {
-          List<string> result = new List<string>();
+          List<string> result = [];
 
           // If the section is more than 1024 characters, split it up further.
           while (section.Length > 1024)
@@ -112,8 +112,8 @@ internal static class Embeds
             if (splitIndex <= 0) splitIndex = 1024;
 
             // Add the part before the split index to the result and remove it from the section.
-            result.Add(section.Substring(0, splitIndex).Trim() + (splitIndex == 1024 ? "..." : string.Empty));
-            section = section.Substring(splitIndex).Trim();
+            result.Add(section[..splitIndex].Trim() + (splitIndex == 1024 ? "..." : string.Empty));
+            section = section[splitIndex..].Trim();
           }
 
           // Add any remaining part that is less than or equal to 1024 characters
@@ -125,7 +125,7 @@ internal static class Embeds
         .ToList();
 
     EmbedBuilder embed = BaseEmbed
-    .WithTitle($"{rework.Id} {rework.Name} ({rework.Code})")
+    .WithTitle($"{rework.Id} {rework.Name} ({rework.Code}) v{rework.PPVersion}")
     .WithUrl($"{rework.Url}")
     .AddField("Description", descriptionParts[0]);
 
@@ -216,12 +216,12 @@ internal static class Embeds
   /// <param name="reference">The reference rework to simulate.</param>
   /// <param name="localDone">Bool whether the local score finished simulation.</param>
   /// <returns>An embed for displaying the score simulation progress.</returns>
-  public static Embed Simulating(HuisRework local, HuisRework reference, bool localDone, bool localOnly = false)
+  public static Embed Simulating(HuisRework local, HuisRework? reference, bool localDone)
   {
     // Build the status string.
     string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
     status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
-    if (!localOnly)
+    if (reference is not null)
       status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
 
     return BaseEmbed
@@ -239,42 +239,44 @@ internal static class Embeds
   /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
   public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
   {
-    // Construct the PP info string.
-    string ppStr = $"▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
-    ppStr += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
-    ppStr += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
-    ppStr += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
-    if (local.PerformanceAttributes.FLPP is not null)
-      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP ?? 0, local.PerformanceAttributes.FLPP.Value)}";
-    if (local.PerformanceAttributes.ReadingPP is not null)
-      ppStr += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
+    // Construct the PP info field.
+    string ppFieldTitle = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
+    string ppFieldText = $"▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}";
+    ppFieldText += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
+    ppFieldText += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
+    ppFieldText += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
+    if (local.PerformanceAttributes.FLPP + reference.PerformanceAttributes.FLPP > 0) // Check if both are 0 => FL PP probably doesn't exist
+      ppFieldText += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
+    if (local.PerformanceAttributes.ReadingPP is not null) // For reading PP, if not available it's null instead of 0 as it is with FL
+      ppFieldText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
+
+    // Construct the score info field.
+    string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
+    scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
+    scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    if(local.PerformanceAttributes.Deviation is not null)
+      scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
+
+    // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
+    ppFieldText += "".PadLeft(scoreFieldText.Split('\n').Length - ppFieldText.Split('\n').Length, '\n');
+    ppFieldText += $"▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
 
     // Construct some more strings for the embed.
-    double refDiff = reference.DifficultyAttributes.DifficultyRating;
-    double localDiff = local.DifficultyAttributes.DifficultyRating;
-    string comparison1 = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
-    string comparison2 = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
-    string comparison3 = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
-    string hits = $"{local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
-    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
-    string stats1 = $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    string stats2 = $"CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** " +
-                    $"▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
-    string stats3 = $"OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}**";
-    string stats4 = $"**{Utils.CalculateEstimatedUR(local.Score.Statistics, beatmap, local.Score.Mods):F2}** eUR";
-    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
-    string huisRework = $"[Huis Rework]({rework.Url})";
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
+    string diffComparison = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
+    string title = $"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)";
+    string reworkComparison = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
 
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({comparison1}★)")
-      .AddField(comparison2, $"{ppStr}\n\n{visualizer} • {osu}\n{huisRework} • {github}", true)
-      .AddField("Score Info", $"▸ {local.Score.Accuracy:N2}% ▸ {combo}\n▸ {hits}\n▸ {stats1}\n▸ {stats2}\n▸ {stats3}\n▸ {stats4}", true)
+      .WithTitle(title)
+      .AddField(ppFieldTitle, ppFieldText, true)
+      .AddField("Score Info", scoreFieldText, true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
-      .WithFooter($"{comparison3} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+      .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
 
@@ -294,14 +296,14 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The beatmap aliases.</param>
   /// <returns>An embed for displaying the beatmap aliases.</returns>
-  public static Embed BeatmapAliases(BeatmapAlias[] aliases)
+  public static Embed BeatmapAliases(IEnumerable<BeatmapAlias> aliases)
   {
     // Sort the aliases by alphabetical order.
-    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+    aliases = aliases.OrderBy(x => x.Alias);
 
     // Build the alias string.
     string aliasesStr = "*There are no beatmap aliases. You can add some via `/alias beatmap add`.*";
-    if (aliases.Length > 0)
+    if (aliases.Any())
     {
       aliasesStr = "";
       foreach (IGrouping<long, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
@@ -319,14 +321,14 @@ internal static class Embeds
   /// </summary>
   /// <param name="aliases">The score aliases.</param>
   /// <returns>An embed for displaying the score aliases.</returns>
-  public static Embed ScoreAliases(ScoreAlias[] aliases)
+  public static Embed ScoreAliases(IEnumerable<ScoreAlias> aliases)
   {
     // Sort the aliases by alphabetical order.
-    aliases = aliases.OrderBy(x => x.Alias).ToArray();
+    aliases = aliases.OrderBy(x => x.Alias);
 
     // Build the alias string.
     string aliasesStr = "*There are no score aliases. You can add some via `/alias score add`.*";
-    if (aliases.Length > 0)
+    if (aliases.Any())
     {
       aliasesStr = "";
       foreach (IGrouping<long, ScoreAlias> group in aliases.GroupBy(x => x.ScoreId))
@@ -350,12 +352,12 @@ internal static class Embeds
   public static Embed ScoreRankings(HuisScore[] allScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
-    };
+    ];
 
     int offset = (page - 1) * SCORES_PER_PAGE;
     foreach (HuisScore score in allScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE))
@@ -390,13 +392,13 @@ internal static class Embeds
   public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
   {
     // Generate the embed description.
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[osu! profile](https://osu.ppy.sh/u/{user.Id}) • [Huis Profile](https://pp.huismetbenen.nl/player/{user.Id}/{rework.Code})"
     + $" • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}",
       ""
-    };
+    ];
 
     // Go through all scores and populate the description.
     foreach (HuisScore score in sortedScores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE).ToArray())
@@ -437,15 +439,15 @@ internal static class Embeds
 
     // Generate the embed description.
     string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
-    List<string> description = new List<string>()
-    {
+    List<string> description =
+    [
       $"*{rework.Name}*",
       $"[Huis Rework]({rework.Url}) • {github}",
       ""
-    };
-    List<string> playerStrs = new List<string>();
-    List<string> ppOldStrs = new List<string>();
-    List<string> ppNewStrs = new List<string>();
+    ];
+    List<string> playerStrs = [];
+    List<string> ppOldStrs = [];
+    List<string> ppNewStrs = [];
     foreach (HuisPlayer player in players)
     {
       double oldPP = Math.Round(player.OldPP);
@@ -496,6 +498,40 @@ internal static class Embeds
     .Build();
 
   /// <summary>
+  /// Returns an embed for displaying the difficulty attributes of a score.
+  /// </summary>
+  /// <param name="score">The simulated score.</param>
+  /// <param name="rework">The rework.</param>
+  /// <param name="beatmap">The beatmap.</param>
+  /// <returns>An embed for displaying the difficulty attributes.</returns>
+  public static Embed DifficultyAttributes(HuisSimulationResponse score, HuisRework rework, OsuBeatmap beatmap)
+  {
+    // Construct some strings for the embed.
+    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";
+    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2}★**";
+    string strainCounts = $"Aim: **{score.DifficultyAttributes.AimDifficultStrainCount:N2}**\n"
+                        + $"Speed: **{score.DifficultyAttributes.SpeedDifficultStrainCount:N2}**";
+    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
+    string huisRework = $"[Huis Rework]({rework.Url})";
+    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+
+    return BaseEmbed
+    .WithColor(new Color(0x4061E9))
+      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
+      .AddField("Difficulty", difficulty, true)
+      .AddField("Difficult Strains", strainCounts, true)
+      .AddField("Slider Factor", $"{score.DifficultyAttributes.SliderFactor:N5}", true)
+      .AddField($"Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}", visualizer, true)
+      .AddField($"Max Combo: {beatmap.MaxCombo}x", osu, true)
+      .AddField($"OD {beatmap.GetAdjustedOD(score.Score.Mods):0.##} AR {beatmap.GetAdjustedAR(score.Score.Mods):0.##}", $"{huisRework} • {github}", true)
+      .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
+      .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
+      .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
+    .Build();
+  }
+
+  /// <summary>
   /// Returns an embed for displaying the feedback of a user.
   /// </summary>
   /// <param name="user">The Discord user submitting the feedback.</param>
@@ -541,9 +577,9 @@ internal static class Embeds
     string title = score.Title ?? "";
     string version = score.Version ?? "";
     if ($"{title} [{version}]".Length > 60 && version.Length > 27)
-      version = $"{version.Substring(0, 27)}...";
+      version = $"{version[..27]}...";
     if ($"{title} [{version}]".Length > 60)
-      title = $"{title.Substring(0, 27)}...";
+      title = $"{title[..27]}...";
 
     return $"{title} [{version}] {score.Mods.PlusString}".TrimEnd(' ');
   }
@@ -551,7 +587,7 @@ internal static class Embeds
   /// <summary>
   /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
   /// </summary>
-  private static readonly Dictionary<string, Emoji> _emojis = new Dictionary<string, Emoji>()
+  private static readonly Dictionary<string, Emoji> _emojis = new()
   {
     { "XH", new Emoji("rankSSH", 1159888184600170627) },
     { "X", new Emoji("rankSS", 1159888182075207740) },
@@ -585,17 +621,22 @@ internal static class Embeds
 /// <summary>
 /// Represents a Discord emoji with a name and ID.
 /// </summary>
-public class Emoji
+/// <remarks>
+/// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
+/// </remarks>
+/// <param name="name">The name of the emoji.</param>
+/// <param name="id">The ID of the emoji.</param>
+public class Emoji(string name, ulong id)
 {
   /// <summary>
   /// The name of the emoji.
   /// </summary>
-  public string Name { get; }
+  public string Name { get; } = name;
 
   /// <summary>
   /// The snowflake ID of the emoji.
   /// </summary>
-  public ulong Id { get; }
+  public ulong Id { get; } = id;
 
   /// <summary>
   /// Returns the asset url of this emoji.
@@ -606,15 +647,4 @@ public class Emoji
   /// Returns the emoji string representation of this emoji.
   /// </summary>
   public override string ToString() => $"<:{Name}:{Id}>";
-
-  /// <summary>
-  /// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
-  /// </summary>
-  /// <param name="name">The name of the emoji.</param>
-  /// <param name="id">The ID of the emoji.</param>
-  public Emoji(string name, ulong id)
-  {
-    Name = name;
-    Id = id;
-  }
 }

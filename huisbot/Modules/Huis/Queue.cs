@@ -13,10 +13,8 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class QueueCommandModule : ModuleBase
+public class QueueCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
 {
-  public QueueCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : base(huis, osu, persistence) { }
-
   [SlashCommand("queue", "Queues you or the specified player in the specified rework.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
@@ -48,14 +46,14 @@ public class QueueCommandModule : ModuleBase
       return;
 
     // Get the calculation queue.
-    HuisQueue? queue = await GetHuisQueueAsync();
+    int[]? queue = await GetHuisQueueAsync(rework.Id);
     if (queue is null)
       return;
 
     // Check whether the player is already queued. If so, notify the user.
-    if (queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == rework.Id))
+    if (queue.Contains(user.Id))
     {
-      await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the specified rework. Please try again later."));
+      await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the specified rework."));
       return;
     }
 
@@ -66,18 +64,18 @@ public class QueueCommandModule : ModuleBase
     // Asynchronously check whether the player is no longer in the queue and if so, notify the user.
     _ = Task.Run(async () =>
     {
-      // Wait an initial 20 seconds, since it's not only pointless to check immediately,
+      // Wait an initial 10 seconds, since it's not only pointless to check immediately,
       // but it also takes some time before the player appears in the queue.
-      await Task.Delay(20000);
+      await Task.Delay(10000);
 
       // Wait until the player is no longer in the queue.
       while (true)
       {
         // Check if the player is still in the queue.
-        queue = await GetHuisQueueAsync();
+        queue = await GetHuisQueueAsync(rework.Id);
         if (queue is null)
           return;
-        if (!queue.Entries!.Any(x => x.UserId == user.Id && x.ReworkId == rework.Id))
+        if (!queue.Contains(user.Id))
         {
           await FollowupAsync(embed: Embeds.Success($"`{user.Name}` has been successfully re-calculated."));
           break;
