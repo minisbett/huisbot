@@ -204,10 +204,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
 
-      // Parse the score object and either return it or null.
+      // Parse the score object.
       string json = await response.Content.ReadAsStringAsync();
       OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
-      return score?.WasFound();
+
+      // If the score is non-standard, reject it as only standard is supported.
+      return score?.RulesetId > 0 ? NotFoundOr<OsuScore>.NotFound : score?.WasFound();
     }
     catch (Exception ex)
     {

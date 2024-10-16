@@ -33,6 +33,12 @@ public class OsuScore
   public int MaxCombo { get; private set; }
 
   /// <summary>
+  /// The ID of the ruleset this score was set in. (0 = osu!std, 1 = osu!taiko, ...)
+  /// </summary>
+  [JsonProperty("ruleset_id")]
+  public int RulesetId { get; private set; }
+
+  /// <summary>
   /// The mods of the score.
   /// </summary>
   [JsonIgnore]
