@@ -23,14 +23,8 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   {
     try
     {
-      // Try to send a request to the base URL of the Huis API.
-      HttpResponseMessage response = await _http.GetAsync("");
-
-      // Check whether it returns the expected result.
-      if (!(await response.Content.ReadAsStringAsync()).Contains("<pre>Cannot GET /</pre>"))
-        throw new Exception("Result does not contain \"<pre>Cannot GET /</pre>\".");
-
-      return true;
+      // Try to send a request to the ping endpoint of the Huis API and return whether a success was reported.
+      return (await _http.GetAsync("ping")).IsSuccessStatusCode;
     }
     catch (Exception ex)
     {

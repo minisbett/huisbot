@@ -78,7 +78,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
       count100 ??= score.Statistics.Count100;
       count50 ??= score.Statistics.Count50;
       misses ??= score.Statistics.Misses;
-      modsStr ??= Mods.Parse(score.Mods.Select(x => x.Acronym).ToArray()).ToString();
+      modsStr ??= score.Mods.ToString();
     }
 
     // Parse the mods into a mods object.
@@ -93,7 +93,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     HuisSimulationRequest request = new(beatmap.Id, rework, mods.Array, combo, count100, count50, misses);
 
     // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, refRework, false));
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, rework == refRework ? null : refRework, false));
 
     // Get the local result from the Huis API and check whether it was successful.
     HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
