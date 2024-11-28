@@ -507,24 +507,29 @@ internal static class Embeds
   public static Embed DifficultyAttributes(HuisSimulationResponse score, HuisRework rework, OsuBeatmap beatmap)
   {
     // Construct some strings for the embed.
-    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";
-    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2}★**";
+    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2} ★**\n" 
+                      + $"Speed: **{score.DifficultyAttributes.SpeedDifficulty:N2} ★**";
+    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2} ★**";
     string strainCounts = $"Aim: **{score.DifficultyAttributes.AimDifficultStrainCount:N2}**\n"
                         + $"Speed: **{score.DifficultyAttributes.SpeedDifficultStrainCount:N2}**";
-    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
-    string huisRework = $"[Huis Rework]({rework.Url})";
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string mapAttributes = $"Max Combo: **{beatmap.MaxCombo}x**\n"
+                         + $"Overall Difficulty: {beatmap.GetAdjustedOD(score.Score.Mods):0.##}\n"
+                         + $"Approach Rate: {beatmap.GetAdjustedAR(score.Score.Mods):0.##}";
+    string other = $"Speed Notes: {score.DifficultyAttributes.SliderFactor:N5}\n"
+                 + $"Slider Factor: {score.DifficultyAttributes.SliderFactor:N5}\n";
+    string advanced = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • ";
+    advanced += $"[Huis Rework]({rework.Url}) • ";
+    advanced += rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
 
     return BaseEmbed
     .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
       .AddField("Difficulty", difficulty, true)
       .AddField("Difficult Strains", strainCounts, true)
-      .AddField("Slider Factor", $"{score.DifficultyAttributes.SliderFactor:N5}", true)
-      .AddField($"Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}", visualizer, true)
-      .AddField($"Max Combo: {beatmap.MaxCombo}x", osu, true)
-      .AddField($"OD {beatmap.GetAdjustedOD(score.Score.Mods):0.##} AR {beatmap.GetAdjustedAR(score.Score.Mods):0.##}", $"{huisRework} • {github}", true)
+      .AddField(" ", " ", true)
+      .AddField("Map Attributes", mapAttributes, true)
+      .AddField("Other", other + advanced, true)
+      .AddField(" ", " ", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
