@@ -12,7 +12,7 @@ public class Mods
   /// <summary>
   /// An array of valid mods in their community-agreed order.
   /// </summary>
-  private static readonly string[] VALID_MODS = "RXEZFLHDHTDTNCHRNFCL".Chunk(2).Select(x => new string(x)).ToArray();
+  private static readonly string[] VALID_MODS = "TDRXEZFLHDHTDTNCHRNFCL".Chunk(2).Select(x => new string(x)).ToArray();
 
   /// <summary>
   /// The mods of this <see cref="Mods"/> instance.
