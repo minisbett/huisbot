@@ -124,6 +124,10 @@ internal static class Embeds
         })
         .ToList();
 
+    // If the rework has no description, put a hint for that.
+    if (descriptionParts.Count == 0)
+      descriptionParts.Add("*This rework has no description.*");
+
     EmbedBuilder embed = BaseEmbed
     .WithTitle($"{rework.Id} {rework.Name} ({rework.Code}) v{rework.PPVersion}")
     .WithUrl($"{rework.Url}")
