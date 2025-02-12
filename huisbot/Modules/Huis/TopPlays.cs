@@ -20,7 +20,7 @@ public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, Persi
   /// This prevents those values from having to be fetched everytime the page is switched.
   /// </summary>
   private record PaginationCacheEntry(
-    OsuUser User, HuisScore[] Scores, HuisScore[] SortedScores, HuisRework Rework, Sort Sort);
+    OsuUser User, HuisScore[] Scores, HuisScore[] SortedScores, HuisRework Rework, Sort Sort, string ScoreType);
 
   /// <summary>
   /// A dictionary of entries of cached values for providing pagination via Discord message components with their unique ID.
@@ -32,6 +32,9 @@ public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, Persi
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
     [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null,
+    [Summary("type", "The type of top scores to return (top scores, flashlight scores or pinned scores).")]
+    [Choice("Top Scores", "topranks")] [Choice("Flashlight Scores", "flashlight")]
+    [Choice("Pinned Scores", "pinned")] string scoreType = "topranks",
     [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1,
     [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
     [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp_desc")
@@ -71,7 +74,7 @@ public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, Persi
       return;
 
     // Get the top plays of the player.
-    HuisScore[]? scores = await GetTopPlaysAsync(user, rework.Id);
+    HuisScore[]? scores = await GetTopPlaysAsync(user, rework.Id, scoreType);
     if (scores is null)
       return;
 
@@ -86,14 +89,14 @@ public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, Persi
 
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
-    _paginationCache[cacheId] = new PaginationCacheEntry(user, scores, sortedScores, rework, sort);
+    _paginationCache[cacheId] = new PaginationCacheEntry(user, scores, sortedScores, rework, sort, scoreType);
     int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
     // Return the embed to the user.
-    await FollowupAsync(embed: Embeds.TopPlays(user, scores, sortedScores, rework, sort, page), components: builder.Build());
+    await FollowupAsync(embed: Embeds.TopPlays(user, scores, sortedScores, rework, sort, scoreType, page), components: builder.Build());
   }
 
   [ComponentInteraction("topplays:page:*,*")]
@@ -114,7 +117,7 @@ public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, Persi
     // Modify the message with a new embed based on the cached values and requested page.
     await msg.ModifyAsync(x =>
     {
-      x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, page);
+      x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, entry.ScoreType, page);
       x.Components = builder.Build();
     });
   }

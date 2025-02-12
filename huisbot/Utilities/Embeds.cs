@@ -390,10 +390,11 @@ internal static class Embeds
   /// <param name="rawScores">All top plays in their original order. Used to display placement differences.</param>
   /// <param name="sortedScores">All top plays in their sorted order.</param>
   /// <param name="rework">The rework.</param>
-  /// <param name="page">The sorting for the scores.</param>
+  /// <param name="sort">The sorting for the scores.</param>
+  /// <param name="scoreType">The type of top scores being displayed.</param>
   /// <param name="page">The page being displayed.</param>
   /// <returns>An embed for displaying the top plays.</returns>
-  public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
+  public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, string scoreType, int page)
   {
     // Generate the embed description.
     List<string> description =
@@ -422,8 +423,16 @@ internal static class Embeds
                     $"{Math.Min(rawScores.Length, page * SCORES_PER_PAGE)} of {rawScores.Length} on page {page} of " +
                     $"{Math.Ceiling(rawScores.Length * 1d / SCORES_PER_PAGE)}.*");
 
+    string scoreTypeStr = scoreType switch
+    {
+      "topranks" => "Top Scores",
+      "flashlight" => "Flashlight Scores",
+      "pinned" => "Pinned Scores",
+      _ => "<unknown> Scores"
+    };
+
     return BaseEmbed
-      .WithTitle($"Top Plays of {user.Name} ({sort.DisplayName})")
+      .WithTitle($"{scoreTypeStr} of {user.Name} ({sort.DisplayName})")
       .WithDescription(string.Join("\n", description))
       .Build();
   }

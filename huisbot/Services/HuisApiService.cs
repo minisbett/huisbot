@@ -283,10 +283,11 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   /// </summary>
   /// <param name="playerId">The player ID.</param>
   /// <param name="reworkId">The rework ID.</param>
+  /// <param name="scoreType">The type of scores (topranks, flashlight or pinned).</param>
   /// <returns>The top plays of the specified player in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetTopPlaysAsync(int playerId, int reworkId)
+  public async Task<HuisScore[]?> GetTopPlaysAsync(int playerId, int reworkId, string scoreType)
   {
-    string url = $"/player/topscores/{playerId}/{reworkId}";
+    string url = $"/player/scores/{playerId}/{reworkId}/{scoreType}";
     try
     {
       // Get the top plays data from the API.

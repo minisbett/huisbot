@@ -281,11 +281,12 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   /// </summary>
   /// <param name="player">The player.</param>
   /// <param name="reworkId">The rework ID.</param>
+  /// <param name="scoreType">The type of scores (topranks, flashlight or pinned).</param>
   /// <returns>The top plays of the specified player in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetTopPlaysAsync(OsuUser player, int reworkId)
+  public async Task<HuisScore[]?> GetTopPlaysAsync(OsuUser player, int reworkId, string scoreType)
   {
     // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
-    HuisScore[]? scores = await huis.GetTopPlaysAsync(player.Id, reworkId);
+    HuisScore[]? scores = await huis.GetTopPlaysAsync(player.Id, reworkId, scoreType);
     if (scores is null)
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{player.Name}`."));
 
