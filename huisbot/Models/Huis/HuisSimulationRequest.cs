@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Text.RegularExpressions;
+﻿using huisbot.Models.Osu;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
 
@@ -9,16 +9,19 @@ namespace huisbot.Models.Huis;
 /// <remarks>
 /// Creates a new <see cref="HuisSimulationRequest"/> for the specified beatmap and rework.
 /// </remarks>
-/// <param name="beatmapId">The ID of the beatmap.</param>
-/// <param name="rework">The rework.</param>
-public class HuisSimulationRequest(int beatmapId, HuisRework rework, string[]? mods = null, int? combo = null, int? count100 = null,
+public class HuisSimulationRequest(int beatmapId, HuisRework rework, OsuMods mods, int? combo = null, int? count100 = null,
                                    int? count50 = null, int? misses = null)
 {
+  /// <summary>
+  /// The mods of the score in the osu!lazer APIMod format. This field is kept for cloning via <see cref="WithRework(HuisRework)"/>.
+  /// </summary>
+  private readonly OsuMods _mods = mods;
+
   /// <summary>
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string[]? Mods { get; } = mods;
+  public string[] Mods { get; } = mods.Select(x => x.Acronym).ToArray();
 
   /// <summary>
   /// The ID of the beatmap.
@@ -51,6 +54,12 @@ public class HuisSimulationRequest(int beatmapId, HuisRework rework, string[]? m
   public int? Misses { get; } = misses;
 
   /// <summary>
+  /// The clock rate of the score.
+  /// </summary>
+  [JsonProperty("clock_rate")]
+  public double ClockRate { get; } = mods.ClockRate;
+
+  /// <summary>
   /// The code of the rework. This property is used for JSON serialization for sending the request.
   /// </summary>
   [JsonProperty("rework")]
@@ -67,18 +76,11 @@ public class HuisSimulationRequest(int beatmapId, HuisRework rework, string[]? m
   /// </summary>
   /// <param name="rework">The rework the create the copy with.</param>
   /// <returns>The copy of the request with the specified rework.</returns>
-  public HuisSimulationRequest WithRework(HuisRework rework) => new(BeatmapId, rework, Mods, Combo, Count100, Count50, Misses);
+  public HuisSimulationRequest WithRework(HuisRework rework) => new(BeatmapId, rework, _mods, Combo, Count100, Count50, Misses);
 
   /// <summary>
-  /// Returns the JSON string for this calculation request, removing all json properties with null values.
+  /// Returns the JSON string for this calculation request.
   /// </summary>
   /// <returns>The JSON string.</returns>
-  public string ToJson()
-  {
-    // Convert this object to a JSON string.
-    string json = JsonConvert.SerializeObject(this, Formatting.Indented);
-
-    // Dirty workaround: Remove all lines that end with "null,", getting rid of all unset parameters.
-    return Regex.Replace(json, @"^.+null,\s*$", string.Empty, RegexOptions.Multiline);
-  }
+  public string ToJson() => JsonConvert.SerializeObject(this);
 }

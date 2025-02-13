@@ -24,6 +24,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="ReverseMarkdown" Version="4.6.0" />
     <PackageReference Include="ScottPlot" Version="4.1.74" />
   </ItemGroup>
 

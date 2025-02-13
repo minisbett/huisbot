@@ -45,16 +45,10 @@ public class HuisSimulationResponse
     public int MaxCombo { get; private set; }
 
     /// <summary>
-    /// The mods of the score.
-    /// </summary>
-    [JsonIgnore]
-    public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
-
-    /// <summary>
     /// The mods of the score, in the osu!lazer APIMod format.
     /// </summary>
     [JsonProperty("mods")]
-    private OsuMod[] OsuMods { get; set; } = [];
+    public OsuMods Mods { get; set; } = [];
 
     /// <summary>
     /// The hit statistics of the score.

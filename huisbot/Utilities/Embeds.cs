@@ -97,8 +97,14 @@ internal static class Embeds
   /// <returns>The embed for displaying the specified rework.</returns>
   public static Embed Rework(HuisRework rework)
   {
+    // Parse the rich text description of the rework.
+    string description = rework.Description!;
+    foreach (string tag in Enumerable.Range(1, 4).SelectMany(x => new string[] { $"<h{x}>", $"</h{x}>" }))
+      description = description.Replace(tag, "");
+    description = new ReverseMarkdown.Converter().Convert(description);
+
     // Divide the description in multiple parts due to the 1024 character limit.
-    List<string> descriptionParts = rework.Description!
+    List<string> descriptionParts = description
         .Split("\n\n")
         .SelectMany(section =>
         {
@@ -260,7 +266,7 @@ internal static class Embeds
     scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
     scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
     scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    if(local.PerformanceAttributes.Deviation is not null)
+    if (local.PerformanceAttributes.Deviation is not null)
       scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
 
     // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
@@ -594,7 +600,7 @@ internal static class Embeds
     if ($"{title} [{version}]".Length > 60)
       title = $"{title[..27]}...";
 
-    return $"{title} [{version}] {score.Mods.PlusString}".TrimEnd(' ');
+    return $"{title} [{version}] {score.Mods}".TrimEnd(' ');
   }
 
   /// <summary>

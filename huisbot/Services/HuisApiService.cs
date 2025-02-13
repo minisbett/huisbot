@@ -173,7 +173,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     try
     {
       // Send the score calculation request to the server and parse the response.
-      HttpResponseMessage response = await _http.PatchAsync("/calculate-score", new StringContent(request.ToJson(),
+      HttpResponseMessage response = await _http.PostAsync("/calculate-score", new StringContent(request.ToJson(),
         Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
       HuisSimulationResponse? simResponse = JsonConvert.DeserializeObject<HuisSimulationResponse>(json)

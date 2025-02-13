@@ -32,7 +32,7 @@ public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
     if (reworks.Length > 25)
       reworks = reworks.Where(x => !x.IsHistoric).ToArray();
     if (reworks.Length > 25)
-      reworks = reworks.Where(x => !x.IsActive).ToArray();
+      reworks = reworks.Where(x => x.IsActive).ToArray();
     if (reworks.Length > 25)
       reworks = reworks.Take(25).ToArray(); // As a "last resort", limit the reworks to 25
 

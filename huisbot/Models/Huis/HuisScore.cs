@@ -53,7 +53,7 @@ public class HuisScore
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public Mods Mods { get; private set; } = null!;
+  public string Mods { get; private set; } = null!;
 
   /// <summary>
   /// The amount of 300s/greats of the score.
@@ -135,7 +135,8 @@ public class HuisScore
 
   public override string ToString()
   {
-    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{Mods!.PlusString} " +
+    string mods = Mods == "" ? "" : $" +{Mods}";
+    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{mods} " +
            $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
   }
 }

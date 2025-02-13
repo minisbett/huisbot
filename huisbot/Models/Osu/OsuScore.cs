@@ -39,16 +39,10 @@ public class OsuScore
   public int RulesetId { get; private set; }
 
   /// <summary>
-  /// The mods of the score.
-  /// </summary>
-  [JsonIgnore]
-  public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
-
-  /// <summary>
   /// The mods of the score, in the osu!lazer APIMod format.
   /// </summary>
   [JsonProperty("mods")]
-  private OsuMod[] OsuMods { get; set; } = [];
+  public OsuMod[] Mods { get; private set; } = [];
 
     /// <summary>
   /// The user of the score.

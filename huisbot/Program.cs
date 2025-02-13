@@ -60,12 +60,6 @@ public class Program
     CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
     CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-    // Add custom JSON converters to the JsonConvert defaults.
-    JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
-    {
-      Converters = { new ModsConverter() }
-    };
-
     // Build the generic host.
     IHost host = Host.CreateDefaultBuilder()
       // Configure the host to use environment variables for the config.
