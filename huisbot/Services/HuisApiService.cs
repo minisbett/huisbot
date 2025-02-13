@@ -160,14 +160,14 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   }
 
   /// <summary>
-  /// Simulates the specified score simulation request via the Huis API and returns the result.
+  /// Calculates the specified score calculation request via the Huis API and returns the result.
   /// </summary>
   /// <param name="request">The score request.</param>
   /// <returns>The calculation result.</returns>
-  public async Task<HuisSimulationResponse?> SimulateAsync(HuisSimulationRequest request)
+  public async Task<HuisCalculationResponse?> CalculateAsync(HuisCalculationRequest request)
   {
-    // Check whether a score for the score simulation request is cached.
-    if (await caching.GetCachedScoreSimulationAsync(request) is HuisSimulationResponse s)
+    // Check whether a score for the score calculation request is cached.
+    if (await caching.GetCachedScoreCalcuationAsync(request) is HuisCalculationResponse s)
       return s;
 
     try
@@ -176,7 +176,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
       HttpResponseMessage response = await _http.PostAsync("/calculate-score", new StringContent(request.ToJson(),
         Encoding.UTF8, "application/json"));
       string json = await response.Content.ReadAsStringAsync();
-      HuisSimulationResponse? simResponse = JsonConvert.DeserializeObject<HuisSimulationResponse>(json)
+      HuisCalculationResponse? simResponse = JsonConvert.DeserializeObject<HuisCalculationResponse>(json)
         ?? throw new Exception("Deserialization of JSON returned null.");
 
       // Check whether the json contains an error.
@@ -184,8 +184,8 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
       if (error is not null)
         throw new Exception($"API returned {error}");
 
-      // Cache the simulation response and return it.
-      await caching.AddCachedScoreSimulationAsync(request, simResponse);
+      // Cache the calculation response and return it.
+      await caching.AddCachedScoreCalculationAsync(request, simResponse);
       return simResponse;
     }
     catch (Exception ex)

@@ -24,7 +24,7 @@ public class Database(DbContextOptions<Database> options) : DbContext(options)
   public DbSet<ScoreAlias> ScoreAliases { get; set; }
 
   /// <summary>
-  /// The cache for scores simulated on Huismetbenen.
+  /// The cache for scores calculated on Huismetbenen.
   /// </summary>
-  public DbSet<CachedScoreSimulation> CachedScoreSimulations { get; set; }
+  public DbSet<CachedScoreCalculation> CachedScoreCalculations { get; set; }
 }

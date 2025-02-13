@@ -42,7 +42,7 @@ public class OsuScore
   /// The mods of the score, in the osu!lazer APIMod format.
   /// </summary>
   [JsonProperty("mods")]
-  public OsuMod[] Mods { get; private set; } = [];
+  public OsuMods Mods { get; private set; } = [];
 
     /// <summary>
   /// The user of the score.

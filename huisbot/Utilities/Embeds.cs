@@ -222,11 +222,11 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
-  /// <param name="local">The local rework to simulate.</param>
-  /// <param name="reference">The reference rework to simulate.</param>
-  /// <param name="localDone">Bool whether the local score finished simulation.</param>
-  /// <returns>An embed for displaying the score simulation progress.</returns>
-  public static Embed Simulating(HuisRework local, HuisRework? reference, bool localDone)
+  /// <param name="local">The local rework to calculate.</param>
+  /// <param name="reference">The reference rework to calculation.</param>
+  /// <param name="localDone">Bool whether the local score finished calculation.</param>
+  /// <returns>An embed for displaying the score calculation progress.</returns>
+  public static Embed Calculating(HuisRework local, HuisRework? reference, bool localDone)
   {
     // Build the status string.
     string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
@@ -247,7 +247,7 @@ internal static class Embeds
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
   /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
-  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
+  public static Embed SimulatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
   {
     // Construct the PP info field.
     string ppFieldTitle = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
@@ -519,11 +519,11 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the difficulty attributes of a score.
   /// </summary>
-  /// <param name="score">The simulated score.</param>
+  /// <param name="score">The calculated score.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
   /// <returns>An embed for displaying the difficulty attributes.</returns>
-  public static Embed DifficultyAttributes(HuisSimulationResponse score, HuisRework rework, OsuBeatmap beatmap)
+  public static Embed DifficultyAttributes(HuisCalculationResponse score, HuisRework rework, OsuBeatmap beatmap)
   {
     // Construct some strings for the embed.
     string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";

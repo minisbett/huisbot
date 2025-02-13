@@ -56,14 +56,14 @@ public partial class MiscellaneousCommandModule
     if (beatmap is null)
       return;
 
-    // Construct the simulation request.
-    HuisSimulationRequest request = new(beatmap.Id, rework, mods);
+    // Construct the calculation request.
+    HuisCalculationRequest request = new(beatmap.Id, rework, mods);
 
-    // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, null, false));
+    // Display the calculation progress in an embed to the user.
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, null, false));
 
     // Get the result from the Huis API and check whether it was successful.
-    HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
+    HuisCalculationResponse? localScore = await CalculateScoreAsync(request);
     if (localScore is null)
       return;
 

@@ -39,22 +39,22 @@ public class CachingService(PersistenceService persistence, ILogger<CachingServi
   }
 
   /// <summary>
-  /// Returns the cached simulation response of the specified simulation request. If no score is cached, null is returned instead.
+  /// Returns the cached calculation response of the specified calculation request. If no score is cached, null is returned instead.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <returns>The simulation response or null, if no score is cached.</returns>
-  public Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
+  /// <param name="request">The score calculation request.</param>
+  /// <returns>The calculation response or null, if no score is cached.</returns>
+  public Task<HuisCalculationResponse?> GetCachedScoreCalcuationAsync(HuisCalculationRequest request)
   {
-    return persistence.GetCachedScoreSimulationAsync(request);
+    return persistence.GetCachedScoreCalculationAsync(request);
   }
 
   /// <summary>
-  /// Adds a new cache entry for the score simulation request and it's corresponding simulated score.
+  /// Adds a new cache entry for the score calculation request and it's corresponding calculated score.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <param name="response">The simulation response.</param>
-  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
+  /// <param name="request">The score calculation request.</param>
+  /// <param name="response">The calculation response.</param>
+  public async Task AddCachedScoreCalculationAsync(HuisCalculationRequest request, HuisCalculationResponse response)
   {
-    await persistence.AddCachedScoreSimulationAsync(request, response);
+    await persistence.AddCachedScoreCalculationAsync(request, response);
   }
 }

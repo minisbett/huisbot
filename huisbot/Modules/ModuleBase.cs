@@ -326,15 +326,15 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns a simulated score, calculated through the specified request. Caching via the persistence database is applied here.<br/>
+  /// Returns a calculated score, calculated through the specified request. Caching via the persistence database is applied here.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <returns>The simulated score.</returns>
-  public async Task<HuisSimulationResponse?> SimulateScoreAsync(HuisSimulationRequest request)
+  /// <param name="request">The score calculation request.</param>
+  /// <returns>The calculated score.</returns>
+  public async Task<HuisCalculationResponse?> CalculateScoreAsync(HuisCalculationRequest request)
   {
-    // Simulate the score and check whether it was successful. If not, notify the user.
-    HuisSimulationResponse? response = await huis.SimulateAsync(request);
+    // Calculation the score and check whether it was successful. If not, notify the user.
+    HuisCalculationResponse? response = await huis.CalculateAsync(request);
     if (response is null)
     {
       await ModifyOriginalResponseAsync(x =>

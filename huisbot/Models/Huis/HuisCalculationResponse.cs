@@ -1,5 +1,4 @@
 ﻿using huisbot.Models.Osu;
-using huisbot.Utilities;
 using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
@@ -7,30 +6,30 @@ namespace huisbot.Models.Huis;
 /// <summary>
 /// Represents a score calculation response received from Huismetbenen.
 /// </summary>
-public class HuisSimulationResponse
+public class HuisCalculationResponse
 {
   /// <summary>
-  /// The difficulty attributes of the simulated score.
+  /// The difficulty attributes of the calculated score.
   /// </summary>
   [JsonProperty("difficulty_attributes")]
-  public HuisSimulationDifficultyAttributes DifficultyAttributes { get; private set; } = null!;
+  public HuisCalculationDifficultyAttributes DifficultyAttributes { get; private set; } = null!;
 
   /// <summary>
-  /// The performance attributes of the simulated score.
+  /// The performance attributes of the calculated score.
   /// </summary>
   [JsonProperty("performance_attributes")]
-  public HuisSimulationPerformanceAttributes PerformanceAttributes { get; private set; } = null!;
+  public HuisCalculationPerformanceAttributes PerformanceAttributes { get; private set; } = null!;
 
   /// <summary>
-  /// The simulated score.
+  /// The calculated score.
   /// </summary>
   [JsonProperty("score")]
-  public HuisSimulationScore Score { get; private set; } = null!;
+  public HuisCalculationScore Score { get; private set; } = null!;
 
   /// <summary>
-  /// Represents the score in a <see cref="HuisSimulationResponse"/>.
+  /// Represents the score in a <see cref="HuisCalculationResponse"/>.
   /// </summary>
-  public class HuisSimulationScore
+  public class HuisCalculationScore
   {
     /// <summary>
     /// The accuracy of the score.
@@ -58,108 +57,108 @@ public class HuisSimulationResponse
   }
 
   /// <summary>
-  /// Represents the difficulty attributes in a <see cref="HuisSimulationResponse"/>.
+  /// Represents the difficulty attributes in a <see cref="HuisCalculationResponse"/>.
   /// </summary>
-  public class HuisSimulationDifficultyAttributes
+  public class HuisCalculationDifficultyAttributes
   {
     /// <summary>
-    /// The total difficulty rating of the simulated score.
+    /// The total difficulty rating of the calculated score.
     /// </summary>
     [JsonProperty("star_rating")]
     public double DifficultyRating { get; private set; }
 
     /// <summary>
-    /// The aim difficulty of the simulated score.
+    /// The aim difficulty of the calculated score.
     /// </summary>
     [JsonProperty("aim_difficulty")]
     public double AimDifficulty { get; private set; }
 
     /// <summary>
-    /// The speed difficulty of the simulated score.
+    /// The speed difficulty of the calculated score.
     /// </summary>
     [JsonProperty("speed_difficulty")]
     public double SpeedDifficulty { get; private set; }
 
     /// <summary>
-    /// The flashlight difficulty of the simulated score.
+    /// The flashlight difficulty of the calculated score.
     /// </summary>
     [JsonProperty("flashlight_difficulty")]
     public double? FlashlightDifficulty { get; private set; }
 
     /// <summary>
-    /// The speed notes in the simulated score.
+    /// The speed notes in the calculated score.
     /// </summary>
     [JsonProperty("speed_note_count")]
     public double SpeedNoteCount { get; private set; }
 
     /// <summary>
-    /// The slider factor of the simulated score.
+    /// The slider factor of the calculated score.
     /// </summary>
     [JsonProperty("slider_factor")]
     public double SliderFactor { get; private set; }
 
     /// <summary>
-    /// The amount of difficult aim strains in the simulated score.
+    /// The amount of difficult aim strains in the calculated score.
     /// </summary>
     [JsonProperty("aim_difficult_strain_count")]
     public double AimDifficultStrainCount { get; private set; }
 
     /// <summary>
-    /// The amount of difficult speed strains in the simulated score.
+    /// The amount of difficult speed strains in the calculated score.
     /// </summary>
     [JsonProperty("speed_difficult_strain_count")]
     public double SpeedDifficultStrainCount { get; private set; }
   }
 
   /// <summary>
-  /// Represents the performance attributes in a <see cref="HuisSimulationResponse"/>.
+  /// Represents the performance attributes in a <see cref="HuisCalculationResponse"/>.
   /// </summary>
-  public class HuisSimulationPerformanceAttributes
+  public class HuisCalculationPerformanceAttributes
   {
     /// <summary>
-    /// The total PP of the simulated score.
+    /// The total PP of the calculated score.
     /// </summary>
     [JsonProperty("pp")]
     public double PP { get; private set; }
 
     /// <summary>
-    /// The aim PP of the simulated score.
+    /// The aim PP of the calculated score.
     /// </summary>
     [JsonProperty("aim")]
     public double AimPP { get; private set; }
 
     /// <summary>
-    /// The tap/speed PP of the simulated score.
+    /// The tap/speed PP of the calculated score.
     /// </summary>
     [JsonProperty("speed")]
     public double TapPP { get; private set; }
 
     /// <summary>
-    /// The accuracy PP of the simulated score.
+    /// The accuracy PP of the calculated score.
     /// </summary>
     [JsonProperty("accuracy")]
     public double AccPP { get; private set; }
 
     /// <summary>
-    /// The flashlight PP of the simulated score.
+    /// The flashlight PP of the calculated score.
     /// </summary>
     [JsonProperty("flashlight")]
     public double FLPP { get; private set; }
 
     /// <summary>
-    /// The reading PP of the simulated score. Only available in reading-related reworks.
+    /// The reading PP of the calculated score. Only available in reading-related reworks.
     /// </summary>
     [JsonProperty("reading")]
     public double? ReadingPP { get; private set; }
 
     /// <summary>
-    /// The deviation (estimated unstable rate) of the simulated score. Only available in statistical accuracy-related reworks.
+    /// The deviation (estimated unstable rate) of the calculated score. Only available in statistical accuracy-related reworks.
     /// </summary>
     [JsonProperty("deviation")]
     public double? Deviation { get; private set; }
 
     /// <summary>
-    /// The speed deviation (estimated unstable rate) of the simulated score. Only available in statistical accuracy-related reworks.
+    /// The speed deviation (estimated unstable rate) of the calculated score. Only available in statistical accuracy-related reworks.
     /// </summary>
     [JsonProperty("speed_deviation")]
     public double? SpeedDeviation { get; private set; }

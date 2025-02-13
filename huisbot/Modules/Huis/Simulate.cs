@@ -74,26 +74,26 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     if (beatmap is null)
       return;
 
-    // Construct the simulation request.
-    HuisSimulationRequest request = new(beatmap.Id, rework, mods, combo, count100, count50, misses);
+    // Construct the calculation request.
+    HuisCalculationRequest request = new(beatmap.Id, rework, mods, combo, count100, count50, misses);
 
-    // Display the simulation progress in an embed to the user.
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Simulating(rework, rework == refRework ? null : refRework, false));
+    // Display the calculation progress in an embed to the user.
+    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
     // Get the local result from the Huis API and check whether it was successful.
-    HuisSimulationResponse? localScore = await SimulateScoreAsync(request);
+    HuisCalculationResponse? localScore = await CalculateScoreAsync(request);
     if (localScore is null)
       return;
 
-    // If the requested rework is the same as the reference, simulation is done here.
-    HuisSimulationResponse? refScore = localScore;
+    // If the requested rework is the same as the reference, calculation is done here.
+    HuisCalculationResponse? refScore = localScore;
     if (rework != refRework)
     {
-      // Update the simulation progress embed.
-      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Simulating(rework, refRework, true));
+      // Update the calculation progress embed.
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
       // Get the reference rework result from the Huis API and check whether it was successful.
-      refScore = await SimulateScoreAsync(request.WithRework(refRework));
+      refScore = await CalculateScoreAsync(request.WithRework(refRework));
       if (refScore is null)
         return;
     }

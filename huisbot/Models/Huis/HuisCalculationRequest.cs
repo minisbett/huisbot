@@ -7,9 +7,9 @@ namespace huisbot.Models.Huis;
 /// Represents the body of a score calculation request to be sent to Huismetbenen.
 /// </summary>
 /// <remarks>
-/// Creates a new <see cref="HuisSimulationRequest"/> for the specified beatmap and rework.
+/// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.
 /// </remarks>
-public class HuisSimulationRequest(int beatmapId, HuisRework rework, OsuMods mods, int? combo = null, int? count100 = null,
+public class HuisCalculationRequest(int beatmapId, HuisRework rework, OsuMods mods, int? combo = null, int? count100 = null,
                                    int? count50 = null, int? misses = null)
 {
   /// <summary>
@@ -72,11 +72,11 @@ public class HuisSimulationRequest(int beatmapId, HuisRework rework, OsuMods mod
   public HuisRework Rework { get; } = rework;
 
   /// <summary>
-  /// Returns a copy of this <see cref="HuisSimulationRequest"/> object with the specified rework.
+  /// Returns a copy of this <see cref="HuisCalculationRequest"/> object with the specified rework.
   /// </summary>
   /// <param name="rework">The rework the create the copy with.</param>
   /// <returns>The copy of the request with the specified rework.</returns>
-  public HuisSimulationRequest WithRework(HuisRework rework) => new(BeatmapId, rework, _mods, Combo, Count100, Count50, Misses);
+  public HuisCalculationRequest WithRework(HuisRework rework) => new(BeatmapId, rework, _mods, Combo, Count100, Count50, Misses);
 
   /// <summary>
   /// Returns the JSON string for this calculation request.
