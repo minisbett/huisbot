@@ -74,7 +74,7 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
 
   [SlashCommand("id", "Calculates a score in a rework based on the specified ID.")]
   public async Task HandleIdAsync(
-    [Summary("score", "The ID or alias of the score.")] string scoreId,
+    [Summary("score", "The ID, URL or alias of the score.")] string scoreId,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
@@ -85,7 +85,7 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
 
   [SlashCommand("best", "Calculates the X-th best score of the specified user in a rework.")]
   public async Task HandleBestAsync(
-    [Summary("user", "The ID or name of the user.")] string userIdentifier,
+    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string userIdentifier,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("index", "The index of the score. Defaults to 1")][MinValue(1)][MaxValue(100)] int index = 1,
@@ -100,9 +100,9 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
     await HandleAsync(reworkId, referenceReworkId, GetUserScoreAsync(user.Id, index, ScoreType.Best), user);
   }
 
-  [SlashCommand("recent", "Calculates the X-th recent score of the specified user in a rework.")]
+  [SlashCommand("recent", "Calculates the X-th recent score of you or the specified user in a rework.")]
   public async Task HandleRecentAsync(
-    [Summary("user", "The ID or name of the user.")] string userIdentifier,
+    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string userIdentifier,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("index", "The index of the score. Defaults to 1")][MinValue(1)][MaxValue(100)] int index = 1,
