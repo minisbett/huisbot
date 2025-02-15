@@ -7,6 +7,7 @@ using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
+using System.Text.RegularExpressions;
 
 namespace huisbot.Modules;
 
@@ -243,39 +244,6 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns the beatmap by the specified identifier (ID or alias).<br/>
-  /// If it failed, the user will automatically be notified. In this case, this method returns null.
-  /// </summary>
-  /// <param name="beatmapId">An identifier for the beatmap. (Beatmap ID or alias)</param>
-  /// <returns>The beatmap.</returns>
-  public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
-  {
-    // If the identifier is not a number, try to find a beatmap alias.
-    if (!beatmapId.All(char.IsDigit))
-    {
-      // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
-      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(beatmapId);
-      if (alias is null)
-      {
-        await FollowupAsync(embed: Embeds.Error($"Beatmap alias `{beatmapId}` could not be found."));
-        return null;
-      }
-      else
-        beatmapId = alias.BeatmapId.ToString();
-    }
-
-    // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
-    NotFoundOr<OsuBeatmap>? beatmap = await osu.GetBeatmapAsync(int.Parse(beatmapId));
-    if (beatmap is null)
-      await FollowupAsync(embed: Embeds.InternalError("Failed to get the beatmap from the osu! API."));
-    else if (!beatmap.Found)
-      await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could be found."));
-
-    // Return the beatmap.
-    return (beatmap?.Found ?? false) ? beatmap : null!;
-  }
-
-  /// <summary>
   /// Returns the top plays of the specified player in the specified rework from the Huis API.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
@@ -294,26 +262,74 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns the score by the specified identifier (ID or alias).<br/>
+  /// Returns the beatmap by the specified identifier (ID, URL or alias).<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
-  /// <param name="scoreId">An identifier for the score. (Score ID or alias)</param>
+  /// <param name="beatmapId">An identifier for the beatmap. (ID, URL or alias)</param>
+  /// <returns>The beatmap.</returns>
+  public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
+  {
+    // Check if the provided identifier is an ID already.
+    if (!int.TryParse(beatmapId, out int _))
+    {
+      // Match a beatmap URL and extract the ID from it.
+      Match match = Regex.Match(beatmapId, "https?:\\/\\/osu\\.ppy\\.sh\\/(?:beatmapsets\\/\\d+#osu\\/|s\\/\\d+#osu\\/|beatmaps\\/|b\\/)(\\d+)");
+      if (match.Success)
+        beatmapId = match.Groups[1].Value;
+      else
+      {
+        // Find a beatmap alias. If none could be found, notify the user.
+        BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(beatmapId);
+        if (alias is null)
+        {
+          await FollowupAsync(embed: Embeds.Error($"No beatmap with alias `{beatmapId}` could not be found."));
+          return null;
+        }
+
+        beatmapId = alias.BeatmapId.ToString();
+      }
+    }
+
+    // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
+    NotFoundOr<OsuBeatmap>? beatmap = await osu.GetBeatmapAsync(int.Parse(beatmapId));
+    if (beatmap is null)
+      await FollowupAsync(embed: Embeds.InternalError("Failed to get the beatmap from the osu! API."));
+    else if (!beatmap.Found)
+      await FollowupAsync(embed: Embeds.Error($"No beatmap with ID `{beatmapId}` could be found."));
+
+    // Return the beatmap.
+    return (beatmap?.Found ?? false) ? beatmap : null!;
+  }
+
+  /// <summary>
+  /// Returns the score by the specified identifier (ID, URL or alias).<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="scoreId">An identifier for the score. (ID, URL or alias)</param>
   /// <returns>The score.</returns>
   public async Task<OsuScore?> GetScoreAsync(string scoreId)
   {
-    // If the identifier is not a number, try to find a score alias.
-    if (!scoreId.All(char.IsDigit))
+    // Check if the provided identifier is an ID already.
+    if (!int.TryParse(scoreId, out int _))
     {
-      // Get the score alias. If none could be found, notify the user. Otherwise replace the identifier.
-      ScoreAlias? alias = await persistence.GetScoreAliasAsync(scoreId);
-      if (alias is null)
-      {
-        await FollowupAsync(embed: Embeds.Error($"Score alias `{scoreId}` could not be found."));
-        return null;
-      }
+      // Match a beatmap URL and extract the ID from it.
+      Match match = Regex.Match(scoreId, "https?:\\/\\/osu\\.ppy\\.sh\\/scores\\/(\\d+)");
+      if (match.Success)
+        scoreId = match.Groups[1].Value;
       else
+      {
+        // Find a beatmap alias. If none could be found, notify the user.
+        ScoreAlias? alias = await persistence.GetScoreAliasAsync(scoreId);
+        if (alias is null)
+        {
+          await FollowupAsync(embed: Embeds.Error($"No score with alias `{scoreId}` could not be found."));
+          return null;
+        }
+
         scoreId = alias.ScoreId.ToString();
+      }
     }
+
     // Get the score from the osu! API. If it failed or the score was not found, notify the user.
     NotFoundOr<OsuScore>? score = await osu.GetScoreAsync(long.Parse(scoreId));
     if (score is null)

@@ -20,7 +20,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null,
-    [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
+    [Summary("beatmap", "The ID, URL or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
     [Summary("100s", "The amount of 100s/oks in the score.")] int? count100 = null,
     [Summary("50s", "The amount of 50s/mehs in the score.")] int? count50 = null,

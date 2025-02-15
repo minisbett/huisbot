@@ -11,7 +11,7 @@ namespace huisbot.Models.Persistence;
 /// <param name="alias">The alias.</param>
 /// <param name="beatmapId">The beatmap ID the alias represents.</param>
 /// <param name="displayName">The display name of the beatmap.</param>
-public class BeatmapAlias(string alias, long beatmapId, string displayName)
+public class BeatmapAlias(string alias, int beatmapId, string displayName)
 {
   /// <summary>
   /// The unique alias.
@@ -22,7 +22,7 @@ public class BeatmapAlias(string alias, long beatmapId, string displayName)
   /// <summary>
   /// The beatmap ID the alias represents.
   /// </summary>
-  public long BeatmapId { get; private set; } = beatmapId;
+  public int BeatmapId { get; private set; } = beatmapId;
 
   /// <summary>
   /// The display name of the object associated with the beatmap ID, used for display purposes.

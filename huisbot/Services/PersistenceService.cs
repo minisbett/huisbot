@@ -63,7 +63,7 @@ public class PersistenceService(Database database)
   /// <param name="alias">The score alias.</param>
   /// <param name="beatmapId">The beatmap ID.</param>
   /// <param name="displayName">The display name for the score.</param>
-  public async Task AddBeatmapAliasAsync(string alias, long beatmapId, string displayName)
+  public async Task AddBeatmapAliasAsync(string alias, int beatmapId, string displayName)
   {
     // Add the beatmap alias to the database.
     database.BeatmapAliases.Add(new BeatmapAlias(Utils.GetFormattedAlias(alias), beatmapId, displayName));
