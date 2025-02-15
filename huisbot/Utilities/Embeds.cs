@@ -265,7 +265,10 @@ internal static class Embeds
     // Construct the score info field.
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
-    scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    scoreFieldText += "\n";
+    if (!local.Score.Mods.IsClassic) // With classic mod, these statistics are irrelevant
+      scoreFieldText += $"▸ {local.Score.Statistics.LargeTickMisses ?? 0} {_emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {_emojis["slidertailmiss"]} ";
+    scoreFieldText += $"▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
     scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
     scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     if (local.PerformanceAttributes.Deviation is not null)
@@ -618,32 +621,34 @@ internal static class Embeds
   /// </summary>
   private static readonly Dictionary<string, Emoji> _emojis = new()
   {
-    { "XH", new Emoji("rankSSH", 1159888184600170627) },
-    { "X", new Emoji("rankSS", 1159888182075207740) },
-    { "SH", new Emoji("rankSH", 1159888343245537300) },
-    { "S", new Emoji("rankS", 1159888340536012921) },
-    { "A", new Emoji("rankA", 1159888148080361592) },
-    { "B", new Emoji("rankB", 1159888151771369562) },
-    { "C", new Emoji("rankC", 1159888154891919502) },
-    { "D", new Emoji("rankD", 1159888158150893678) },
-    { "F", new Emoji("rankF", 1159888321342865538) },
-    { "300", new Emoji("300", 1159888146448797786) },
-    { "100", new Emoji("100", 1159888144406171719) },
-    { "50", new Emoji("50", 1159888143282094221) },
-    { "miss", new Emoji("miss", 1159888326698995842)},
-    { "loved", new Emoji("loved", 1159888325491036311) },
-    { "qualified", new Emoji("approved", 1159888150542418031) },
-    { "approved", new Emoji("approved", 1159888150542418031) },
-    { "ranked", new Emoji("ranked", 1159888338199773339) },
-    { "length", new Emoji("length", 1159888322873786399) },
-    { "bpm", new Emoji("length", 1159888153000280074) },
-    { "circles", new Emoji("circles", 1159888155902758953) },
-    { "sliders", new Emoji("sliders", 1159888389902970890) },
-    { "spinners", new Emoji("spinners", 1159888345250414723) },
-    { "osu", new Emoji("std", 1159888333044981913) },
-    { "taiko", new Emoji("taiko", 1159888334492029038) },
-    { "fruits", new Emoji("fruits", 1159888328984903700) },
-    { "mania", new Emoji("mania", 1159888330637463623) },
+    { "XH", new("rankSSH", 1159888184600170627) },
+    { "X", new("rankSS", 1159888182075207740) },
+    { "SH", new("rankSH", 1159888343245537300) },
+    { "S", new("rankS", 1159888340536012921) },
+    { "A", new("rankA", 1159888148080361592) },
+    { "B", new("rankB", 1159888151771369562) },
+    { "C", new("rankC", 1159888154891919502) },
+    { "D", new("rankD", 1159888158150893678) },
+    { "F", new("rankF", 1159888321342865538) },
+    { "300", new("300", 1159888146448797786) },
+    { "100", new("100", 1159888144406171719) },
+    { "50", new("50", 1159888143282094221) },
+    { "miss", new("miss", 1159888326698995842)},
+    { "largetickmiss", new("largetickmiss", 1340259318489944075) },
+    { "slidertailmiss", new("slidertailmiss", 1340117215210635274) },
+    { "loved", new("loved", 1159888325491036311) },
+    { "qualified", new("approved", 1159888150542418031) },
+    { "approved", new("approved", 1159888150542418031) },
+    { "ranked", new("ranked", 1159888338199773339) },
+    { "length", new("length", 1159888322873786399) },
+    { "bpm", new("length", 1159888153000280074) },
+    { "circles", new("circles", 1159888155902758953) },
+    { "sliders", new("sliders", 1159888389902970890) },
+    { "spinners", new("spinners", 1159888345250414723) },
+    { "osu", new("std", 1159888333044981913) },
+    { "taiko", new("taiko", 1159888334492029038) },
+    { "fruits", new("fruits", 1159888328984903700) },
+    { "mania", new("mania", 1159888330637463623) },
   };
 }
 

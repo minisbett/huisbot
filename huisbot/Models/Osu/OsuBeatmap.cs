@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Utilities;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
