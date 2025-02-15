@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
+using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
 
@@ -17,8 +18,6 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
 {
   private async Task HandleAsync(string reworkId, string? referenceReworkId, Task<OsuScore?> score, OsuUser? user = null)
   {
-    await DeferAsync();
-
     // Default to the live PP system as the reference rework.
     referenceReworkId ??= HuisRework.LiveId.ToString();
 
@@ -80,20 +79,36 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
   {
+    await DeferAsync();
+
     await HandleAsync(reworkId, referenceReworkId, GetScoreAsync(scoreId));
   }
 
   [SlashCommand("best", "Calculates the X-th best score of the specified user in a rework.")]
   public async Task HandleBestAsync(
-    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string userIdentifier,
+    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
-    [Summary("index", "The index of the score. Defaults to 1")][MinValue(1)][MaxValue(100)] int index = 1,
+    [Summary("index", "The index of the score. Defaults to 1.")][MinValue(1)][MaxValue(100)] int index = 1,
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
   {
+    await DeferAsync();
+
+    // If no player identifier was specified, try to get one from a link.
+    if (playerId is null)
+    {
+      // Get the link and check whether the request was successful.
+      OsuDiscordLink? link = await GetOsuDiscordLinkAsync();
+      if (link is null)
+        return;
+
+      // Set the player identifier to the linked osu! user ID. After that, a player will be retrieved from the osu! API.
+      playerId = link.OsuId.ToString();
+    }
+
     // Get the osu! user by the identifier to get the user ID.
-    OsuUser? user = await GetOsuUserAsync(userIdentifier);
+    OsuUser? user = await GetOsuUserAsync(playerId);
     if (user is null)
       return;
 
@@ -102,15 +117,29 @@ public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, Persiste
 
   [SlashCommand("recent", "Calculates the X-th recent score of you or the specified user in a rework.")]
   public async Task HandleRecentAsync(
-    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string userIdentifier,
+    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null,
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
-    [Summary("index", "The index of the score. Defaults to 1")][MinValue(1)][MaxValue(100)] int index = 1,
+    [Summary("index", "The index of the score. Defaults to 1.")][MinValue(1)][MaxValue(100)] int index = 1,
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
   {
+    await DeferAsync();
+
+    // If no player identifier was specified, try to get one from a link.
+    if (playerId is null)
+    {
+      // Get the link and check whether the request was successful.
+      OsuDiscordLink? link = await GetOsuDiscordLinkAsync();
+      if (link is null)
+        return;
+
+      // Set the player identifier to the linked osu! user ID. After that, a player will be retrieved from the osu! API.
+      playerId = link.OsuId.ToString();
+    }
+
     // Get the osu! user by the identifier to get the user ID.
-    OsuUser? user = await GetOsuUserAsync(userIdentifier);
+    OsuUser? user = await GetOsuUserAsync(playerId);
     if (user is null)
       return;
 
