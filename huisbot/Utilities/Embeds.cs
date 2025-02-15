@@ -240,14 +240,16 @@ internal static class Embeds
   }
 
   /// <summary>
-  /// Returns an embed for displaying the difference between two simulated scores.
+  /// Returns an embed for displaying the difference between two calculated scores, optionally attributing it to a specific osu! user.
   /// </summary>
-  /// <param name="local">The local simulated score for comparison.</param>
-  /// <param name="reference">The simulated reference for score for comparison.</param>
+  /// <param name="local">The local calculated score for comparison.</param>
+  /// <param name="reference">The calculated reference score for comparison.</param>
   /// <param name="rework">The rework.</param>
+  /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
-  /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
-  public static Embed SimulatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
+  /// <param name="user">The user the real score is based on.</param>
+  /// <returns>An embed for displaying a the calculated score in comparison to the reference score.</returns>
+  public static Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
   {
     // Construct the PP info field.
     string ppFieldTitle = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
@@ -264,7 +266,7 @@ internal static class Embeds
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
     scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
     scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
     if (local.PerformanceAttributes.Deviation is not null)
       scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
@@ -279,12 +281,20 @@ internal static class Embeds
     string title = $"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)";
     string reworkComparison = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
 
+    EmbedAuthorBuilder author = new();
+    if(user is not null)
+      author = new EmbedAuthorBuilder()
+        .WithName($"{user.Name}: {user.PP:N}pp (#{user.GlobalRank:N0} | #{user.CountryRank:N0} {user.Country})")
+        .WithIconUrl($"https://a.ppy.sh/{user.Id}")
+        .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
+
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle(title)
+      .WithAuthor(author)
       .AddField(ppFieldTitle, ppFieldText, true)
       .AddField("Score Info", scoreFieldText, true)
-      .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
+      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/s/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();

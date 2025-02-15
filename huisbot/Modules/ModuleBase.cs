@@ -321,7 +321,24 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
     else if (!score.Found)
       await FollowupAsync(embed: Embeds.Error($"No score with ID `{scoreId}` could be found."));
 
-    // Return the score.
+    return (score?.Found ?? false) ? score : null!;
+  }
+
+  /// <summary>
+  /// Returns the X-th best score by the specified user.<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="userId">The ID of the osu! user.</param>
+  /// <param name="index">The one-based index of the score.</param>
+  /// <param name="type">The type of score.</param>
+  /// <returns>The X-th best score of the user.</returns>
+  public async Task<OsuScore?> GetUserScoreAsync(int userId, int index, ScoreType type)
+  {
+    // Get the score from the osu! API. If it failed or the score was not found, notify the user.
+    NotFoundOr<OsuScore>? score = await osu.GetUserScoreAsync(userId, index, type);
+    if (score is null)
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the score from the osu! API."));
+
     return (score?.Found ?? false) ? score : null!;
   }
 

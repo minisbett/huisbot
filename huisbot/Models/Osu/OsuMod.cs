@@ -1,4 +1,6 @@
+using MathNet.Numerics.Financial;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace huisbot.Models.Osu;
 
@@ -105,6 +107,7 @@ public class OsuMods : List<OsuMod>
     {
       modsStr += mod.Acronym;
 
+      // If a custom clock rate is set for DT/NC (usually 1.5) or HT/DC (usually 0.75), append it to the mod string.
       if (mod.Acronym is "DT" or "NC" or "HT" or "DC" && mod.GetSetting("speed_change") is double speedChange && speedChange is not 1.5 or 0.75)
         modsStr += $"({speedChange}x)";
     }
@@ -113,9 +116,27 @@ public class OsuMods : List<OsuMod>
   }
 
   /// <summary>
-  /// Parses a <see cref="OsuMods"/> object from the specified mods string. (eg. "HDDT")
+  /// Parses a <see cref="OsuMods"/> object from the specified mods string. (eg. "HDDT" or "HDDT(1.3x)")
   /// </summary>
   /// <param name="modsStr">The mods string.</param>
   /// <returns>The parsed OsuMods object.</returns>
-  public static OsuMods FromString(string modsStr) => [.. modsStr.Chunk(2).Select(x => new OsuMod(new string(x)))];
+  public static OsuMods FromString(string modsStr)
+  {
+    OsuMods mods = [];
+
+    // Go through the mod string with two characters at once, and optionally the mod settings in () after the acronym.
+    foreach (Match match in Regex.Matches(modsStr, @"([A-Z]{2})(?:\((.*?)\))?"))
+    {
+      OsuMod mod = new(match.Groups[1].Value);
+      string extra = match.Groups[2].Value;
+
+      // If the DT/NC or HT/DC mod contains extra information, there is a custom clock rate.
+      if (mod.Acronym is "DT" or "NC" or "HT" or "DC" && extra != "")
+        mod.Settings["speed_change"] = double.Parse(extra.TrimEnd('x'));
+
+      mods.Add(mod);
+    }
+
+    return mods;
+  }
 }

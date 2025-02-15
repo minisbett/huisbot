@@ -17,10 +17,10 @@ public partial class MiscellaneousCommandModule
   [SlashCommand("diffattributes", "Calculates the effective misscount based off the comboes, slider count, 100s & 50s and misses.")]
   public async Task HandleDiffAttributesAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("beatmap", "The ID or alias of the beatmap.")] string? beatmapId = null,
     [Summary("mods", "The mods applied to the beatmap.")] string? modsStr = null,
-    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")] double clockRate = 1)
+    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.01)][MaxValue(2)] double clockRate = 1)
   {
     await DeferAsync();
 
@@ -37,7 +37,7 @@ public partial class MiscellaneousCommandModule
       // If there was no beatmap ID found, respond with an error.
       if (beatmapId is null)
       {
-        await FollowupAsync(embed: Embeds.Error("Either a beatmap ID or a score ID must be specified."));
+        await FollowupAsync(embed: Embeds.Error("Please specify a beatmap."));
         return;
       }
     }
@@ -57,7 +57,7 @@ public partial class MiscellaneousCommandModule
       return;
 
     // Construct the calculation request.
-    HuisCalculationRequest request = new(beatmap.Id, rework, mods);
+    HuisCalculationRequest request = new(beatmap, rework, mods);
 
     // Display the calculation progress in an embed to the user.
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, null, false));

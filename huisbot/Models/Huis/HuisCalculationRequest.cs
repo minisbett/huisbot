@@ -9,14 +9,8 @@ namespace huisbot.Models.Huis;
 /// <remarks>
 /// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.
 /// </remarks>
-public class HuisCalculationRequest(int beatmapId, HuisRework rework, OsuMods mods, int? combo = null, int? count100 = null,
-                                   int? count50 = null, int? misses = null)
+public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMods mods, int? combo = null, OsuScoreStatistics? statistics = null)
 {
-  /// <summary>
-  /// The mods of the score in the osu!lazer APIMod format. This field is kept for cloning via <see cref="WithRework(HuisRework)"/>.
-  /// </summary>
-  private readonly OsuMods _mods = mods;
-
   /// <summary>
   /// The mods of the score.
   /// </summary>
@@ -27,7 +21,7 @@ public class HuisCalculationRequest(int beatmapId, HuisRework rework, OsuMods mo
   /// The ID of the beatmap.
   /// </summary>
   [JsonProperty("map_id")]
-  public int BeatmapId { get; } = beatmapId;
+  public int BeatmapId { get; } = beatmap.Id;
 
   /// <summary>
   /// The maximum combo of the score.
@@ -39,19 +33,31 @@ public class HuisCalculationRequest(int beatmapId, HuisRework rework, OsuMods mo
   /// The 100s/oks of the score.
   /// </summary>
   [JsonProperty("ok")]
-  public int? Count100 { get; } = count100;
+  public int? Count100 { get; } = statistics?.Count100;
 
   /// <summary>
   /// The 50s/mehs of the score.
   /// </summary>
   [JsonProperty("meh")]
-  public int? Count50 { get; } = count50;
+  public int? Count50 { get; } = statistics?.Count50;
 
   /// <summary>
   /// The misses of the score.
   /// </summary>
   [JsonProperty("miss")]
-  public int? Misses { get; } = misses;
+  public int? Misses { get; } = statistics?.Misses;
+
+  /// <summary>
+  /// The large tick misses of the score.
+  /// </summary>
+  [JsonProperty("large_tick_misses")]
+  public int? LargeTickMisses { get; } = statistics?.LargeTickMisses;
+
+  /// <summary>
+  /// The slider tail misses of the score.
+  /// </summary>
+  [JsonProperty("slider_tail_misses")]
+  public int? SliderTailMisses { get; } = statistics?.SliderTailHits is null ? null : beatmap.SliderCount - statistics.SliderTailHits;
 
   /// <summary>
   /// The clock rate of the score.
@@ -70,13 +76,6 @@ public class HuisCalculationRequest(int beatmapId, HuisRework rework, OsuMods mo
   /// </summary>
   [JsonIgnore]
   public HuisRework Rework { get; } = rework;
-
-  /// <summary>
-  /// Returns a copy of this <see cref="HuisCalculationRequest"/> object with the specified rework.
-  /// </summary>
-  /// <param name="rework">The rework the create the copy with.</param>
-  /// <returns>The copy of the request with the specified rework.</returns>
-  public HuisCalculationRequest WithRework(HuisRework rework) => new(BeatmapId, rework, _mods, Combo, Count100, Count50, Misses);
 
   /// <summary>
   /// Returns the JSON string for this calculation request.

@@ -40,7 +40,7 @@ public class Program
     {
       await MainAsync(args);
     }
-    catch (Exception ex)
+    catch (Exception ex) when (ex is not HostAbortedException)
     {
       Console.ForegroundColor = ConsoleColor.Red;
       Console.WriteLine(ex);
