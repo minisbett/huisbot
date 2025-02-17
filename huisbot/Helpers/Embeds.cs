@@ -2,9 +2,10 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Utilities;
 using DEmoji = Discord.Emoji;
 
-namespace huisbot.Utilities;
+namespace huisbot.Helpers;
 
 /// <summary>
 /// Provides embeds for the application.
@@ -97,8 +98,14 @@ internal static class Embeds
   /// <returns>The embed for displaying the specified rework.</returns>
   public static Embed Rework(HuisRework rework)
   {
+    // Parse the rich text description of the rework.
+    string description = rework.Description!;
+    foreach (string tag in Enumerable.Range(1, 4).SelectMany(x => new string[] { $"<h{x}>", $"</h{x}>" }))
+      description = description.Replace(tag, "");
+    description = new ReverseMarkdown.Converter().Convert(description);
+
     // Divide the description in multiple parts due to the 1024 character limit.
-    List<string> descriptionParts = rework.Description!
+    List<string> descriptionParts = description
         .Split("\n\n")
         .SelectMany(section =>
         {
@@ -216,11 +223,11 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the score calculation progress based on whether the local and live score have been calculated.
   /// </summary>
-  /// <param name="local">The local rework to simulate.</param>
-  /// <param name="reference">The reference rework to simulate.</param>
-  /// <param name="localDone">Bool whether the local score finished simulation.</param>
-  /// <returns>An embed for displaying the score simulation progress.</returns>
-  public static Embed Simulating(HuisRework local, HuisRework? reference, bool localDone)
+  /// <param name="local">The local rework to calculate.</param>
+  /// <param name="reference">The reference rework to calculation.</param>
+  /// <param name="localDone">Bool whether the local score finished calculation.</param>
+  /// <returns>An embed for displaying the score calculation progress.</returns>
+  public static Embed Calculating(HuisRework local, HuisRework? reference, bool localDone)
   {
     // Build the status string.
     string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
@@ -234,14 +241,16 @@ internal static class Embeds
   }
 
   /// <summary>
-  /// Returns an embed for displaying the difference between two simulated scores.
+  /// Returns an embed for displaying the difference between two calculated scores, optionally attributing it to a specific osu! user.
   /// </summary>
-  /// <param name="local">The local simulated score for comparison.</param>
-  /// <param name="reference">The simulated reference for score for comparison.</param>
+  /// <param name="local">The local calculated score for comparison.</param>
+  /// <param name="reference">The calculated reference score for comparison.</param>
   /// <param name="rework">The rework.</param>
+  /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
-  /// <returns>An embed for displaying a the simulated score in comparison to the reference score.</returns>
-  public static Embed SimulatedScore(HuisSimulationResponse local, HuisSimulationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap)
+  /// <param name="user">The user the real score is based on.</param>
+  /// <returns>An embed for displaying a the calculated score in comparison to the reference score.</returns>
+  public static Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
   {
     // Construct the PP info field.
     string ppFieldTitle = rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)";
@@ -257,10 +266,13 @@ internal static class Embeds
     // Construct the score info field.
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
-    scoreFieldText += $"\n▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{beatmap.GetBPM(local.Score.Mods):0.###}** {_emojis["bpm"]}";
+    scoreFieldText += "\n";
+    if (!local.Score.Mods.IsClassic) // With classic mod, these statistics are irrelevant
+      scoreFieldText += $"▸ {local.Score.Statistics.LargeTickMisses ?? 0} {_emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {_emojis["slidertailmiss"]} ";
+    scoreFieldText += $"▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
     scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    if(local.PerformanceAttributes.Deviation is not null)
+    if (local.PerformanceAttributes.Deviation is not null)
       scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
 
     // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
@@ -273,12 +285,20 @@ internal static class Embeds
     string title = $"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)";
     string reworkComparison = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
 
+    EmbedAuthorBuilder author = new();
+    if (user is not null)
+      author = new EmbedAuthorBuilder()
+        .WithName($"{user.Name}: {user.PP:N}pp (#{user.GlobalRank:N0} | #{user.CountryRank:N0} {user.Country})")
+        .WithIconUrl($"https://a.ppy.sh/{user.Id}")
+        .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
+
     return BaseEmbed
       .WithColor(new Color(0x4061E9))
       .WithTitle(title)
+      .WithAuthor(author)
       .AddField(ppFieldTitle, ppFieldText, true)
       .AddField("Score Info", scoreFieldText, true)
-      .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
+      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/s/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
@@ -390,10 +410,11 @@ internal static class Embeds
   /// <param name="rawScores">All top plays in their original order. Used to display placement differences.</param>
   /// <param name="sortedScores">All top plays in their sorted order.</param>
   /// <param name="rework">The rework.</param>
-  /// <param name="page">The sorting for the scores.</param>
+  /// <param name="sort">The sorting for the scores.</param>
+  /// <param name="scoreType">The type of top scores being displayed.</param>
   /// <param name="page">The page being displayed.</param>
   /// <returns>An embed for displaying the top plays.</returns>
-  public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, int page)
+  public static Embed TopPlays(OsuUser user, HuisScore[] rawScores, HuisScore[] sortedScores, HuisRework rework, Sort sort, string scoreType, int page)
   {
     // Generate the embed description.
     List<string> description =
@@ -422,8 +443,16 @@ internal static class Embeds
                     $"{Math.Min(rawScores.Length, page * SCORES_PER_PAGE)} of {rawScores.Length} on page {page} of " +
                     $"{Math.Ceiling(rawScores.Length * 1d / SCORES_PER_PAGE)}.*");
 
+    string scoreTypeStr = scoreType switch
+    {
+      "topranks" => "Top Scores",
+      "flashlight" => "Flashlight Scores",
+      "pinned" => "Pinned Scores",
+      _ => "<unknown> Scores"
+    };
+
     return BaseEmbed
-      .WithTitle($"Top Plays of {user.Name} ({sort.DisplayName})")
+      .WithTitle($"{scoreTypeStr} of {user.Name} ({sort.DisplayName})")
       .WithDescription(string.Join("\n", description))
       .Build();
   }
@@ -504,11 +533,11 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying the difficulty attributes of a score.
   /// </summary>
-  /// <param name="score">The simulated score.</param>
+  /// <param name="score">The calculated score.</param>
   /// <param name="rework">The rework.</param>
   /// <param name="beatmap">The beatmap.</param>
   /// <returns>An embed for displaying the difficulty attributes.</returns>
-  public static Embed DifficultyAttributes(HuisSimulationResponse score, HuisRework rework, OsuBeatmap beatmap)
+  public static Embed DifficultyAttributes(HuisCalculationResponse score, HuisRework rework, OsuBeatmap beatmap)
   {
     // Construct some strings for the embed.
     string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";
@@ -585,7 +614,7 @@ internal static class Embeds
     if ($"{title} [{version}]".Length > 60)
       title = $"{title[..27]}...";
 
-    return $"{title} [{version}] {score.Mods.PlusString}".TrimEnd(' ');
+    return $"{title} [{version}] {score.Mods}".TrimEnd(' ');
   }
 
   /// <summary>
@@ -593,32 +622,34 @@ internal static class Embeds
   /// </summary>
   private static readonly Dictionary<string, Emoji> _emojis = new()
   {
-    { "XH", new Emoji("rankSSH", 1159888184600170627) },
-    { "X", new Emoji("rankSS", 1159888182075207740) },
-    { "SH", new Emoji("rankSH", 1159888343245537300) },
-    { "S", new Emoji("rankS", 1159888340536012921) },
-    { "A", new Emoji("rankA", 1159888148080361592) },
-    { "B", new Emoji("rankB", 1159888151771369562) },
-    { "C", new Emoji("rankC", 1159888154891919502) },
-    { "D", new Emoji("rankD", 1159888158150893678) },
-    { "F", new Emoji("rankF", 1159888321342865538) },
-    { "300", new Emoji("300", 1159888146448797786) },
-    { "100", new Emoji("100", 1159888144406171719) },
-    { "50", new Emoji("50", 1159888143282094221) },
-    { "miss", new Emoji("miss", 1159888326698995842)},
-    { "loved", new Emoji("loved", 1159888325491036311) },
-    { "qualified", new Emoji("approved", 1159888150542418031) },
-    { "approved", new Emoji("approved", 1159888150542418031) },
-    { "ranked", new Emoji("ranked", 1159888338199773339) },
-    { "length", new Emoji("length", 1159888322873786399) },
-    { "bpm", new Emoji("length", 1159888153000280074) },
-    { "circles", new Emoji("circles", 1159888155902758953) },
-    { "sliders", new Emoji("sliders", 1159888389902970890) },
-    { "spinners", new Emoji("spinners", 1159888345250414723) },
-    { "osu", new Emoji("std", 1159888333044981913) },
-    { "taiko", new Emoji("taiko", 1159888334492029038) },
-    { "fruits", new Emoji("fruits", 1159888328984903700) },
-    { "mania", new Emoji("mania", 1159888330637463623) },
+    { "XH", new("rankSSH", 1159888184600170627) },
+    { "X", new("rankSS", 1159888182075207740) },
+    { "SH", new("rankSH", 1159888343245537300) },
+    { "S", new("rankS", 1159888340536012921) },
+    { "A", new("rankA", 1159888148080361592) },
+    { "B", new("rankB", 1159888151771369562) },
+    { "C", new("rankC", 1159888154891919502) },
+    { "D", new("rankD", 1159888158150893678) },
+    { "F", new("rankF", 1159888321342865538) },
+    { "300", new("300", 1159888146448797786) },
+    { "100", new("100", 1159888144406171719) },
+    { "50", new("50", 1159888143282094221) },
+    { "miss", new("miss", 1159888326698995842)},
+    { "largetickmiss", new("largetickmiss", 1340259318489944075) },
+    { "slidertailmiss", new("slidertailmiss", 1340117215210635274) },
+    { "loved", new("loved", 1159888325491036311) },
+    { "qualified", new("approved", 1159888150542418031) },
+    { "approved", new("approved", 1159888150542418031) },
+    { "ranked", new("ranked", 1159888338199773339) },
+    { "length", new("length", 1159888322873786399) },
+    { "bpm", new("length", 1159888153000280074) },
+    { "circles", new("circles", 1159888155902758953) },
+    { "sliders", new("sliders", 1159888389902970890) },
+    { "spinners", new("spinners", 1159888345250414723) },
+    { "osu", new("std", 1159888333044981913) },
+    { "taiko", new("taiko", 1159888334492029038) },
+    { "fruits", new("fruits", 1159888328984903700) },
+    { "mania", new("mania", 1159888330637463623) },
   };
 }
 

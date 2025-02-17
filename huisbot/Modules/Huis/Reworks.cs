@@ -1,9 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using huisbot.Utilities;
 
 namespace huisbot.Modules.Huis;
 
@@ -32,7 +32,7 @@ public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
     if (reworks.Length > 25)
       reworks = reworks.Where(x => !x.IsHistoric).ToArray();
     if (reworks.Length > 25)
-      reworks = reworks.Where(x => !x.IsActive).ToArray();
+      reworks = reworks.Where(x => x.IsActive).ToArray();
     if (reworks.Length > 25)
       reworks = reworks.Take(25).ToArray(); // As a "last resort", limit the reworks to 25
 

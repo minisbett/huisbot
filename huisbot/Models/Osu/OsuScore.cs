@@ -1,5 +1,4 @@
-﻿using huisbot.Utilities;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
@@ -8,6 +7,12 @@ namespace huisbot.Models.Osu;
 /// </summary>
 public class OsuScore
 {
+  /// <summary>
+  /// The ID of the score.
+  /// </summary>
+  [JsonProperty("id")]
+  public long Id { get; private set; }
+
   /// <summary>
   /// The accuracy of the score.
   /// </summary>
@@ -18,19 +23,30 @@ public class OsuScore
   /// The beatmap of the score.
   /// </summary>
   [JsonProperty("beatmap")]
-  public OsuScoreBeatmap Beatmap { get; private set; } = new OsuScoreBeatmap();
+  public OsuScoreBeatmap Beatmap { get; private set; } = null!;
 
   /// <summary>
   /// The beatmap set of the score.
   /// </summary>
   [JsonProperty("beatmapset")]
-  public OsuScoreBeatmapSet BeatmapSet { get; private set; } = new OsuScoreBeatmapSet();
+  public OsuScoreBeatmapSet BeatmapSet { get; private set; } = null!;
 
   /// <summary>
   /// The maximum achieved combo of the score.
   /// </summary>
+  public int MaxCombo => MaxComboAPI ?? MaxComboHuis!.Value;
+
+  /// <summary>
+  /// The max combo if this object origins from the osu! API.
+  /// </summary>
   [JsonProperty("max_combo")]
-  public int MaxCombo { get; private set; }
+  private int? MaxComboAPI { get; set; }
+
+  /// <summary>
+  /// The max combo if this object origins from the osu-tools response of Huis.
+  /// </summary>
+  [JsonProperty("combo")]
+  private int? MaxComboHuis { get; set; }
 
   /// <summary>
   /// The ID of the ruleset this score was set in. (0 = osu!std, 1 = osu!taiko, ...)
@@ -39,28 +55,30 @@ public class OsuScore
   public int RulesetId { get; private set; }
 
   /// <summary>
-  /// The mods of the score.
-  /// </summary>
-  [JsonIgnore]
-  public Mods Mods => Mods.Parse(OsuMods.Select(x => x.Acronym).ToArray());
-
-  /// <summary>
   /// The mods of the score, in the osu!lazer APIMod format.
   /// </summary>
   [JsonProperty("mods")]
-  private OsuMod[] OsuMods { get; set; } = [];
+  public OsuMods Mods { get; private set; } = [];
 
-    /// <summary>
+  /// <summary>
   /// The user of the score.
   /// </summary>
   [JsonProperty("user")]
-  public OsuScoreUser User { get; private set; } = new OsuScoreUser();
+  public OsuScoreUser User { get; private set; } = null!;
 
   /// <summary>
   /// The statistics (300s, 100s, 50s, misses) of the score.
   /// </summary>
   [JsonProperty("statistics")]
-  public OsuScoreStatistics Statistics { get; private set; } = new OsuScoreStatistics();
+  public OsuScoreStatistics Statistics { get; private set; } = null!;
+
+  /// <summary>
+  /// The time the score was submitted at.
+  /// </summary>
+  [JsonProperty("ended_at")]
+  public DateTime SubmittedAt { get; private set; }
+
+  // TODO: Make those inner classes redundant by generally fetching beatmaps/users via API v2 in the client, replacing the API v1 models.
 
   /// <summary>
   /// Represents the <see cref="Beatmap"/> component of the <see cref="OsuScore"/> type.
@@ -90,36 +108,6 @@ public class OsuScore
     /// </summary>
     [JsonProperty("title")]
     public string Title { get; private set; } = "";
-  }
-
-  /// <summary>
-  /// Represents the <see cref="Statistics"/> component of the <see cref="OsuScore"/> type.
-  /// </summary>
-  public class OsuScoreStatistics
-  {
-    /// <summary>
-    /// The amount of 300s in the score.
-    /// </summary>
-    [JsonProperty("great")]
-    public int Count300 { get; private set; }
-
-    /// <summary>
-    /// The amount of 100s in the score.
-    /// </summary>
-    [JsonProperty("ok")]
-    public int Count100 { get; private set; }
-
-    /// <summary>
-    /// The amount of 50s in the score.
-    /// </summary>
-    [JsonProperty("meh")]
-    public int Count50 { get; private set; }
-
-    /// <summary>
-    /// The amount of misses in the score.
-    /// </summary>
-    [JsonProperty("miss")]
-    public int Misses { get; private set; }
   }
 
   /// <summary>

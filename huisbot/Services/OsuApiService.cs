@@ -213,9 +213,50 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}",
-        scoreId, ex.Message);
+      logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}", scoreId, ex.Message);
       return null;
     }
   }
+
+  /// <summary>
+  /// Returns the X-th best score of the specified user.
+  /// </summary>
+  /// <param name="userId">The ID of the osu! user.</param>
+  /// <param name="index">The one-based index of the X-th best score.</param>
+  /// <param name="type">The type of score.</param>
+  /// <returns>The X-th best score.</returns>
+  public async Task<NotFoundOr<OsuScore>?> GetUserScoreAsync(int userId, int index, ScoreType type)
+  {
+    // Make sure a valid access token exists. If not, return null.
+    if (!await EnsureAccessTokenAsync())
+      return null;
+
+    try
+    {
+      // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{userId}/scores/{type.ToString().ToLower()}?mode=osu&limit=1&offset={index - 1}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
+        return NotFoundOr<OsuScore>.NotFound;
+
+      // Parse the response.
+      string json = await response.Content.ReadAsStringAsync();
+      OsuScore[]? scores = JsonConvert.DeserializeObject<OsuScore[]>(json);
+
+      return scores?.Length > 0 ? scores[0].WasFound() : null;
+    }
+    catch (Exception ex)
+    {
+      logger.LogError("Failed to get the {Index}-th {Type} score of {userId} from the osu! API: {Message}", index, type, userId, ex.Message);
+      return null;
+    }
+  }
+}
+
+/// <summary>
+/// Represents a type of score for fetching user scores via <see cref="OsuApiService.GetUserScoreAsync(int, int, string)"/>.
+/// </summary>
+public enum ScoreType
+{
+  Best,
+  Recent
 }

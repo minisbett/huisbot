@@ -1,5 +1,4 @@
-﻿using huisbot.Utilities;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace huisbot.Models.Osu;
 
@@ -109,7 +108,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The length of the beatmap including the specified mods.</returns>
-  public TimeSpan GetLength(Mods mods)
+  public TimeSpan GetLength(OsuMods mods)
   {
     // Return the timespan of the beatmap multiplied by the clock rate of the mods.
     return TimeSpan.FromSeconds(Length) * mods.ClockRate;
@@ -120,7 +119,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The BPM of the beatmap including the specified mods.</returns>
-  public double GetBPM(Mods mods)
+  public double GetBPM(OsuMods mods)
   {
     // Return the BPM multiplied by the clock rate of the mods.
     return BPM * mods.ClockRate;
@@ -131,7 +130,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The mod-adjusted circle size.</returns>
-  public double GetAdjustedCS(Mods mods)
+  public double GetAdjustedCS(OsuMods mods)
   {
     double cs = CircleSize;
 
@@ -150,7 +149,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The mod-adjusted approach rate.</returns>
-  public double GetAdjustedAR(Mods mods)
+  public double GetAdjustedAR(OsuMods mods)
   {
     double ar = ApproachRate;
 
@@ -172,7 +171,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The mod-adjusted overall difficulty.</returns>
-  public double GetAdjustedOD(Mods mods)
+  public double GetAdjustedOD(OsuMods mods)
   {
     double od = OverallDifficulty;
 
@@ -192,7 +191,7 @@ public class OsuBeatmap
   /// </summary>
   /// <param name="mods">The mods.</param>
   /// <returns>The mod-adjusted drain rate.</returns>
-  public double GetAdjustedHP(Mods mods)
+  public double GetAdjustedHP(OsuMods mods)
   {
     double hp = DrainRate;
 

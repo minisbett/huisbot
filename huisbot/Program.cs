@@ -4,14 +4,12 @@ using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Newtonsoft.Json;
 using System.Globalization;
 
 namespace huisbot;
@@ -21,7 +19,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.6.2";
+  public const string VERSION = "2.7.0";
 
   /// <summary>
   /// The startup time of the application.
@@ -40,7 +38,7 @@ public class Program
     {
       await MainAsync(args);
     }
-    catch (Exception ex)
+    catch (Exception ex) when (ex is not HostAbortedException)
     {
       Console.ForegroundColor = ConsoleColor.Red;
       Console.WriteLine(ex);
@@ -59,12 +57,6 @@ public class Program
     Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
     CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
     CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-    // Add custom JSON converters to the JsonConvert defaults.
-    JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
-    {
-      Converters = { new ModsConverter() }
-    };
 
     // Build the generic host.
     IHost host = Host.CreateDefaultBuilder()

@@ -2,11 +2,13 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
 using huisbot.Utilities;
+using System.Text.RegularExpressions;
 
 namespace huisbot.Modules;
 
@@ -243,25 +245,50 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns the beatmap by the specified identifier (ID or alias).<br/>
+  /// Returns the top plays of the specified player in the specified rework from the Huis API.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
-  /// <param name="beatmapId">An identifier for the beatmap. (Beatmap ID or alias)</param>
+  /// <param name="player">The player.</param>
+  /// <param name="reworkId">The rework ID.</param>
+  /// <param name="scoreType">The type of scores (topranks, flashlight or pinned).</param>
+  /// <returns>The top plays of the specified player in the specified rework.</returns>
+  public async Task<HuisScore[]?> GetTopPlaysAsync(OsuUser player, int reworkId, string scoreType)
+  {
+    // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
+    HuisScore[]? scores = await huis.GetTopPlaysAsync(player.Id, reworkId, scoreType);
+    if (scores is null)
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{player.Name}`."));
+
+    return scores;
+  }
+
+  /// <summary>
+  /// Returns the beatmap by the specified identifier (ID, URL or alias).<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="beatmapId">An identifier for the beatmap. (ID, URL or alias)</param>
   /// <returns>The beatmap.</returns>
   public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapId)
   {
-    // If the identifier is not a number, try to find a beatmap alias.
-    if (!beatmapId.All(char.IsDigit))
+    // Check if the provided identifier is an ID already.
+    if (!int.TryParse(beatmapId, out int _))
     {
-      // Get the beatmap alias. If none could be found, notify the user. Otherwise replace the identifier.
-      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(beatmapId);
-      if (alias is null)
-      {
-        await FollowupAsync(embed: Embeds.Error($"Beatmap alias `{beatmapId}` could not be found."));
-        return null;
-      }
+      // Match a beatmap URL and extract the ID from it.
+      Match match = Regex.Match(beatmapId, "https?:\\/\\/osu\\.ppy\\.sh\\/(?:beatmapsets\\/\\d+#osu\\/|s\\/\\d+#osu\\/|beatmaps\\/|b\\/)(\\d+)");
+      if (match.Success)
+        beatmapId = match.Groups[1].Value;
       else
+      {
+        // Find a beatmap alias. If none could be found, notify the user.
+        BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(beatmapId);
+        if (alias is null)
+        {
+          await FollowupAsync(embed: Embeds.Error($"No beatmap with alias `{beatmapId}` could not be found."));
+          return null;
+        }
+
         beatmapId = alias.BeatmapId.ToString();
+      }
     }
 
     // Get the beatmap from the osu! API. If it failed or the beatmap was not found, notify the user.
@@ -276,43 +303,34 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
   }
 
   /// <summary>
-  /// Returns the top plays of the specified player in the specified rework from the Huis API.<br/>
+  /// Returns the score by the specified identifier (ID, URL or alias).<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
-  /// <param name="player">The player.</param>
-  /// <param name="reworkId">The rework ID.</param>
-  /// <returns>The top plays of the specified player in the specified rework.</returns>
-  public async Task<HuisScore[]?> GetTopPlaysAsync(OsuUser player, int reworkId)
-  {
-    // Get the score rankings in the rework and check whether the request was successful. If not, notify the user.
-    HuisScore[]? scores = await huis.GetTopPlaysAsync(player.Id, reworkId);
-    if (scores is null)
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{player.Name}`."));
-
-    return scores;
-  }
-
-  /// <summary>
-  /// Returns the score by the specified identifier (ID or alias).<br/>
-  /// If it failed, the user will automatically be notified. In this case, this method returns null.
-  /// </summary>
-  /// <param name="scoreId">An identifier for the score. (Score ID or alias)</param>
+  /// <param name="scoreId">An identifier for the score. (ID, URL or alias)</param>
   /// <returns>The score.</returns>
   public async Task<OsuScore?> GetScoreAsync(string scoreId)
   {
-    // If the identifier is not a number, try to find a score alias.
-    if (!scoreId.All(char.IsDigit))
+    // Check if the provided identifier is an ID already.
+    if (!int.TryParse(scoreId, out int _))
     {
-      // Get the score alias. If none could be found, notify the user. Otherwise replace the identifier.
-      ScoreAlias? alias = await persistence.GetScoreAliasAsync(scoreId);
-      if (alias is null)
-      {
-        await FollowupAsync(embed: Embeds.Error($"Score alias `{scoreId}` could not be found."));
-        return null;
-      }
+      // Match a beatmap URL and extract the ID from it.
+      Match match = Regex.Match(scoreId, "https?:\\/\\/osu\\.ppy\\.sh\\/scores\\/(\\d+)");
+      if (match.Success)
+        scoreId = match.Groups[1].Value;
       else
+      {
+        // Find a beatmap alias. If none could be found, notify the user.
+        ScoreAlias? alias = await persistence.GetScoreAliasAsync(scoreId);
+        if (alias is null)
+        {
+          await FollowupAsync(embed: Embeds.Error($"No score with alias `{scoreId}` could not be found."));
+          return null;
+        }
+
         scoreId = alias.ScoreId.ToString();
+      }
     }
+
     // Get the score from the osu! API. If it failed or the score was not found, notify the user.
     NotFoundOr<OsuScore>? score = await osu.GetScoreAsync(long.Parse(scoreId));
     if (score is null)
@@ -320,20 +338,37 @@ public class ModuleBase(HuisApiService huis = null!, OsuApiService osu = null!, 
     else if (!score.Found)
       await FollowupAsync(embed: Embeds.Error($"No score with ID `{scoreId}` could be found."));
 
-    // Return the score.
     return (score?.Found ?? false) ? score : null!;
   }
 
   /// <summary>
-  /// Returns a simulated score, calculated through the specified request. Caching via the persistence database is applied here.<br/>
+  /// Returns the X-th best score by the specified user.<br/>
   /// If it failed, the user will automatically be notified. In this case, this method returns null.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <returns>The simulated score.</returns>
-  public async Task<HuisSimulationResponse?> SimulateScoreAsync(HuisSimulationRequest request)
+  /// <param name="userId">The ID of the osu! user.</param>
+  /// <param name="index">The one-based index of the score.</param>
+  /// <param name="type">The type of score.</param>
+  /// <returns>The X-th best score of the user.</returns>
+  public async Task<OsuScore?> GetUserScoreAsync(int userId, int index, ScoreType type)
   {
-    // Simulate the score and check whether it was successful. If not, notify the user.
-    HuisSimulationResponse? response = await huis.SimulateAsync(request);
+    // Get the score from the osu! API. If it failed or the score was not found, notify the user.
+    NotFoundOr<OsuScore>? score = await osu.GetUserScoreAsync(userId, index, type);
+    if (score is null)
+      await ModifyOriginalResponseAsync(x => x.Embed = Embeds.InternalError("Failed to get the score from the osu! API."));
+
+    return (score?.Found ?? false) ? score : null!;
+  }
+
+  /// <summary>
+  /// Returns a calculated score, calculated through the specified request. Caching via the persistence database is applied here.<br/>
+  /// If it failed, the user will automatically be notified. In this case, this method returns null.
+  /// </summary>
+  /// <param name="request">The score calculation request.</param>
+  /// <returns>The calculated score.</returns>
+  public async Task<HuisCalculationResponse?> CalculateScoreAsync(HuisCalculationRequest request)
+  {
+    // Calculation the score and check whether it was successful. If not, notify the user.
+    HuisCalculationResponse? response = await huis.CalculateAsync(request);
     if (response is null)
     {
       await ModifyOriginalResponseAsync(x =>

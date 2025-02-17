@@ -2,9 +2,9 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using huisbot.Helpers;
 using huisbot.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Configuration;
@@ -88,7 +88,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   {
     // Make sure that the user is the owner of the application.
     RestApplication app = await Context.Client.GetApplicationInfoAsync();
-    if (Context.User.Id == app.Owner.Id || Context.User.Id != app.Team.OwnerUserId)
+    if (Context.User.Id != app.Owner.Id || (app.Team is not null && Context.User.Id != app.Team.OwnerUserId))
     {
       await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;

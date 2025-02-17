@@ -41,8 +41,8 @@ public class Sort
   /// <summary>
   /// The sort options for the ranking of all players.
   /// </summary>
-  public static Sort[] RankingPlayers => new Sort[]
-  {
+  public static Sort[] RankingPlayers =>
+  [
     new("old_pp", false, "Live PP"),
     //new("old_pp", true, "Old PP (Ascending)"),
     new("new_pp_incl_bonus", false, "Local PP"),
@@ -61,13 +61,13 @@ public class Sort
     //new("bonus_pp", true, "Bonus PP (Ascending)"),
     new("new_pp_excl_bonus", false, "Local PP Excl. Bonus"),
     //new("new_pp_excl_bonus", true, "New PP Excl. Bonus (Ascending)")
-  };
+  ];
 
   /// <summary>
   /// The sort options for the ranking of all scores.
   /// </summary>
-  public static Sort[] RankingScores => new Sort[]
-  {
+  public static Sort[] RankingScores =>
+  [
     new("live_pp", false, "Live PP"),
    // new("live_pp", true, "Live PP (Ascending)"),
     new("local_pp", false, "Local PP"),
@@ -80,18 +80,18 @@ public class Sort
     //new("tap_pp", true, "Weighted Tap PP (Ascending)"),
     new("fl_pp", false, "Weighted FL PP"),
     //new("fl_pp", true, "Weighted FL PP (Ascending)")
-  };
+  ];
 
   /// <summary>
   /// The sort options for the scores on the profile of a player.
   /// </summary>
-  public static Sort[] ProfileScores => new Sort[]
-  {
+  public static Sort[] ProfileScores =>
+  [
     new("live_pp", false, "Live PP"),
     //new("live_pp", true, "Live PP (Ascending)"),
     new("local_pp", false, "Local PP"),
     //new("local_pp", true, "Live PP (Ascending)"),
     new("pp_diff", false, "PP Difference (Descending)"),
     new("pp_diff", true, "PP Difference (Ascending)")
-  };
+  ];
 }

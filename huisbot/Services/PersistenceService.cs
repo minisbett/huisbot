@@ -63,7 +63,7 @@ public class PersistenceService(Database database)
   /// <param name="alias">The score alias.</param>
   /// <param name="beatmapId">The beatmap ID.</param>
   /// <param name="displayName">The display name for the score.</param>
-  public async Task AddBeatmapAliasAsync(string alias, long beatmapId, string displayName)
+  public async Task AddBeatmapAliasAsync(string alias, int beatmapId, string displayName)
   {
     // Add the beatmap alias to the database.
     database.BeatmapAliases.Add(new BeatmapAlias(Utils.GetFormattedAlias(alias), beatmapId, displayName));
@@ -126,30 +126,30 @@ public class PersistenceService(Database database)
   }
 
   /// <summary>
-  /// Adds a new cache entry for the specified score simulation request and it's resulting score.
+  /// Adds a new cache entry for the specified score calculation request and it's resulting score.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <param name="response">The simulation response.</param>
-  public async Task AddCachedScoreSimulationAsync(HuisSimulationRequest request, HuisSimulationResponse response)
+  /// <param name="request">The score calculation request.</param>
+  /// <param name="response">The calculation response.</param>
+  public async Task AddCachedScoreCalculationAsync(HuisCalculationRequest request, HuisCalculationResponse response)
   {
     // To make this thread-safe, make sure there is no cache entry at this point in time (again).
-    if (await GetCachedScoreSimulationAsync(request) is not null)
+    if (await GetCachedScoreCalculationAsync(request) is not null)
       return;
 
-    // Add the cached simulation to the database.
-    database.CachedScoreSimulations.Add(new CachedScoreSimulation(request, response));
+    // Add the cached calculation to the database.
+    database.CachedScoreCalculations.Add(new CachedScoreCalculation(request, response));
     await database.SaveChangesAsync();
   }
 
   /// <summary>
-  /// Returns the cached simulation response for the specified score simulation request.<br/>
+  /// Returns the cached calculation response for the specified score calculation request.<br/>
   /// If no cache entry exists, null is returned instead.
   /// </summary>
-  /// <param name="request">The score simulation request.</param>
-  /// <returns>The cached simulation response or null, if no cache entry exists.</returns>
-  public async Task<HuisSimulationResponse?> GetCachedScoreSimulationAsync(HuisSimulationRequest request)
+  /// <param name="request">The score calculation request.</param>
+  /// <returns>The cached calculation response or null, if no cache entry exists.</returns>
+  public async Task<HuisCalculationResponse?> GetCachedScoreCalculationAsync(HuisCalculationRequest request)
   {
-    return (await database.CachedScoreSimulations.FirstOrDefaultAsync(
-      x => x.RequestIdentifier == CachedScoreSimulation.GetRequestIdentifier(request)))?.Response;
+    return (await database.CachedScoreCalculations.FirstOrDefaultAsync(
+      x => x.RequestIdentifier == CachedScoreCalculation.GetRequestIdentifier(request)))?.Response;
   }
 }
