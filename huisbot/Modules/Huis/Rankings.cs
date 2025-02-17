@@ -2,8 +2,8 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
-using huisbot.Services;
 using huisbot.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
-public class RankingsCommandModule(HuisApiService huis) : ModuleBase(huis)
+public class RankingsCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   /// <summary>
   /// Represents the cached score values for providing pagination via Discord message components.

@@ -5,6 +5,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Services;
 using huisbot.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -13,7 +14,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
+public class SimulateCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(

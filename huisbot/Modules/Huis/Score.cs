@@ -5,6 +5,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -14,7 +15,7 @@ namespace huisbot.Modules.Huis;
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("score", "Calculates a score in a rework based on the specified parameters.")]
-public class ScoreCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
+public class ScoreCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   private async Task HandleAsync(string reworkId, string? referenceReworkId, Task<OsuScore?> score, OsuUser? user = null)
   {

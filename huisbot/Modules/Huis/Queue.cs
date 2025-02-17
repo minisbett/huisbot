@@ -5,6 +5,7 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -13,7 +14,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class QueueCommandModule(OsuApiService osu, HuisApiService huis, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
+public class QueueCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("queue", "Queues you or the specified player in the specified rework.")]
   public async Task HandleAsync(

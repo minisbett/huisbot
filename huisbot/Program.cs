@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
+using Discord.Addons.Hosting.Util;
+using Discord.Rest;
 using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Persistence;
@@ -25,6 +27,11 @@ public class Program
   /// The startup time of the application.
   /// </summary>
   public static readonly DateTime STARTUP_TIME;
+
+  /// <summary>
+  /// The Discord client application, representing metadata around the bot, it's owner etc.
+  /// </summary>
+  public static RestApplication Application { get; private set; }
 
   static Program()
   {
@@ -164,7 +171,15 @@ public class Program
     HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
     await huisApi.GetReworksAsync();
 
-    // Run the host.
-    await host.RunAsync();
+    // Run the host and wait for the Discord bot to be ready.
+    _ = host.RunAsync();
+    DiscordSocketClient discordClient = host.Services.GetRequiredService<DiscordSocketClient>();
+    await discordClient.WaitForReadyAsync(new());
+
+    // Get the application info for the bot and store it for global access.
+    Application = await discordClient.GetApplicationInfoAsync();
+
+    // Run the bot indefinitely.
+    await Task.Delay(-1);
   }
 }
