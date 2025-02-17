@@ -298,7 +298,7 @@ internal static class Embeds
       .WithAuthor(author)
       .AddField(ppFieldTitle, ppFieldText, true)
       .AddField("Score Info", scoreFieldText, true)
-      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/s/{score.Id}")
+      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/scores/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
