@@ -2,9 +2,10 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Utilities;
 using DEmoji = Discord.Emoji;
 
-namespace huisbot.Utilities;
+namespace huisbot.Helpers;
 
 /// <summary>
 /// Provides embeds for the application.
@@ -285,7 +286,7 @@ internal static class Embeds
     string reworkComparison = rework == refRework ? rework.Name! : $"{refRework.Name} → {rework.Name}";
 
     EmbedAuthorBuilder author = new();
-    if(user is not null)
+    if (user is not null)
       author = new EmbedAuthorBuilder()
         .WithName($"{user.Name}: {user.PP:N}pp (#{user.GlobalRank:N0} | #{user.CountryRank:N0} {user.Country})")
         .WithIconUrl($"https://a.ppy.sh/{user.Id}")

@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
+using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
 
 namespace huisbot.Modules.Huis;
 

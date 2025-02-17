@@ -1,9 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
+using huisbot.Helpers;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
 
 namespace huisbot.Modules;
 
@@ -104,7 +104,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
-        await base.FollowupAsync(embed: Embeds.Error($"The beatmap alias `{alias}` does not exist."));
+        await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{alias}` does not exist."));
         return;
       }
 

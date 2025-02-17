@@ -15,7 +15,7 @@ internal static class Utils
   /// </summary>
   /// <param name="alias">The alias.</param>
   /// <returns>The formatted alias.</returns>
-  public static string GetFormattedAlias(string alias) => new string(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
+  public static string GetFormattedAlias(string alias) => new(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
 
   /// <summary>
   /// Tries to find osu! score information from common Discord bots in the last 100 messages of the channel of the interaction context.

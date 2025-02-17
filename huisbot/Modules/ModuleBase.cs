@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
