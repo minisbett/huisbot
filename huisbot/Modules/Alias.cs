@@ -57,7 +57,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       // Add the beatmap alias.
       string displayName = $"{beatmap.Title} [{beatmap.Version}]";
       await persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
-      await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/b/{beatmapId})"));
+      await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` was successfully added.\n[{displayName}](https://osu.ppy.sh/b/{beatmapId})"));
     }
 
     [SlashCommand("remove", "Removes a beatmap alias.")]
@@ -137,7 +137,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("add", "Adds a score alias.")]
     public async Task HandleAddAsync(
-      [Summary("alias", "The alias text.")] string aliasText,
+      [Summary("alias", "The alias text.")] string aliasText, 
       [Summary("scoreId", "The ID of the beatmap.")] long scoreId)
     {
       await DeferAsync();
@@ -153,7 +153,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       ScoreAlias? alias = await persistence.GetScoreAliasAsync(aliasText);
       if (alias is not null)
       {
-        await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/osu/{alias.ScoreId})"));
+        await FollowupAsync(embed: Embeds.Error($"The score alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/scores/{alias.ScoreId})"));
         return;
       }
 
@@ -165,7 +165,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       // Add the score alias. 
       string displayName = $"{score.User.Name} on {score.BeatmapSet.Title} [{score.Beatmap.Version}]";
       await persistence.AddScoreAliasAsync(aliasText, scoreId, displayName);
-      await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` has successfully added.\n[{displayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
+      await FollowupAsync(embed: Embeds.Success($"The score alias `{aliasText}` was successfully added.\n[{displayName}](https://osu.ppy.sh/scores/osu/{scoreId})"));
     }
 
     [SlashCommand("remove", "Removes a score alias.")]
