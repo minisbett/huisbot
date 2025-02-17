@@ -25,7 +25,7 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
 
     // Get all suggested reworks where the name or code contains the input value.
     string input = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";
-    IEnumerable<HuisRework> suggestedReworks = reworks.Where(x => (x.Name?.ToLower().Contains(input) ?? false) 
+    IEnumerable<HuisRework> suggestedReworks = reworks.Where(x => (x.Name?.ToLower().Contains(input) ?? false)
                                                                || (x.Code?.ToLower().Contains(input) ?? false));
 
     // Return the first 25 reworks, since more are not supported due to Discord API limitations.

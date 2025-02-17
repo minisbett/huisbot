@@ -76,7 +76,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
       // Get the json from the Huis API and parse the objects in the queue property.
       string json = await _http.GetStringAsync($"queue/list?rework={reworkId}");
       JObject[]? entries = JObject.Parse(json)["queue"]?.ToObject<JObject[]>();
-      
+
       // Check whether the deserialized json is valid and select the user id of each entry.
       return entries?.Select(x => x["user_id"]!.Value<int>()).ToArray() ?? throw new Exception("Deserialization of JSON returned null.");
     }

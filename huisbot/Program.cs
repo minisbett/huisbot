@@ -4,14 +4,12 @@ using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Newtonsoft.Json;
 using System.Globalization;
 
 namespace huisbot;

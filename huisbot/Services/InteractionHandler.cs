@@ -11,7 +11,7 @@ namespace huisbot.Services;
 /// <summary>
 /// Handles interactions (slash commands, components, ...) with the application.
 /// </summary>
-public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, InteractionService service, IServiceProvider provider) 
+public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, InteractionService service, IServiceProvider provider)
   : DiscordClientService(client, logger)
 {
   protected override async Task ExecuteAsync(CancellationToken cts)
