@@ -31,7 +31,7 @@ public class Program
   /// <summary>
   /// The Discord client application, representing metadata around the bot, it's owner etc.
   /// </summary>
-  public static RestApplication Application { get; private set; }
+  public static RestApplication Application { get; private set; } = null!;
 
   static Program()
   {
