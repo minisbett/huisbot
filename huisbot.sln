@@ -7,13 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "huisbot", "huisbot\huisbot.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Cutting Edge|Any CPU = Cutting Edge|Any CPU
 		Development|Any CPU = Development|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F0476E9B-9D41-4303-9459-43D56C4E67DF}.Cutting Edge|Any CPU.ActiveCfg = Cutting Edge|Any CPU
-		{F0476E9B-9D41-4303-9459-43D56C4E67DF}.Cutting Edge|Any CPU.Build.0 = Cutting Edge|Any CPU
 		{F0476E9B-9D41-4303-9459-43D56C4E67DF}.Development|Any CPU.ActiveCfg = Development|Any CPU
 		{F0476E9B-9D41-4303-9459-43D56C4E67DF}.Development|Any CPU.Build.0 = Development|Any CPU
 		{F0476E9B-9D41-4303-9459-43D56C4E67DF}.Release|Any CPU.ActiveCfg = Release|Any CPU

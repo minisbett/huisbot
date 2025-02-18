@@ -210,12 +210,10 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
       .WithTitle($"Information about Huisbot {Program.VERSION}")
-      .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
-                       "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
-      .AddField("Uptime", $"{uptimeStr}\n\n[Source](https://github.com/minisbett/huisbot) • " +
-                          $"[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
-      .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
-                              $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
+      .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the [Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
+      .AddField("Uptime", $"{uptimeStr}{"".PadLeft(uptimeStr.Count(x => x == ',') >= 2 ? 1 : 2, '\n')}[Source Code](https://github.com/minisbett/huisbot)", true)
+      .AddField("Installation Count", $"{Program.Application.ApproximateGuildCount} Guilds\n{Program.Application.ApproximateUserInstallCount} Users\n[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
+      .AddField("API Status", $"{(osuV1Available ? "✅" : "❌")} osu!api v1\n{(osuV2Available ? "✅" : "❌")} osu!api v2\n{(huisAvailable ? "✅" : "❌")} Huismetbenen", true)
       .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
       .Build();
   }
@@ -258,26 +256,19 @@ internal static class Embeds
     ppFieldText += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
     ppFieldText += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
     ppFieldText += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
-    if (local.PerformanceAttributes.FLPP + reference.PerformanceAttributes.FLPP > 0) // Check if both are 0 => FL PP probably doesn't exist
+    if (local.Score.Mods.IsFlashlight)
       ppFieldText += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
-    if (local.PerformanceAttributes.ReadingPP is not null) // For reading PP, if not available it's null instead of 0 as it is with FL
-      ppFieldText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
+    ppFieldText += $"\n▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
 
     // Construct the score info field.
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
     scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
-    scoreFieldText += "\n";
+    scoreFieldText += $"\n▸ ";
     if (!local.Score.Mods.IsClassic) // With classic mod, these statistics are irrelevant
-      scoreFieldText += $"▸ {local.Score.Statistics.LargeTickMisses ?? 0} {_emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {_emojis["slidertailmiss"]} ";
-    scoreFieldText += $"▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
-    scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    if (local.PerformanceAttributes.Deviation is not null)
-      scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
-
-    // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
-    ppFieldText += "".PadLeft(scoreFieldText.Split('\n').Length - ppFieldText.Split('\n').Length, '\n');
-    ppFieldText += $"▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
+      scoreFieldText += $"{local.Score.Statistics.LargeTickMisses ?? 0} {_emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {_emojis["slidertailmiss"]} ";
+    scoreFieldText += $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
+    scoreFieldText += $"\n▸ `CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1}` ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
+    scoreFieldText += $"\n▸ `OD {beatmap.GetAdjustedOD(local.Score.Mods):N1} HP {beatmap.GetAdjustedHP(local.Score.Mods):N1}` ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
 
     // Construct some more strings for the embed.
     (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
@@ -298,7 +289,7 @@ internal static class Embeds
       .WithAuthor(author)
       .AddField(ppFieldTitle, ppFieldText, true)
       .AddField("Score Info", scoreFieldText, true)
-      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/s/{score.Id}")
+      .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/scores/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{reworkComparison} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
@@ -330,7 +321,7 @@ internal static class Embeds
     if (aliases.Any())
     {
       aliasesStr = "";
-      foreach (IGrouping<long, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
+      foreach (IGrouping<int, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
         aliasesStr += $"[{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})\n▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}\n\n";
     }
 
@@ -540,24 +531,25 @@ internal static class Embeds
   public static Embed DifficultyAttributes(HuisCalculationResponse score, HuisRework rework, OsuBeatmap beatmap)
   {
     // Construct some strings for the embed.
-    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2}★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2}★**";
-    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2}★**";
+    string difficulty = $"Aim: **{score.DifficultyAttributes.AimDifficulty:N2} ★**\nSpeed: **{score.DifficultyAttributes.SpeedDifficulty:N2} ★**";
+    difficulty += score.DifficultyAttributes.FlashlightDifficulty is null ? "" : $"\nFL: **{score.DifficultyAttributes.FlashlightDifficulty:N2} ★**";
     string strainCounts = $"Aim: **{score.DifficultyAttributes.AimDifficultStrainCount:N2}**\n"
                         + $"Speed: **{score.DifficultyAttributes.SpeedDifficultStrainCount:N2}**";
-    string visualizer = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    string osu = $"[osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
-    string huisRework = $"[Huis Rework]({rework.Url})";
-    string github = rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})";
+    string mapAttributes = $"Max Combo: **{beatmap.MaxCombo}x**\n"
+                         + $"Overall Difficulty: **{beatmap.GetAdjustedOD(score.Score.Mods):0.##}**\n"
+                         + $"Approach Rate: **{beatmap.GetAdjustedAR(score.Score.Mods):0.##}**";
+    string other = $"Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}\nSlider Factor: {score.DifficultyAttributes.SliderFactor:N5} ({100 - score.DifficultyAttributes.SliderFactor * 100:N2}%)";
+    string links = $"[map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
 
     return BaseEmbed
     .WithColor(new Color(0x4061E9))
       .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
       .AddField("Difficulty", difficulty, true)
       .AddField("Difficult Strains", strainCounts, true)
-      .AddField("Slider Factor", $"{score.DifficultyAttributes.SliderFactor:N5}", true)
-      .AddField($"Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}", visualizer, true)
-      .AddField($"Max Combo: {beatmap.MaxCombo}x", osu, true)
-      .AddField($"OD {beatmap.GetAdjustedOD(score.Score.Mods):0.##} AR {beatmap.GetAdjustedAR(score.Score.Mods):0.##}", $"{huisRework} • {github}", true)
+      .AddField("\u200B", "\u200B", true)
+      .AddField("Map Attributes", mapAttributes, true)
+      .AddField("Other", $"{other}\n{links}", true)
+      .AddField("\u200B", "\u200B", true)
       .WithUrl($"https://osu.ppy.sh/b/{beatmap.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
@@ -622,64 +614,42 @@ internal static class Embeds
   /// </summary>
   private static readonly Dictionary<string, Emoji> _emojis = new()
   {
-    { "XH", new("rankSSH", 1159888184600170627) },
-    { "X", new("rankSS", 1159888182075207740) },
-    { "SH", new("rankSH", 1159888343245537300) },
-    { "S", new("rankS", 1159888340536012921) },
-    { "A", new("rankA", 1159888148080361592) },
-    { "B", new("rankB", 1159888151771369562) },
-    { "C", new("rankC", 1159888154891919502) },
-    { "D", new("rankD", 1159888158150893678) },
-    { "F", new("rankF", 1159888321342865538) },
-    { "300", new("300", 1159888146448797786) },
-    { "100", new("100", 1159888144406171719) },
-    { "50", new("50", 1159888143282094221) },
-    { "miss", new("miss", 1159888326698995842)},
-    { "largetickmiss", new("largetickmiss", 1340259318489944075) },
-    { "slidertailmiss", new("slidertailmiss", 1340117215210635274) },
-    { "loved", new("loved", 1159888325491036311) },
-    { "qualified", new("approved", 1159888150542418031) },
-    { "approved", new("approved", 1159888150542418031) },
-    { "ranked", new("ranked", 1159888338199773339) },
-    { "length", new("length", 1159888322873786399) },
-    { "bpm", new("length", 1159888153000280074) },
-    { "circles", new("circles", 1159888155902758953) },
-    { "sliders", new("sliders", 1159888389902970890) },
-    { "spinners", new("spinners", 1159888345250414723) },
-    { "osu", new("std", 1159888333044981913) },
-    { "taiko", new("taiko", 1159888334492029038) },
-    { "fruits", new("fruits", 1159888328984903700) },
-    { "mania", new("mania", 1159888330637463623) },
+#if RELEASE
+    { "300", new("300", 1341357711413088289) },
+    { "100", new("100", 1341357752387108915) },
+    { "50", new("50", 1341357771311943780) },
+    { "miss", new("miss", 1341357833123397643)},
+    { "largetickmiss", new("largetickmiss", 1341357849208553482) },
+    { "slidertailmiss", new("slidertailmiss", 1341357863909593200) },
+    { "circles", new("circles", 1341358823188987904) },
+    { "sliders", new("sliders", 1341358835394412625) },
+    { "spinners", new("spinners", 1341358848803475456) },
+    { "bpm", new("length", 1341358860350521374) },
+#elif DEVELOPMENT
+    { "300", new("300", 1341360730040959067) },
+    { "100", new("100", 1341360748839829505) },
+    { "50", new("50", 1341360765667377203) },
+    { "miss", new("miss", 1341360777399107638)},
+    { "largetickmiss", new("largetickmiss", 1341360790032093275) },
+    { "slidertailmiss", new("slidertailmiss", 1341360801084084226) },
+    { "circles", new("circles", 1341360813696487434) },
+    { "sliders", new("sliders", 1341360826975518772) },
+    { "spinners", new("spinners", 1341360841098002494) },
+    { "bpm", new("length", 1341360855173955657) },
+#endif
   };
-}
-
-/// <summary>
-/// Represents a Discord emoji with a name and ID.
-/// </summary>
-/// <remarks>
-/// Creates a new <see cref="Emoji"/> object with the name and ID of the custom emoji.
-/// </remarks>
-/// <param name="name">The name of the emoji.</param>
-/// <param name="id">The ID of the emoji.</param>
-public class Emoji(string name, ulong id)
-{
-  /// <summary>
-  /// The name of the emoji.
-  /// </summary>
-  public string Name { get; } = name;
 
   /// <summary>
-  /// The snowflake ID of the emoji.
+  /// Represents a Discord emoji with a name and ID.
   /// </summary>
-  public ulong Id { get; } = id;
+  /// <param name="Name">The name of the emoji.</param>
+  /// <param name="Id">The ID of the emoji.</param>
+  private record Emoji(string Name, ulong Id)
+  {
+    /// <summary>
+    /// Returns the markdown representation of this emoji.
+    /// </summary>
+    public override string ToString() => $"<:{Name}:{Id}>";
+  }
 
-  /// <summary>
-  /// Returns the asset url of this emoji.
-  /// </summary>
-  public string Url => $"https://cdn.discordapp.com/emojis/{Id}.webp";
-
-  /// <summary>
-  /// Returns the emoji string representation of this emoji.
-  /// </summary>
-  public override string ToString() => $"<:{Name}:{Id}>";
 }

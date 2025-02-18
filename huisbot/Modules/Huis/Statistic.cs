@@ -2,7 +2,7 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
-using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 using ScottPlot;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
@@ -16,7 +16,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class StatisticCommandModule(HuisApiService huis) : ModuleBase(huis)
+public class StatisticCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("statistic", "Displays the specific top-statistic in the specified rework.")]
   public async Task HandleAsync(

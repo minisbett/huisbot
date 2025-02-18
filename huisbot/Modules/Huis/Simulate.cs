@@ -3,8 +3,8 @@ using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Services;
 using huisbot.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
+public class SimulateCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
@@ -29,7 +29,7 @@ public class SimulateCommandModule(HuisApiService huis, OsuApiService osu, Persi
     [Summary("largeTickMisses", "(Lazer) The amount of large tick misses in the score.")] int? largeTickMisses = null,
     [Summary("sliderTailMisses", "(Lazer) The amount of misses in the score.")] int? sliderTailMisses = null,
     [Summary("mods", "The mods used in the score.")] string? modsStr = null,
-    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.01)][MaxValue(2)] double clockRate = 1)
+    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1)
   {
     await DeferAsync();
 

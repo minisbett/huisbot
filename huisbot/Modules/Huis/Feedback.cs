@@ -3,13 +3,13 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
-using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class FeedbackCommandModule(HuisApiService huis) : ModuleBase(huis)
+public class FeedbackCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("feedback", "Feedback")]
   public async Task HandleAsync(
@@ -36,7 +36,7 @@ public class FeedbackCommandModule(HuisApiService huis) : ModuleBase(huis)
 /// <summary>
 /// The interaction module for the "rework" select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class FeedbackModalModule(HuisApiService huis) : ModuleBase(huis)
+public class FeedbackModalModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [ModalInteraction("pp_feedback_.*", TreatAsRegex = true)]
   public async Task HandleAsync(FeedbackModal modal)
@@ -48,12 +48,13 @@ public class FeedbackModalModule(HuisApiService huis) : ModuleBase(huis)
     if (rework is null)
       return;
 
-#if DEVELOPMENT || CUTTING_EDGE
-    // In development or cutting edge mode, always send the feedback into the same channel.
+#if DEVELOPMENT
+    // In the development environment, always send the feedback into the same channel.
     ISocketMessageChannel channel = Context.Channel;
 #else
     // Get the PP Discord feedback channel. (WIP, other temp channel for now)
-    ISocketMessageChannel channel = Context.Client.GetGuild(1166126757141827775).GetTextChannel(1264243048821293105);
+    SocketGuild guild = Context.Client.GetGuild(configuration.GetValue<ulong>("DISCORD_FEEDBACK_GUILD_ID"));
+    SocketTextChannel channel = guild.GetTextChannel(configuration.GetValue<ulong>("DISCORD_FEEDBACK_CHANNEL_ID"));
 #endif
 
     // Respond to the user and send the feedback in the feedback channel.

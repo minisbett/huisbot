@@ -3,7 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
-using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -12,7 +12,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
+public class ReworksCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
@@ -25,7 +25,7 @@ public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
       return;
 
     // If the user does not have Onion-level authorization, remove Onion-level reworks.
-    if (!await IsOnionAsync(Context))
+    if (!IsOnion)
       reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
 
     // Filter out some rather uninteresting reworks if more than 25 reworks exist, as only up to 25 items can be displayed in a select menu.
@@ -53,7 +53,7 @@ public class ReworksCommandModule(HuisApiService huis) : ModuleBase(huis)
 /// <summary>
 /// The interaction module for the rework select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule(HuisApiService huis) : ModuleBase(huis)
+public class ReworksComponentModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
 
   /// <summary>
@@ -68,7 +68,7 @@ public class ReworksComponentModule(HuisApiService huis) : ModuleBase(huis)
       return;
 
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-level authorization.
-    if (rework.IsOnionLevel && !await IsOnionAsync(Context))
+    if (rework.IsOnionLevel && !IsOnion)
     {
       await Context.Interaction.RespondAsync(embed: Embeds.NotOnion, ephemeral: true);
       return;

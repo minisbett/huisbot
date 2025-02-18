@@ -87,8 +87,8 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     [Summary("code", "The C# code to execute.")] string code)
   {
     // Make sure that the user is the owner of the application.
-    RestApplication app = await Context.Client.GetApplicationInfoAsync();
-    if (Context.User.Id != app.Owner.Id || (app.Team is not null && Context.User.Id != app.Team.OwnerUserId))
+    RestApplication app = Program.Application;
+    if (!(Context.User.Id == Program.Application.Owner.Id || Context.User.Id == Program.Application.Team?.OwnerUserId))
     {
       await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;

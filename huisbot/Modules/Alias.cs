@@ -4,6 +4,7 @@ using huisbot.Helpers;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules;
 
@@ -16,7 +17,8 @@ namespace huisbot.Modules;
 public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 {
   [Group("beatmap", "Commands for adding, removing and listing beatmap aliases.")]
-  public class BeatmapAliasCommandModule(OsuApiService osu, PersistenceService persistence) : ModuleBase(osu: osu)
+  public class BeatmapAliasCommandModule(IServiceProvider services, IConfiguration configuration, PersistenceService persistence)
+    : ModuleBase(services, configuration)
   {
     [SlashCommand("list", "Lists all existing beatmap aliases.")]
     public async Task HandleListAsync()
@@ -35,7 +37,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -67,7 +69,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -94,7 +96,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -124,7 +126,8 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
   }
 
   [Group("score", "Commands for adding, removing and listing score aliases.")]
-  public class ScoreAliasCommandModule(OsuApiService osu, PersistenceService persistence) : ModuleBase(osu: osu)
+  public class ScoreAliasCommandModule(IServiceProvider services, IConfiguration configuration, PersistenceService persistence)
+    : ModuleBase(services, configuration)
   {
     [SlashCommand("list", "Lists all existing score aliases.")]
     public async Task HandleListAsync()
@@ -137,13 +140,13 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("add", "Adds a score alias.")]
     public async Task HandleAddAsync(
-      [Summary("alias", "The alias text.")] string aliasText, 
+      [Summary("alias", "The alias text.")] string aliasText,
       [Summary("scoreId", "The ID of the beatmap.")] long scoreId)
     {
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -175,7 +178,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;
@@ -202,7 +205,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Make sure the user is part of the PP team.
-      if (!await IsPPTeamAsync(Context))
+      if (!IsPPTeam)
       {
         await FollowupAsync(embed: Embeds.NotPPTeam);
         return;

@@ -4,8 +4,8 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
-using huisbot.Services;
 using huisbot.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -14,7 +14,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class TopPlaysCommandModule(HuisApiService huis, OsuApiService osu, PersistenceService persistence) : ModuleBase(huis, osu, persistence)
+public class TopPlaysCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   /// <summary>
   /// Represents the cached values for providing pagination via Discord message components.

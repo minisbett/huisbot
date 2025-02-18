@@ -66,6 +66,11 @@ public class OsuMods : List<OsuMod>
   public bool IsHardRock => GetMod("HR") is not null;
 
   /// <summary>
+  /// Bool indicating whether the mods contain the Flashlight mod.
+  /// </summary>
+  public bool IsFlashlight => GetMod("FL") is not null;
+
+  /// <summary>
   /// The string representation of the mods, with a " +" in front.
   /// </summary>
   public string PlusString => this.Any() ? $" +{this}" : "";
@@ -129,7 +134,7 @@ public class OsuMods : List<OsuMod>
     OsuMods mods = [];
 
     // Go through the mod string with two characters at once, and optionally the mod settings in () after the acronym.
-    foreach (Match match in Regex.Matches(modsStr, @"([A-Z]{2})(?:\((.*?)\))?"))
+    foreach (Match match in Regex.Matches(modsStr, @"([A-Za-z]{2})(?:\((.*?)\))?"))
     {
       OsuMod mod = new(match.Groups[1].Value);
       string extra = match.Groups[2].Value;
