@@ -140,7 +140,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("add", "Adds a score alias.")]
     public async Task HandleAddAsync(
-      [Summary("alias", "The alias text.")] string aliasText, 
+      [Summary("alias", "The alias text.")] string aliasText,
       [Summary("scoreId", "The ID of the beatmap.")] long scoreId)
     {
       await DeferAsync();

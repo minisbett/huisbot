@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
@@ -426,8 +425,8 @@ public class ModuleBase : InteractionModuleBase<SocketInteractionContext>
     get
     {
 #if DEVELOPMENT
-    // In development mode, always grant the permissions.
-    return true;
+      // In development mode, always grant the permissions.
+      return true;
 #endif
 
       // Check whether the user is the owner of the application.
