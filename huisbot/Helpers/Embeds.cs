@@ -210,12 +210,10 @@ internal static class Embeds
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
       .WithTitle($"Information about Huisbot {Program.VERSION}")
-      .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the " +
-                       "[Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
-      .AddField("Uptime", $"{uptimeStr}\n\n[Source](https://github.com/minisbett/huisbot) • " +
-                          $"[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
-      .AddField("API Status", $"osu!api v1 {new DEmoji(osuV1Available ? "✅" : "❌")}\nosu!api v2 {new DEmoji(osuV2Available ? "✅" : "❌")}\n" +
-                              $"Huismetbenen {new DEmoji(huisAvailable ? "✅" : "❌")}", true)
+      .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the [Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
+      .AddField("Uptime", $"{uptimeStr}{"".PadLeft(uptimeStr.Count(x => x == ',') >= 2 ? 1 : 2, '\n')}[Source Code](https://github.com/minisbett/huisbot)", true)
+      .AddField("Installation Count", $"{Program.Application.ApproximateGuildCount} Guilds\n{Program.Application.ApproximateUserInstallCount} Users\n[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
+      .AddField("API Status", $"{(osuV1Available ? "✅" : "❌")} osu!api v1\n{(osuV2Available ? "✅" : "❌")} osu!api v2\n{(huisAvailable ? "✅" : "❌")} Huismetbenen", true)
       .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
       .Build();
   }
