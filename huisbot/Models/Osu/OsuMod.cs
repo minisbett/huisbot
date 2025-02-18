@@ -66,6 +66,11 @@ public class OsuMods : List<OsuMod>
   public bool IsHardRock => GetMod("HR") is not null;
 
   /// <summary>
+  /// Bool indicating whether the mods contain the Flashlight mod.
+  /// </summary>
+  public bool IsFlashlight => GetMod("FL") is not null;
+
+  /// <summary>
   /// The string representation of the mods, with a " +" in front.
   /// </summary>
   public string PlusString => this.Any() ? $" +{this}" : "";

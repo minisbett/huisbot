@@ -258,10 +258,8 @@ internal static class Embeds
     ppFieldText += $"\n▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}";
     ppFieldText += $"\n▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}";
     ppFieldText += $"\n▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}";
-    if (local.PerformanceAttributes.FLPP + reference.PerformanceAttributes.FLPP > 0) // Check if both are 0 => FL PP probably doesn't exist
+    if (local.Score.Mods.IsFlashlight)
       ppFieldText += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
-    if (local.PerformanceAttributes.ReadingPP is not null) // For reading PP, if not available it's null instead of 0 as it is with FL
-      ppFieldText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP.Value)}";
 
     // Construct the score info field.
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
@@ -272,8 +270,6 @@ internal static class Embeds
     scoreFieldText += $"▸ {beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
     scoreFieldText += $"\n▸ CS **{beatmap.GetAdjustedCS(local.Score.Mods):0.#}** AR **{beatmap.GetAdjustedAR(local.Score.Mods):0.#}** ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
     scoreFieldText += $"\n▸ OD **{beatmap.GetAdjustedOD(local.Score.Mods):0.#}** HP **{beatmap.GetAdjustedHP(local.Score.Mods):0.#}** ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
-    if (local.PerformanceAttributes.Deviation is not null)
-      scoreFieldText += $"\n▸ **{local.PerformanceAttributes.Deviation:F2}** dev. / **{local.PerformanceAttributes.SpeedDeviation:F2}** speed dev.";
 
     // Add blank lines to fill up the pp comparison to match the line count of the score info and append the hyperlinks.
     ppFieldText += "".PadLeft(scoreFieldText.Split('\n').Length - ppFieldText.Split('\n').Length, '\n');

@@ -36,22 +36,4 @@ public class HuisPerformanceAttributes
   /// </summary>
   [JsonProperty("flashlight")]
   public double FLPP { get; private set; }
-
-  /// <summary>
-  /// The reading PP of the calculated score. Only available in reading-related reworks.
-  /// </summary>
-  [JsonProperty("reading")]
-  public double? ReadingPP { get; private set; }
-
-  /// <summary>
-  /// The deviation (estimated unstable rate) of the calculated score. Only available in statistical accuracy-related reworks.
-  /// </summary>
-  [JsonProperty("deviation")]
-  public double? Deviation { get; private set; }
-
-  /// <summary>
-  /// The speed deviation (estimated unstable rate) of the calculated score. Only available in statistical accuracy-related reworks.
-  /// </summary>
-  [JsonProperty("speed_deviation")]
-  public double? SpeedDeviation { get; private set; }
 }
