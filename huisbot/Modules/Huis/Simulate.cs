@@ -30,7 +30,7 @@ public class SimulateCommandModule(IServiceProvider services, IConfiguration con
     [Summary("largeTickMisses", "(Lazer) The amount of large tick misses in the score.")] int? largeTickMisses = null,
     [Summary("sliderTailMisses", "(Lazer) The amount of misses in the score.")] int? sliderTailMisses = null,
     [Summary("mods", "The mods used in the score.")] string? modsStr = null,
-    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.01)][MaxValue(2)] double clockRate = 1)
+    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1)
   {
     await DeferAsync();
 

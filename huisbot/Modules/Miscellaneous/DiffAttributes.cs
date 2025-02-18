@@ -21,7 +21,7 @@ public partial class MiscellaneousCommandModule
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("beatmap", "The ID, URL or alias of the beatmap.")] string? beatmapId = null,
     [Summary("mods", "The mods applied to the beatmap.")] string? modsStr = null,
-    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.01)][MaxValue(2)] double clockRate = 1)
+    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1)
   {
     await DeferAsync();
 
