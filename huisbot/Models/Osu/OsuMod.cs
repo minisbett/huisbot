@@ -134,7 +134,7 @@ public class OsuMods : List<OsuMod>
     OsuMods mods = [];
 
     // Go through the mod string with two characters at once, and optionally the mod settings in () after the acronym.
-    foreach (Match match in Regex.Matches(modsStr, @"([A-Z]{2})(?:\((.*?)\))?"))
+    foreach (Match match in Regex.Matches(modsStr, @"([A-Za-z]{2})(?:\((.*?)\))?"))
     {
       OsuMod mod = new(match.Groups[1].Value);
       string extra = match.Groups[2].Value;
