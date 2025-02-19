@@ -38,6 +38,11 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
   /// </summary>
   public DiscordService Discord { get; } = services.GetRequiredService<DiscordService>();
 
+  /// <summary>
+  /// The <see cref="EmbedService"/>.
+  /// </summary>
+  public EmbedService Embeds { get; } = services.GetRequiredService<EmbedService>();
+
   #region Huis
 
   /// <summary>

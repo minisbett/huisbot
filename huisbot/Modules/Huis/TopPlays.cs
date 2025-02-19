@@ -4,6 +4,7 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
@@ -90,7 +91,7 @@ public class TopPlaysCommandModule(IServiceProvider services, IConfiguration con
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
     _paginationCache[cacheId] = new PaginationCacheEntry(user, scores, sortedScores, rework, sort, scoreType);
-    int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
@@ -109,7 +110,7 @@ public class TopPlaysCommandModule(IServiceProvider services, IConfiguration con
     PaginationCacheEntry entry = _paginationCache[cacheId];
 
     // Re-build the message component for the pagination navigation.
-    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);

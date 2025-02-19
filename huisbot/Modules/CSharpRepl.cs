@@ -2,7 +2,6 @@
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
-using huisbot.Helpers;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.CodeAnalysis.CSharp.Scripting;

@@ -1,8 +1,8 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using huisbot.Helpers;
 using huisbot.Models.Huis;
+using huisbot.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;

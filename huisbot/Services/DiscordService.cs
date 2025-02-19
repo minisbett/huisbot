@@ -3,7 +3,6 @@ using Discord.Addons.Hosting;
 using Discord.Addons.Hosting.Util;
 using Discord.Rest;
 using Discord.WebSocket;
-using huisbot.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace huisbot.Services;
@@ -35,7 +34,6 @@ public class DiscordService(DiscordSocketClient client, ILogger<DiscordService> 
 
   protected override async Task ExecuteAsync(CancellationToken cts)
   {
-    Embeds.Discord = this;
     await Client.WaitForReadyAsync(cts);
     _startTime = DateTime.UtcNow;
 

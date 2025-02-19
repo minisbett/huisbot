@@ -4,6 +4,7 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Huis;
+using huisbot.Services;
 
 namespace huisbot.Modules.Miscellaneous;
 

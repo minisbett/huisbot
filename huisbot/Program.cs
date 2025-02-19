@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
-using Discord.Addons.Hosting.Util;
-using Discord.Rest;
 using Discord.WebSocket;
 using dotenv.net;
 using huisbot.Persistence;
@@ -15,6 +13,10 @@ using Microsoft.Extensions.Logging.Console;
 using System.Globalization;
 
 namespace huisbot;
+
+// TODO: turn .env into appsettings
+// TODO: make more urls etc. a setting value
+// TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
 
 public class Program
 {
@@ -100,16 +102,11 @@ public class Program
         services.AddSingleton<DiscordService>();
         services.AddHostedService(services => services.GetRequiredService<DiscordService>());
 
-        // Add the osu! API service for communicating with the osu! API.
+        // Register all services (API, database, ...)
         services.AddSingleton<OsuApiService>();
-
-        // Add the Huis API service for communicating with the Huis API.
+        services.AddSingleton<EmbedService>();
         services.AddScoped<HuisApiService>();
-
-        // Register the persistence service, responsible for providing logic for accessing the persistence database.
         services.AddScoped<PersistenceService>();
-
-        // Add the caching service.
         services.AddScoped<CachingService>();
 
         // Add an http client for communicating with the Huis API.

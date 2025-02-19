@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
+using huisbot.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
@@ -66,7 +67,7 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
     _playerPaginationCache[cacheId] = new PlayerPaginationCacheEntry(players, rework, sort);
-    int maxPage = (int)Math.Ceiling(players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(players.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
@@ -103,7 +104,7 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
     _scorePaginationCache[cacheId] = new ScorePaginationCacheEntry(scores, rework, sort);
-    int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
@@ -122,7 +123,7 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
     ScorePaginationCacheEntry entry = _scorePaginationCache[cacheId];
 
     // Re-build the message component for the pagination navigation.
-    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
@@ -145,7 +146,7 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
     PlayerPaginationCacheEntry entry = _playerPaginationCache[cacheId];
 
     // Re-build the message component for the pagination navigation.
-    int maxPage = (int)Math.Ceiling(entry.Players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(entry.Players.Length * 1d / EmbedService.PLAYERS_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);

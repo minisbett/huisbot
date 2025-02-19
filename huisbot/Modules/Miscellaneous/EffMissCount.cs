@@ -1,9 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Helpers;
 using huisbot.Models.Osu;
 
 namespace huisbot.Modules.Miscellaneous;
+
+// TODO: overhaul this command (put up-to-date and improve embed)
 
 /// <summary>
 /// The partial interaction module for the effmisscount command.
