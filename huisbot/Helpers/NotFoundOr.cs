@@ -1,4 +1,6 @@
-﻿namespace huisbot.Utilities;
+﻿namespace huisbot.Helpers;
+
+// TODO: find a way to get rid of this
 
 /// <summary>
 /// A wrapper around a type that can be considered "Not Found".

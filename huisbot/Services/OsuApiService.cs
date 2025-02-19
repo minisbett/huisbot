@@ -1,5 +1,5 @@
-﻿using huisbot.Models.Osu;
-using huisbot.Utilities;
+﻿using huisbot.Helpers;
+using huisbot.Models.Osu;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

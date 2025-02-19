@@ -3,10 +3,10 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using huisbot.Utilities;
-using DEmoji = Discord.Emoji;
 
 namespace huisbot.Helpers;
+
+// TODO: make this a service
 
 /// <summary>
 /// Provides embeds for the application.
@@ -239,9 +239,9 @@ internal static class Embeds
   {
     // Build the status string.
     string status = localDone ? "*Calculating reference score...*" : "*Calculating local score...*";
-    status += $"\n\n{new DEmoji(localDone ? "✅" : "⏳")} {local.Name}";
+    status += $"\n\n{(localDone ? "✅" : "⏳")} {local.Name}";
     if (reference is not null)
-      status += $"\n{new DEmoji(localDone ? "⏳" : "🕐")} {reference.Name}";
+      status += $"\n{(localDone ? "⏳" : "🕐")} {reference.Name}";
 
     return BaseEmbed
       .WithDescription(status)
