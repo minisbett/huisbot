@@ -17,13 +17,14 @@ namespace huisbot;
 // TODO: turn .env into appsettings
 // TODO: make more urls etc. a setting value
 // TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
+// TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) retur;
 
 public class Program
 {
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.7.1";
+  public const string VERSION = "2.7.2";
 
   public static async Task Main(string[] args)
   {
