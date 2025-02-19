@@ -22,7 +22,7 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionContext>
+public class CSharpReplCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
 {
   /// <summary>
   /// A list of namespaces to import in the script context.
@@ -59,27 +59,14 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   /// and the array will be maintained through-out the applications' lifespan. This list is used to
   /// let the script engine know which assemblies to load when executing the code.
   /// </summary>
-  private static Assembly[]? _references = null;
+  private static Assembly[] _references = null!;
 
-  private readonly IServiceProvider _provider;
-  private readonly IConfiguration _config;
-  private readonly OsuApiService _osu;
-  private readonly HuisApiService _huis;
-
-  public CSharpReplCommandModule(IServiceProvider provider, IConfiguration config, OsuApiService osu, HuisApiService huis)
+  static CSharpReplCommandModule()
   {
-    _provider = provider;
-    _config = config;
-    _osu = osu;
-    _huis = huis;
-
-    // If the references array has not been initialized yet, initialize it with all assemblies referenced by the entry assembly.
-    if (_references is null)
-    {
-      AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
-      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
-      _references = references;
-    }
+    // Load all assemblies referenced by the entry assembly.
+    AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
+    Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
+    _references = references;
   }
 
   [SlashCommand("csharprepl", "Runs C# code in the runtime context of the bot client application.")]
@@ -87,8 +74,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     [Summary("code", "The C# code to execute.")] string code)
   {
     // Make sure that the user is the owner of the application.
-    RestApplication app = Program.Application;
-    if (!(Context.User.Id == Program.Application.Owner.Id || Context.User.Id == Program.Application.Team?.OwnerUserId))
+    if (Context.User.Id != Discord.BotOwnerId)
     {
       await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;
@@ -102,18 +88,19 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);
 
     // Construct the script globals, which contains variables for the script to be accessable.
-    var globals = new ScriptGlobals()
+    // TODO: anonymous type? add more services etc.?
+    ScriptGlobals globals = new()
     {
       Client = Context.Client,
       User = Context.User,
       Channel = Context.Channel,
       Guild = Context.Guild,
-      ServiceProvider = _provider,
-      Config = _config,
-      OsuApi = _osu,
-      HuisApi = _huis,
-      Caching = _provider.GetRequiredService<CachingService>(),
-      Database = _provider.GetRequiredService<Database>()
+      Services = services,
+      Config = configuration,
+      OsuApi = OsuApi,
+      HuisApi = HuisApi,
+      Caching = services.GetRequiredService<CachingService>(),
+      Database = services.GetRequiredService<Database>()
     };
 
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
@@ -137,7 +124,6 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     if (state.ReturnValue is null)
     {
       await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Success("Action performed successfully."));
-
       return;
     }
 
@@ -146,7 +132,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
 
     // As a safety measure, replace secrets from the config with a placeholder.
     foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
-      str = str.Replace(_config.GetValue<string>(secret)!, "<censored>");
+      str = str.Replace(configuration.GetValue<string>(secret)!, "<censored>");
 
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000 - 8 /* ```\n\n``` */)
@@ -290,7 +276,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     /// <summary>
     /// The service provider of the application.
     /// </summary>
-    public required IServiceProvider ServiceProvider { get; init; }
+    public required IServiceProvider Services { get; init; }
 
     /// <summary>
     /// The configuration of the application.

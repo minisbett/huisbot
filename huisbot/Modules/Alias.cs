@@ -17,8 +17,7 @@ namespace huisbot.Modules;
 public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 {
   [Group("beatmap", "Commands for adding, removing and listing beatmap aliases.")]
-  public class BeatmapAliasCommandModule(IServiceProvider services, IConfiguration configuration, PersistenceService persistence)
-    : ModuleBase(services, configuration)
+  public class BeatmapAliasCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
   {
     [SlashCommand("list", "Lists all existing beatmap aliases.")]
     public async Task HandleListAsync()
@@ -26,7 +25,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       await DeferAsync();
 
       // Return the list of beatmap aliases in an embed.
-      await FollowupAsync(embed: Embeds.BeatmapAliases(await persistence.GetBeatmapAliasesAsync()));
+      await FollowupAsync(embed: Embeds.BeatmapAliases(await Persistence.GetBeatmapAliasesAsync()));
     }
 
     [SlashCommand("add", "Adds a beatmap alias.")]
@@ -44,7 +43,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias already exists.
-      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await Persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` already exists.\n[{alias.DisplayName}](https://osu.ppy.sh/b/{alias.BeatmapId})"));
@@ -58,7 +57,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       // Add the beatmap alias.
       string displayName = $"{beatmap.Title} [{beatmap.Version}]";
-      await persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
+      await Persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
       await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` was successfully added.\n[{displayName}](https://osu.ppy.sh/b/{beatmapId})"));
     }
 
@@ -76,7 +75,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias exists.
-      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await Persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{aliasText}` does not exist."));
@@ -84,7 +83,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the beatmap alias.
-      await persistence.RemoveBeatmapAliasAsync(alias);
+      await Persistence.RemoveBeatmapAliasAsync(alias);
       await FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` was successfully removed."));
     }
 
@@ -103,7 +102,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the beatmap alias exists.
-      BeatmapAlias? alias = await persistence.GetBeatmapAliasAsync(aliasText);
+      BeatmapAlias? alias = await Persistence.GetBeatmapAliasAsync(aliasText);
       if (alias is null)
       {
         await FollowupAsync(embed: Embeds.Error($"The beatmap alias `{alias}` does not exist."));
@@ -111,7 +110,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Check whether the new name is already taken.
-      BeatmapAlias? _alias = await persistence.GetBeatmapAliasAsync(newName);
+      BeatmapAlias? _alias = await Persistence.GetBeatmapAliasAsync(newName);
       if (_alias is not null)
       {
         await FollowupAsync(embed: Embeds.Error($"The score alias `{newName}` already exists.\n[{_alias.DisplayName}](https://osu.ppy.sh/b/{_alias.BeatmapId})"));
@@ -119,8 +118,8 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
       }
 
       // Remove the beatmap alias and add the new one.
-      await persistence.RemoveBeatmapAliasAsync(alias);
-      await persistence.AddBeatmapAliasAsync(newName, alias.BeatmapId, alias.DisplayName);
+      await Persistence.RemoveBeatmapAliasAsync(alias);
+      await Persistence.AddBeatmapAliasAsync(newName, alias.BeatmapId, alias.DisplayName);
       await base.FollowupAsync(embed: Embeds.Success($"The beatmap alias `{aliasText}` has been renamed to `{newName}`."));
     }
   }

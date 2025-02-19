@@ -2,6 +2,7 @@
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Services;
 using huisbot.Utilities;
 using DEmoji = Discord.Emoji;
 
@@ -13,8 +14,18 @@ namespace huisbot.Helpers;
 internal static class Embeds
 {
   /// <summary>
-  /// The amount of top plays to display per page.<br/>
-  /// <see cref="TopPlays(OsuUser, HuisScore[], HuisScore[], HuisRework, Sort, int)"/><br/>
+  /// The Discord service, injecting itself into this field on execution.
+  /// </summary>
+  public static DiscordService Discord { get; set; } = null!;
+
+  /// <summary>
+  /// A dictionary of all application-specific emotes, keyed by their name.
+  /// </summary>
+  private static Dictionary<string, Emote> Emojis => Discord.ApplicationEmotes.ToDictionary(x => x.Name, x => x);
+
+  /// <summary>
+  /// The amount of scores to display per page.<br/>
+  /// <see cref="TopPlays(OsuUser, HuisScore[], HuisScore[], HuisRework, Sort, string, int)"/><br/>
   /// <see cref="ScoreRankings(HuisScore[], HuisRework, Sort, int)"/>
   /// </summary>
   public const int SCORES_PER_PAGE = 10;
@@ -190,21 +201,20 @@ internal static class Embeds
   /// <summary>
   /// Returns an embed for displaying info about the bot (version, uptime, api status, ...).
   /// </summary>
-  /// <param name="osuV1Available">Bool whether the osu! API v1 is available.</param>
-  /// <param name="osuV2Available">Bool whether the osu! API v2 is available.</param>
-  /// <param name="huisAvailable">Bool whether the Huis api is available.</param>
+  /// <param name="osuApiV1">Bool whether the osu! API v1 is available.</param>
+  /// <param name="osuApiV2">Bool whether the osu! API v2 is available.</param>
+  /// <param name="huisApi">Bool whether the Huis api is available.</param>
   /// <returns>An embed for displaying info about the bot.</returns>
-  public static Embed Info(bool osuV1Available, bool osuV2Available, bool huisAvailable)
+  public static Embed Info(bool osuApiV1, bool osuApiV2, bool huisApi, int guildInstalls, int userInstalls)
   {
     // Build an uptime string (eg. "4 hours, 22 minutes, 1 second") from the time since startup.
-    TimeSpan uptime = DateTime.UtcNow - Program.STARTUP_TIME;
     string uptimeStr = string.Join(", ", new (int Value, string Unit)[]
     {
-      (uptime.Days / 7, "week"),
-      (uptime.Days % 7, "day"),
-      (uptime.Hours, "hour"),
-      (uptime.Minutes, "minute"),
-      (uptime.Seconds, "second")
+      (Discord.Uptime.Days / 7, "week"),
+      (Discord.Uptime.Days % 7, "day"),
+      (Discord.Uptime.Hours, "hour"),
+      (Discord.Uptime.Minutes, "minute"),
+      (Discord.Uptime.Seconds, "second")
     }.Where(x => x.Value > 0).Select(x => $"{x.Value} {x.Unit}{(x.Value > 1 ? "s" : "")}"));
 
     return BaseEmbed
@@ -212,8 +222,8 @@ internal static class Embeds
       .WithTitle($"Information about Huisbot {Program.VERSION}")
       .WithDescription("This bot aims to provide interaction with [Huismetbenen](https://pp.huismetbenen.nl/) via Discord and is dedicated to the [Official PP Discord](https://discord.gg/aqPCnXu). If any issues come up, please ping `@minisbett` or send them a DM.")
       .AddField("Uptime", $"{uptimeStr}{"".PadLeft(uptimeStr.Count(x => x == ',') >= 2 ? 1 : 2, '\n')}[Source Code](https://github.com/minisbett/huisbot)", true)
-      .AddField("Installation Count", $"{Program.Application.ApproximateGuildCount} Guilds\n{Program.Application.ApproximateUserInstallCount} Users\n[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
-      .AddField("API Status", $"{(osuV1Available ? "✅" : "❌")} osu!api v1\n{(osuV2Available ? "✅" : "❌")} osu!api v2\n{(huisAvailable ? "✅" : "❌")} Huismetbenen", true)
+      .AddField("Installation Count", $"{guildInstalls} Guilds\n{userInstalls} Users\n[Add To Your Server](https://discord.com/oauth2/authorize?client_id=1174073630330716210&scope=bot&permissions=277025770560)", true)
+      .AddField("API Status", $"{(osuApiV1 ? "✅" : "❌")} osu!api v1\n{(osuApiV2 ? "✅" : "❌")} osu!api v2\n{(huisApi ? "✅" : "❌")} Huismetbenen", true)
       .WithThumbnailUrl("https://cdn.discordapp.com/attachments/1009893434087198720/1174333838579732581/favicon.png")
       .Build();
   }
@@ -262,12 +272,12 @@ internal static class Embeds
 
     // Construct the score info field.
     string scoreFieldText = $"▸ {local.Score.Accuracy:N2}% ▸ {local.Score.MaxCombo}/{beatmap.MaxCombo}x";
-    scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {_emojis["300"]} {local.Score.Statistics.Count100} {_emojis["100"]} {local.Score.Statistics.Count50} {_emojis["50"]} {local.Score.Statistics.Misses} {_emojis["miss"]}";
+    scoreFieldText += $"\n▸ {local.Score.Statistics.Count300} {Emojis["300"]} {local.Score.Statistics.Count100} {Emojis["100"]} {local.Score.Statistics.Count50} {Emojis["50"]} {local.Score.Statistics.Misses} {Emojis["miss"]}";
     scoreFieldText += $"\n▸ ";
     if (!local.Score.Mods.IsClassic) // With classic mod, these statistics are irrelevant
-      scoreFieldText += $"{local.Score.Statistics.LargeTickMisses ?? 0} {_emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {_emojis["slidertailmiss"]} ";
-    scoreFieldText += $"{beatmap.CircleCount} {_emojis["circles"]} {beatmap.SliderCount} {_emojis["sliders"]} {beatmap.SpinnerCount} {_emojis["spinners"]}";
-    scoreFieldText += $"\n▸ `CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1}` ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {_emojis["bpm"]}";
+      scoreFieldText += $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]} ";
+    scoreFieldText += $"{beatmap.CircleCount} {Emojis["circles"]} {beatmap.SliderCount} {Emojis["sliders"]} {beatmap.SpinnerCount} {Emojis["spinners"]}";
+    scoreFieldText += $"\n▸ `CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1}` ▸ **{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
     scoreFieldText += $"\n▸ `OD {beatmap.GetAdjustedOD(local.Score.Mods):N1} HP {beatmap.GetAdjustedHP(local.Score.Mods):N1}` ▸ [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
 
     // Construct some more strings for the embed.
@@ -381,7 +391,7 @@ internal static class Embeds
       description.Add($"**#{++offset}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on " +
                       $"[{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
-                      $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+                      $"▸ {score.Count100} {Emojis["100"]} {score.Count50} {Emojis["50"]} {score.Misses} {Emojis["miss"]}");
     }
 
     description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
@@ -427,7 +437,7 @@ internal static class Embeds
       // Add the info to the description lines.
       description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
       description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
-                      $"▸ {score.Count100} {_emojis["100"]} {score.Count50} {_emojis["50"]} {score.Misses} {_emojis["miss"]}");
+                      $"▸ {score.Count100} {Emojis["100"]} {score.Count50} {Emojis["50"]} {score.Misses} {Emojis["miss"]}");
     }
 
     description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
@@ -511,7 +521,7 @@ internal static class Embeds
   public static Embed EffMissCount(int combo, int maxCombo, int sliderCount, int hits, int misses, double cbmc, double fct, double emc) => BaseEmbed
     .WithColor(new Color(0x812E2E))
     .WithTitle("Effective Misscount Breakdown")
-    .WithDescription($"▸ {combo}/{maxCombo}x ▸ {hits} {_emojis["100"]}{_emojis["50"]} {misses} {_emojis["miss"]} ▸ {sliderCount} {_emojis["sliders"]}\n" +
+    .WithDescription($"▸ {combo}/{maxCombo}x ▸ {hits} {Emojis["100"]}{Emojis["50"]} {misses} {Emojis["miss"]} ▸ {sliderCount} {Emojis["sliders"]}\n" +
                      $"```\n" +
                      $"combo-based misscount | {cbmc.ToString($"N{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}\n" +
                      $"full-combo threshold  | {fct.ToString($"N{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}\n" +
@@ -608,48 +618,4 @@ internal static class Embeds
 
     return $"{title} [{version}] {score.Mods}".TrimEnd(' ');
   }
-
-  /// <summary>
-  /// A dictionary with identifiers for emojis and their corresponding <see cref="Emoji"/> object.
-  /// </summary>
-  private static readonly Dictionary<string, Emoji> _emojis = new()
-  {
-#if RELEASE
-    { "300", new("300", 1341357711413088289) },
-    { "100", new("100", 1341357752387108915) },
-    { "50", new("50", 1341357771311943780) },
-    { "miss", new("miss", 1341357833123397643)},
-    { "largetickmiss", new("largetickmiss", 1341357849208553482) },
-    { "slidertailmiss", new("slidertailmiss", 1341357863909593200) },
-    { "circles", new("circles", 1341358823188987904) },
-    { "sliders", new("sliders", 1341358835394412625) },
-    { "spinners", new("spinners", 1341358848803475456) },
-    { "bpm", new("length", 1341358860350521374) },
-#elif DEVELOPMENT
-    { "300", new("300", 1341360730040959067) },
-    { "100", new("100", 1341360748839829505) },
-    { "50", new("50", 1341360765667377203) },
-    { "miss", new("miss", 1341360777399107638)},
-    { "largetickmiss", new("largetickmiss", 1341360790032093275) },
-    { "slidertailmiss", new("slidertailmiss", 1341360801084084226) },
-    { "circles", new("circles", 1341360813696487434) },
-    { "sliders", new("sliders", 1341360826975518772) },
-    { "spinners", new("spinners", 1341360841098002494) },
-    { "bpm", new("length", 1341360855173955657) },
-#endif
-  };
-
-  /// <summary>
-  /// Represents a Discord emoji with a name and ID.
-  /// </summary>
-  /// <param name="Name">The name of the emoji.</param>
-  /// <param name="Id">The ID of the emoji.</param>
-  private record Emoji(string Name, ulong Id)
-  {
-    /// <summary>
-    /// Returns the markdown representation of this emoji.
-    /// </summary>
-    public override string ToString() => $"<:{Name}:{Id}>";
-  }
-
 }

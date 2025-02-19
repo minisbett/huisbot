@@ -23,21 +23,6 @@ public class Program
   /// </summary>
   public const string VERSION = "2.7.1";
 
-  /// <summary>
-  /// The startup time of the application.
-  /// </summary>
-  public static readonly DateTime STARTUP_TIME;
-
-  /// <summary>
-  /// The Discord client application, representing metadata around the bot, it's owner etc.
-  /// </summary>
-  public static RestApplication Application { get; private set; } = null!;
-
-  static Program()
-  {
-    STARTUP_TIME = DateTime.UtcNow;
-  }
-
   public static async Task Main(string[] args)
   {
     // Run the host in a try-catch block to catch any unhandled exceptions.
@@ -47,9 +32,6 @@ public class Program
     }
     catch (Exception ex) when (ex is not HostAbortedException)
     {
-      Console.ForegroundColor = ConsoleColor.Red;
-      Console.WriteLine(ex);
-      Console.ForegroundColor = ConsoleColor.Gray;
       Environment.ExitCode = 727;
     }
   }
@@ -113,6 +95,11 @@ public class Program
         // Add the handler for Discord interactions.
         services.AddHostedService<InteractionHandler>();
 
+        // Add the Discord service, responsible for retrieving Discord-related information.
+        // The service is first registered as a singleton as hosted services themselves cannot be injected.
+        services.AddSingleton<DiscordService>();
+        services.AddHostedService(services => services.GetRequiredService<DiscordService>());
+
         // Add the osu! API service for communicating with the osu! API.
         services.AddSingleton<OsuApiService>();
 
@@ -158,28 +145,19 @@ public class Program
     await host.Services.GetRequiredService<Database>().Database.MigrateAsync();
 
     // Ensure that all APIs are available.
-    OsuApiService osu = host.Services.GetRequiredService<OsuApiService>();
-    HuisApiService huis = host.Services.GetRequiredService<HuisApiService>();
-    if (!await osu.IsV1AvailableAsync())
+    OsuApiService osuApi = host.Services.GetRequiredService<OsuApiService>();
+    HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
+    if (!await osuApi.IsV1AvailableAsync())
       throw new Exception("The osu! v1 API was deemed unavailable at startup.");
-    if (!await osu.IsV2AvailableAsync())
+    if (!await osuApi.IsV2AvailableAsync())
       throw new Exception("The osu! v2 API was deemed unavailable at startup.");
-    if (!await huis.IsAvailableAsync())
+    if (!await huisApi.IsAvailableAsync())
       throw new Exception("The Huis API was deemed unavailable at startup.");
 
     // Try to initially load the reworks for a faster use after startup.
-    HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
     await huisApi.GetReworksAsync();
 
-    // Run the host and wait for the Discord bot to be ready.
-    _ = host.RunAsync();
-    DiscordSocketClient discordClient = host.Services.GetRequiredService<DiscordSocketClient>();
-    await discordClient.WaitForReadyAsync(new());
-
-    // Get the application info for the bot and store it for global access.
-    Application = await discordClient.GetApplicationInfoAsync();
-
-    // Run the bot indefinitely.
-    await Task.Delay(-1);
+    // Run the application.
+    await host.RunAsync();
   }
 }

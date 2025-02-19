@@ -21,7 +21,7 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
       return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
 
     // If the user does not have Onion-level authorization, strip off all Onion-level reworks.
-    if (!ModuleBase.CheckOnion((SocketInteractionContext)context, services.GetRequiredService<IConfiguration>()))
+    if (!ModuleBase.CheckOnion((SocketInteractionContext)context, services))
       reworks = reworks.Where(x => !x.IsOnionLevel);
 
     // Get all suggested reworks where the name or code contains the input value.

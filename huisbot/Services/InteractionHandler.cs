@@ -11,7 +11,7 @@ namespace huisbot.Services;
 /// <summary>
 /// Handles interactions (slash commands, components, ...) with the application.
 /// </summary>
-public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, InteractionService service, IServiceProvider provider)
+public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, InteractionService service, IServiceProvider services)
   : DiscordClientService(client, logger)
 {
   protected override async Task ExecuteAsync(CancellationToken cts)
@@ -21,7 +21,7 @@ public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionH
     Client.SlashCommandExecuted += OnSlashCommandExecuted;
 
     // Add the modules in this assembly to the interaction service and wait for the bot client to be ready.
-    await service.AddModulesAsync(Assembly.GetExecutingAssembly(), provider);
+    await service.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
     await Client.WaitForReadyAsync(cts);
 
     // Register the commands in the added modules to all guilds.
@@ -35,7 +35,7 @@ public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionH
   {
     // Create a context for the interaction with the bot client and execute the command using the interaction service.
     SocketInteractionContext context = new(Client, interaction);
-    await service.ExecuteCommandAsync(context, provider);
+    await service.ExecuteCommandAsync(context, services);
   }
 
   private Task OnSlashCommandExecuted(SocketSlashCommand command)

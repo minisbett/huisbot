@@ -2,8 +2,8 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Osu;
-using huisbot.Services;
 using huisbot.Utilities;
+using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules;
 
@@ -13,7 +13,7 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class LinkCommandModule(OsuApiService osuApi, PersistenceService links) : InteractionModuleBase<SocketInteractionContext>
+public class LinkCommandModule(IServiceProvider provider, IConfiguration configuration) : ModuleBase(provider, configuration)
 {
   [SlashCommand("link", "Links your Discord account to the specified osu! user by it's ID or name.")]
   public async Task LinkAsync(
@@ -22,7 +22,7 @@ public class LinkCommandModule(OsuApiService osuApi, PersistenceService links) :
     await DeferAsync();
 
     // Get the user from the osu! api. If it failed or the user could not be found, notify the user.
-    NotFoundOr<OsuUser>? user = await osuApi.GetUserAsync(userId);
+    NotFoundOr<OsuUser>? user = await OsuApi.GetUserAsync(userId);
     if (user is null)
     {
       await FollowupAsync(embed: Embeds.InternalError("Failed to resolve the user from the osu! API."));
@@ -35,7 +35,7 @@ public class LinkCommandModule(OsuApiService osuApi, PersistenceService links) :
     }
 
     // Otherwise add/update the link in the database and notify the user about the change.
-    await links.SetOsuDiscordLinkAsync(Context.User.Id, ((OsuUser)user).Id);
+    await Persistence.SetOsuDiscordLinkAsync(Context.User.Id, ((OsuUser)user).Id);
     await FollowupAsync(embed: Embeds.LinkSuccessful(user));
   }
 }
