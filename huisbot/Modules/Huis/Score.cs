@@ -14,7 +14,7 @@ namespace huisbot.Modules.Huis;
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("score", "Calculates a score in a rework based on the specified parameters.")]
-public class ScoreCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   private async Task HandleAsync(string reworkId, string? referenceReworkId, Task<OsuScore?> score, OsuUser? user = null)
   {

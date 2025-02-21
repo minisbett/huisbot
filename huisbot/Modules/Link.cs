@@ -13,7 +13,7 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class LinkCommandModule(IServiceProvider provider, IConfiguration configuration) : ModuleBase(provider, configuration)
+public class LinkCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("link", "Links your Discord account to the specified osu! user by it's ID or name.")]
   public async Task LinkAsync(

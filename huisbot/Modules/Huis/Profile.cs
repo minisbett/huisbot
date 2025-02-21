@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ProfileCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class ProfileCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("profile", "Displays info about you or the specified player in the specified rework.")]
   public async Task HandleAsync(

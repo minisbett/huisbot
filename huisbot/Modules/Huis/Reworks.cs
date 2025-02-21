@@ -12,7 +12,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class ReworksCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class ReworksCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("reworks", "Outputs a list of all existing reworks.")]
   public async Task HandleAsync()
@@ -53,7 +53,7 @@ public class ReworksCommandModule(IServiceProvider services, IConfiguration conf
 /// <summary>
 /// The interaction module for the rework select menu from the <see cref="ReworksCommandModule"/> command.
 /// </summary>
-public class ReworksComponentModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class ReworksComponentModule(IServiceProvider services) : ModuleBase(services)
 {
 
   /// <summary>

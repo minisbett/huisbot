@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class QueueCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class QueueCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("queue", "Queues you or the specified player in the specified rework.")]
   public async Task HandleAsync(

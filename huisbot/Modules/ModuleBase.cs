@@ -3,11 +3,12 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
+using huisbot.Models.Options;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 
 namespace huisbot.Modules;
@@ -16,12 +17,12 @@ namespace huisbot.Modules;
 /// A wrapper around the interaction module base for all modules.
 /// This wrapper provides utility methods for parsing parameters like reworks or players.
 /// </summary>
-public class ModuleBase(IServiceProvider services, IConfiguration configuration) : InteractionModuleBase<SocketInteractionContext>
+public partial class ModuleBase(IServiceProvider services) : InteractionModuleBase<SocketInteractionContext>
 {
   /// <summary>
   /// The <see cref="HuisApiService"/>.
   /// </summary>
-  public HuisApiService HuisApi { get; } = services.GetRequiredService<HuisApiService>();
+  public HuisApiService HuisApi { get; } = services.CreateScope().ServiceProvider.GetRequiredService<HuisApiService>();
 
   /// <summary>
   /// The <see cref="OsuApiService"/>.
@@ -31,7 +32,7 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
   /// <summary>
   /// The <see cref="PersistenceService"/>.
   /// </summary>
-  public PersistenceService Persistence { get; } = services.GetRequiredService<PersistenceService>();
+  public PersistenceService Persistence { get; } = services.CreateScope().ServiceProvider.GetRequiredService<PersistenceService>();
 
   /// <summary>
   /// The <see cref="DiscordService"/>.
@@ -310,7 +311,7 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
     if (!int.TryParse(beatmapId, out int _))
     {
       // Match a beatmap URL and extract the ID from it.
-      Match match = Regex.Match(beatmapId, "https?:\\/\\/osu\\.ppy\\.sh\\/(?:beatmapsets\\/\\d+#osu\\/|s\\/\\d+#osu\\/|beatmaps\\/|b\\/)(\\d+)");
+      Match match = BeatmapUrlRegex().Match(beatmapId);
       if (match.Success)
         beatmapId = match.Groups[1].Value;
       else
@@ -337,6 +338,9 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
     // Return the beatmap.
     return (beatmap?.Found ?? false) ? beatmap : null!;
   }
+
+  [GeneratedRegex("https?:\\/\\/osu\\.ppy\\.sh\\/(?:beatmapsets\\/\\d+#osu\\/|s\\/\\d+#osu\\/|beatmaps\\/|b\\/)(\\d+)")]
+  private static partial Regex BeatmapUrlRegex();
 
   /// <summary>
   /// Returns the score by the specified identifier (ID, URL or alias).<br/>
@@ -426,7 +430,6 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
     return true;
 #endif
 
-    IConfiguration configuration = services.GetRequiredService<IConfiguration>();
     DiscordService discord = services.GetRequiredService<DiscordService>();
 
     // Check whether the user is the owner of the application.
@@ -434,8 +437,9 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
       return true;
 
     // Check whether the user is in the PP guild and has the Onion role.
-    SocketGuildUser user = context.Client.GetGuild(configuration.GetValue<ulong>("DISCORD_PP_GUILD_ID")).GetUser(context.User.Id);
-    return user != null && user.Roles.Any(x => x.Id == configuration.GetValue<ulong>("DISCORD_ONION_ROLE_ID"));
+    DiscordIdOptions options = services.GetRequiredService<IOptions<DiscordIdOptions>>().Value;
+    SocketGuildUser user = context.Client.GetGuild(options.PPGuild).GetUser(context.User.Id);
+    return user != null && user.Roles.Any(x => x.Id == options.OnionRole);
   }
 
   /// <summary>
@@ -460,8 +464,9 @@ public class ModuleBase(IServiceProvider services, IConfiguration configuration)
         return true;
 
       // Check whether the user is in the PP guild and has the PP role.
-      SocketGuildUser user = Context.Client.GetGuild(configuration.GetValue<ulong>("DISCORD_PP_GUILD_ID")).GetUser(Context.User.Id);
-      return user != null && user.Roles.Any(x => x.Id == configuration.GetValue<ulong>("DISCORD_PP_ROLE_ID"));
+      DiscordIdOptions options = services.GetRequiredService<IOptions<DiscordIdOptions>>().Value;
+      SocketGuildUser user = Context.Client.GetGuild(options.PPGuild).GetUser(Context.User.Id);
+      return user != null && user.Roles.Any(x => x.Id == options.PPRole);
     }
   }
 }

@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
 using Discord.WebSocket;
-using dotenv.net;
+using huisbot.Models.Options;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +10,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 
 namespace huisbot;
 
 // TODO: turn .env into appsettings
-// TODO: make more urls etc. a setting value
 // TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
-// TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) retur;
+// TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) return;
+// TODO: update dependencies (maybe not scottplot? see if breaking changes)
+// TODO: make osu api service scoped? cuz http client but sucks for saving access token stuff
+
+
+// NOTE TO MYSELF TOMORROW:
+// 3. figure out scope validation fail on InteractionService.AddModulesAsync
 
 public class Program
 {
@@ -36,26 +42,23 @@ public class Program
     catch (Exception ex) when (ex is not HostAbortedException)
     {
       Environment.ExitCode = 727;
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine(ex);
     }
   }
 
   public static async Task MainAsync(string[] args)
   {
-    // Load the .env file. (Only useful when debugging locally, not when running it via e.g. Docker)
-    DotEnv.Load();
-
-    // Ensure a consistent culture for parsing & formatting.
+    // Ensure a consistent culture for parsing and formatting.
     Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
     Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
     CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
     CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-    // Build the generic host.
     IHost host = Host.CreateDefaultBuilder()
-      // Configure the host to use environment variables for the config.
-      .ConfigureHostConfiguration(config => config.AddEnvironmentVariables())
-
-      // Configure the logging to have timestamps.
+#if DEVELOPMENT
+      .UseEnvironment("Development")
+#endif
       .ConfigureLogging(logging =>
       {
         logging.AddSimpleConsole(options =>
@@ -70,32 +73,44 @@ public class Program
         logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
       })
 
-      // Configure further services necessary in the application's lifetime.
       .ConfigureServices((context, services) =>
       {
-        // Configure the Discord host (bot token, log level, bot behavior etc.)
-        services.AddDiscordHost((config, _) =>
+        // Register and immediately validate the options from the appsettings.json.
+        services.AddOptionsWithValidateOnStart<AppOptions>()
+          .BindConfiguration("")
+          .ValidateDataAnnotations();
+
+        services.AddOptionsWithValidateOnStart<OsuApiOptions>()
+          .BindConfiguration("Osu")
+          .ValidateDataAnnotations();
+
+        services.AddOptionsWithValidateOnStart<HuisApiOptions>()
+          .BindConfiguration("Huis")
+          .ValidateDataAnnotations();
+
+        services.AddOptionsWithValidateOnStart<DiscordIdOptions>()
+          .BindConfiguration("DiscordIds")
+          .ValidateDataAnnotations();
+
+        services.AddDiscordHost((config, services) =>
         {
           config.SocketConfig = new DiscordSocketConfig()
           {
             LogLevel = LogSeverity.Verbose,
             AlwaysDownloadUsers = true,
-            MessageCacheSize = 100,
+            MessageCacheSize = 125,
             GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
           };
 
-          config.Token = context.Configuration["BOT_TOKEN"]
-            ?? throw new InvalidOperationException("The environment variable 'BOT_TOKEN' is not set.");
+          config.Token = services.GetRequiredService<IOptions<AppOptions>>().Value.BotToken;
         });
 
-        // Configure Discord.NET's interaction service.
         services.AddInteractionService((config, _) =>
         {
           config.LogLevel = LogSeverity.Verbose;
           config.UseCompiledLambda = true;
         });
 
-        // Add the handler for Discord interactions.
         services.AddHostedService<InteractionHandler>();
 
         // Add the Discord service, responsible for retrieving Discord-related information.
@@ -111,14 +126,14 @@ public class Program
         services.AddScoped<CachingService>();
 
         // Add an http client for communicating with the Huis API.
-        services.AddHttpClient("huisapi", client =>
+        services.AddHttpClient("huisapi", (services, client) =>
         {
           client.BaseAddress = new Uri("https://api.pp.huismetbenen.nl/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
 
           // The onion key is optional, allowing access to onion-level reworks.
-          string? onionKey = context.Configuration["HUIS_ONION_KEY"];
-          if (onionKey is not null)
+          string onionKey = services.GetRequiredService<IOptions<HuisApiOptions>>().Value.OnionKey;
+          if (onionKey != "")
             client.DefaultRequestHeaders.Add("x-onion-key", onionKey);
         });
 
@@ -140,20 +155,8 @@ public class Program
       .Build();
 
     // Run migrations on the database.
-    await host.Services.GetRequiredService<Database>().Database.MigrateAsync();
-
-    // Ensure that all APIs are available.
-    OsuApiService osuApi = host.Services.GetRequiredService<OsuApiService>();
-    HuisApiService huisApi = host.Services.GetRequiredService<HuisApiService>();
-    if (!await osuApi.IsV1AvailableAsync())
-      throw new Exception("The osu! v1 API was deemed unavailable at startup.");
-    if (!await osuApi.IsV2AvailableAsync())
-      throw new Exception("The osu! v2 API was deemed unavailable at startup.");
-    if (!await huisApi.IsAvailableAsync())
-      throw new Exception("The Huis API was deemed unavailable at startup.");
-
-    // Try to initially load the reworks for a faster use after startup.
-    await huisApi.GetReworksAsync();
+    using (IServiceScope scope = host.Services.CreateScope())
+      await scope.ServiceProvider.GetRequiredService<Database>().Database.MigrateAsync();
 
     // Run the application.
     await host.RunAsync();

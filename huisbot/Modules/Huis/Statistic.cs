@@ -16,7 +16,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class StatisticCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class StatisticCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("statistic", "Displays the specific top-statistic in the specified rework.")]
   public async Task HandleAsync(

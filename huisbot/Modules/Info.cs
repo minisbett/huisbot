@@ -10,7 +10,7 @@ namespace huisbot.Modules;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class InfoCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class InfoCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("info", "Displays info about the bot.")]
   public async Task HandleAsync()

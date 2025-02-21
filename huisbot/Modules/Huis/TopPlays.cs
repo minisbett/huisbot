@@ -14,7 +14,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class TopPlaysCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   /// <summary>
   /// Represents the cached values for providing pagination via Discord message components.

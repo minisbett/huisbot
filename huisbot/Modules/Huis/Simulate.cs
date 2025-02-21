@@ -3,8 +3,6 @@ using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Services;
-using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
@@ -13,7 +11,7 @@ namespace huisbot.Modules.Huis;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class SimulateCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(

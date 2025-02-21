@@ -1,12 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Reflection;
@@ -21,7 +19,9 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class CSharpReplCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+#pragma warning disable CS9107
+public class CSharpReplCommandModule(IServiceProvider services, Database database) : ModuleBase(services)
+#pragma warning restore CS9107
 {
   /// <summary>
   /// A list of namespaces to import in the script context.
@@ -41,6 +41,7 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
     "Discord.Rest",
     "Discord.WebSocket",
     "huisbot",
+    "huisbot.Helpers",
     "huisbot.Models",
     "huisbot.Models.Huis",
     "huisbot.Models.Osu",
@@ -50,7 +51,6 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
     "huisbot.Modules.Miscellaneous",
     "huisbot.Persistence",
     "huisbot.Services",
-    "huisbot.Utilities"
   ];
 
   /// <summary>
@@ -58,7 +58,7 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
   /// and the array will be maintained through-out the applications' lifespan. This list is used to
   /// let the script engine know which assemblies to load when executing the code.
   /// </summary>
-  private static Assembly[] _references = null!;
+  private static readonly Assembly[] _references = null!;
 
   static CSharpReplCommandModule()
   {
@@ -88,18 +88,16 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
 
     // Construct the script globals, which contains variables for the script to be accessable.
     // TODO: anonymous type? add more services etc.?
-    ScriptGlobals globals = new()
+    var globals = new ScriptGlobals
     {
       Client = Context.Client,
       User = Context.User,
       Channel = Context.Channel,
       Guild = Context.Guild,
       Services = services,
-      Config = configuration,
       OsuApi = OsuApi,
       HuisApi = HuisApi,
-      Caching = services.GetRequiredService<CachingService>(),
-      Database = services.GetRequiredService<Database>()
+      Database = database
     };
 
     // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
@@ -130,8 +128,9 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
     string str = Inspect(state.Exception ?? state.ReturnValue);
 
     // As a safety measure, replace secrets from the config with a placeholder.
-    foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
-      str = str.Replace(configuration.GetValue<string>(secret)!, "<censored>");
+    // TODO: re-add this
+    //foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
+    //str = str.Replace(configuration.GetValue<string>(secret)!, "<censored>");
 
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000 - 8 /* ```\n\n``` */)
@@ -168,7 +167,6 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
   {
     static string InspectProperty(object obj)
     {
-      // If the specified propety is null, return "null".
       if (obj == null)
         return "null";
 
@@ -180,7 +178,7 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
         return debuggerDisplay.GetValue(obj)!.ToString()!;
 
       // Otherwise, check whether a ToString method not inherited from the object type is present on the type and if so, use it for
-      // a string representation. It would mean that the type overrides the ToString method and thus has a custom string representation.
+      // a string representation. It means that the type overrides the ToString method and thus has a custom string representation.
       MethodInfo? toString = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
           .Where(x => x.Name == "ToString" && x.DeclaringType != typeof(object)).FirstOrDefault();
       if (toString != null)
@@ -278,11 +276,6 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
     public required IServiceProvider Services { get; init; }
 
     /// <summary>
-    /// The configuration of the application.
-    /// </summary>
-    public required IConfiguration Config { get; init; }
-
-    /// <summary>
     /// The osu! api service.
     /// </summary>
     public required OsuApiService OsuApi { get; init; }
@@ -291,11 +284,6 @@ public class CSharpReplCommandModule(IServiceProvider services, IConfiguration c
     /// The huis api service.
     /// </summary>
     public required HuisApiService HuisApi { get; init; }
-
-    /// <summary>
-    /// The caching service.
-    /// </summary>
-    public required CachingService Caching { get; init; }
 
     /// <summary>
     /// The EF MySQL database object.

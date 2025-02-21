@@ -1,33 +1,21 @@
 ﻿using huisbot.Helpers;
+using huisbot.Models.Options;
 using huisbot.Models.Osu;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Net;
 
 namespace huisbot.Services;
 
+// TODO: get rid of api v1
+
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
 /// </summary>
-public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
+public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApiOptions> options, ILogger<OsuApiService> logger)
 {
   private readonly HttpClient _http = httpClientFactory.CreateClient("osuapi");
-
-  /// <summary>
-  /// The API key for the osu! v1 API.
-  /// </summary>
-  private readonly string _apiKey = config["OSU_API_KEY"] ?? throw new InvalidOperationException("The environment variable 'OSU_API_KEY' is not set.");
-
-  /// <summary>
-  /// The client ID for the osu! v2 API.
-  /// </summary>
-  private readonly string _clientId = config["OSU_OAUTH_CLIENT_ID"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_ID' is not set.");
-
-  /// <summary>
-  /// The client secret for the osu! v2 API.
-  /// </summary>
-  private readonly string _clientSecret = config["OSU_OAUTH_CLIENT_SECRET"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_SECRET' is not set.");
 
   /// <summary>
   /// The date when the API v2 access token expires.
@@ -104,8 +92,8 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
       HttpResponseMessage response = await _http.PostAsync($"oauth/token",
         new FormUrlEncodedContent(new Dictionary<string, string>()
         {
-        { "client_id", _clientId },
-        { "client_secret", _clientSecret },
+        { "client_id", options.Value.ClientId },
+        { "client_secret", options.Value.ClientSecret },
         { "grant_type", "client_credentials"},
         { "scope", "public" }
         }));
@@ -144,7 +132,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={_apiKey}");
+      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={options.Value.ApiKey}");
       OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
 
       // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
@@ -169,7 +157,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={_apiKey}");
+      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={options.Value.ApiKey}");
       OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.Id == id);
 
       // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.

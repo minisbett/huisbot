@@ -1,6 +1,8 @@
 ﻿using huisbot.Helpers;
 using huisbot.Models.Huis;
+using huisbot.Models.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;

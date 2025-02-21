@@ -13,7 +13,7 @@ namespace huisbot.Modules.Huis;
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
-public class RankingsCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class RankingsCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   /// <summary>
   /// Represents the cached score values for providing pagination via Discord message components.
