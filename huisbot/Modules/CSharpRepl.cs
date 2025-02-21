@@ -61,7 +61,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
 
   static CSharpReplCommandModule()
   {
-    // Load all assemblies referenced by the entry assembly.
+    // Load all assemblies referenced by the entry assembly once on program start (static constructor).
     AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
     Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
     _references = references;
@@ -71,21 +71,19 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
   public async Task CSharpReplAsync(
     [Summary("code", "The C# code to execute.")] string code)
   {
-    // Make sure that the user is the owner of the application.
+    await DeferAsync();
+
+    // Ensure that the user is the owner of the application.
     if (Context.User.Id != Discord.BotOwnerId)
     {
       await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;
     }
 
-    // If the code does not end with a semicolon, add one.
     if (!code.EndsWith(';'))
       code += ";";
 
-    // Construct the script options using the loaded references and the specified namespaces to import.
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);
-
-    // Construct the script globals, which contains variables for the script to be accessable.
     ScriptGlobals globals = new()
     {
       Client = Context.Client,
@@ -98,18 +96,15 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       Database = database
     };
 
-    // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
     await RespondAsync(embed: Embeds.Neutral("Executing code..."));
 
     ScriptState<object> state;
     try
     {
-      // Try to run the specified code and save the resulting ScriptState object.
       state = await CSharpScript.RunAsync(code, options, globals);
     }
     catch (Exception ex)
     {
-      // If an error occured, notify the user.
       await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Error($"```cs\n{ex.Message}```"));
       return;
     }
@@ -122,7 +117,6 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       return;
     }
 
-    // Inspect the resulting object (or exception if one exists) and save the string representation.
     string str = Inspect(state.Exception ?? state.ReturnValue);
 
     // If the string representation is too long, send a file containing it.
@@ -141,7 +135,6 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       return;
     }
 
-    // Edit the original response and replace the content with the string representation.
     await ModifyOriginalResponseAsync(msg =>
     {
       msg.Embed = null;
