@@ -16,7 +16,6 @@ using System.Globalization;
 namespace huisbot;
 
 // TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
-// TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) return;
 // TODO: refactor pagination sometime
 
 public class Program

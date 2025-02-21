@@ -8,7 +8,7 @@ namespace huisbot.Helpers;
 /// <summary>
 /// Provides utility methods for any complex maths.
 /// </summary>
-internal static class Utils
+internal static partial class Utils
 {
   /// <summary>
   /// Formats the specified alias to have a unified format, disregarding dashes, underscores, dots and spaces.
@@ -29,7 +29,7 @@ internal static class Utils
     foreach (IEmbed embed in messages.Where(x => x.Embeds.Count > 0 && x.Author.Id != interaction.Client.CurrentUser.Id).Select(x => x.Embeds.First()))
     {
       // Find a beatmap URL in the author URL or normal URL of the embed.
-      string[] urls = { embed.Author?.Url ?? "", embed.Url ?? "" };
+      string[] urls = [embed.Author?.Url ?? "", embed.Url ?? ""];
       string? beatmapUrl = urls.FirstOrDefault(x => x.StartsWith("https://osu.ppy.sh/b/"));
       if (beatmapUrl is null || !int.TryParse(beatmapUrl.Split('/').Last(), out int beatmapId))
         continue;
@@ -42,17 +42,17 @@ internal static class Utils
                           """.Replace("**", ""); // Ignore bold text
 
       // Try to find hits in the format of "[300/100/50/miss]" (owo) or "{300/100/50/miss}" (bathbot). For that, brackets are unified for the regex.
-      Match match = Regex.Match(scoreInfo.Replace("{", "[").Replace("}", "]"), "\\[\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\]");
+      Match match = HitResultsRegex().Match(scoreInfo.Replace("{", "[").Replace("}", "]"));
       OsuScoreStatistics? statistics = match.Success
         ? new(int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value), int.Parse(match.Groups[3].Value), null, null)
         : null;
 
       // Try to find a combo in the format of "x<number>/<number>" (owo) or "<number>x/<number>x" (bathbot).
-      match = Regex.Match(scoreInfo, "x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x");
+      match = ComboRegex().Match(scoreInfo);
       int? combo = match.Success ? int.Parse(match.Groups[2].Value != "" ? match.Groups[2].Value : match.Groups[1].Value) : null;
 
       // Try to find the mods in the format of "+<mod1><mod2...>". Potentially attached mod settings (eg. "(1.3x)") are also allowed.
-      match = Regex.Match(scoreInfo, "(?<=\\+)[^\\s]+");
+      match = ModsRegex().Match(scoreInfo);
       string? mods = match.Success ? match.Value : null;
 
       // Determine whether the embed is from owo bot by checking whether the beatmap URL origins from the author URL.
@@ -66,6 +66,15 @@ internal static class Utils
 
     return null;
   }
+
+  [GeneratedRegex("\\[\\d+\\/(\\d+)\\/(\\d+)\\/(\\d+)\\]")]
+  private static partial Regex HitResultsRegex();
+
+  [GeneratedRegex("x(\\d+)\\/\\d+|(\\d+)x\\/\\d+x")]
+  private static partial Regex ComboRegex();
+
+  [GeneratedRegex("(?<=\\+)[^\\s]+")]
+  private static partial Regex ModsRegex();
 }
 
 /// <summary>
