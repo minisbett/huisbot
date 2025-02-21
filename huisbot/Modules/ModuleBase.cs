@@ -354,7 +354,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
     if (!int.TryParse(scoreId, out int _))
     {
       // Match a beatmap URL and extract the ID from it.
-      Match match = Regex.Match(scoreId, "https?:\\/\\/osu\\.ppy\\.sh\\/scores\\/(\\d+)");
+      Match match = ScoreUrlRegex().Match(scoreId);
       if (match.Success)
         scoreId = match.Groups[1].Value;
       else
@@ -380,6 +380,9 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
 
     return (score?.Found ?? false) ? score : null!;
   }
+
+  [GeneratedRegex("https?:\\/\\/osu\\.ppy\\.sh\\/scores\\/(\\d+)")]
+  private static partial Regex ScoreUrlRegex();
 
   /// <summary>
   /// Returns the X-th best score by the specified user.<br/>
