@@ -50,10 +50,17 @@ public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionH
     }
 
     // Log the command execution.
-    string guild = command.GuildId is null ? "Direct Message" : $"{Client.GetGuild(command.GuildId.Value)} ({command.GuildId})";
+    string guild = command.GuildId is null ? "Direct Message" : $"{Client.GetGuild(command.GuildId.Value).Name} ({command.GuildId})";
+    string channel = command.ChannelId is null ? "Direct Message" : $"{command.Channel} ({command.ChannelId})";
     string user = $"{command.User.Username} [{command.User.GlobalName}] ({command.User.Id})";
     string cmd = $"/{command.CommandName}{parse(command.Data.Options)}";
-    Logger.LogInformation("Guild: {Guild}\n      User: {User}\n      Command: {Command}", guild, user, cmd);
+    Logger.LogInformation(
+      """
+      Guild: {Guild}
+      Channel: {Channel}
+      User: {User}
+      Command: {Command}
+      """, guild, channel, user, cmd);
 
     return Task.CompletedTask;
   }
