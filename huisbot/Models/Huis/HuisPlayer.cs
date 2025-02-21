@@ -29,7 +29,7 @@ public class HuisPlayer
   /// The name of the player.
   /// </summary>
   [JsonProperty("name")]
-  public string? Name { get; private set; }
+  public string Name { get; private set; } = null!;
 
   /// <summary>
   /// The live PP of the player.
@@ -80,8 +80,7 @@ public class HuisPlayer
   public DateTime LastUpdated { get; private set; }
 
   /// <summary>
-  /// The actual rank of the player.
-  /// Might be null, indiucating the rank is not known.
+  /// The actual rank of the player. This can be null, indicating the rank is not known.
   /// </summary>
   [JsonProperty("global_rank_real")]
   public int? Rank { get; private set; }

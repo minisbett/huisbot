@@ -78,8 +78,6 @@ public class OsuScore
   [JsonProperty("ended_at")]
   public DateTime SubmittedAt { get; private set; }
 
-  // TODO: Make those inner classes redundant by generally fetching beatmaps/users via API v2 in the client, replacing the API v1 models.
-
   /// <summary>
   /// Represents the <see cref="Beatmap"/> component of the <see cref="OsuScore"/> type.
   /// </summary>

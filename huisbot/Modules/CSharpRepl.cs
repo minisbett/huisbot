@@ -86,7 +86,6 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);
 
     // Construct the script globals, which contains variables for the script to be accessable.
-    // TODO: anonymous type? add more services etc.?
     ScriptGlobals globals = new()
     {
       Client = Context.Client,
@@ -125,11 +124,6 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
 
     // Inspect the resulting object (or exception if one exists) and save the string representation.
     string str = Inspect(state.Exception ?? state.ReturnValue);
-
-    // As a safety measure, replace secrets from the config with a placeholder.
-    // TODO: re-add this
-    //foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
-    //str = str.Replace(configuration.GetValue<string>(secret)!, "<censored>");
 
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000 - 8 /* ```\n\n``` */)
