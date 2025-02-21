@@ -21,7 +21,7 @@ public class QueueCommandModule(IServiceProvider services) : ModuleBase(services
   {
     await DeferAsync();
 
-    // If no player identifier was specified, try to get one from a link.
+    // If no user identifier was specified, try to get one from a link.
     if (userId is null)
       if (await GetOsuDiscordLinkAsync() is OsuDiscordLink link)
         userId = link.OsuId.ToString();
