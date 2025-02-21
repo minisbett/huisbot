@@ -68,11 +68,6 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
     if (user is null)
       return;
 
-    // Get the player in the current rework.
-    HuisPlayer? player = await GetHuisPlayerAsync(user.Id, rework, user.Name ?? "");
-    if (player is null)
-      return;
-
     // Get the top plays of the player.
     HuisScore[]? scores = await GetTopPlaysAsync(user, rework.Id, scoreType);
     if (scores is null)
