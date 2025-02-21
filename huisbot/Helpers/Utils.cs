@@ -3,7 +3,7 @@ using Discord.Interactions;
 using huisbot.Models.Osu;
 using System.Text.RegularExpressions;
 
-namespace huisbot.Utilities;
+namespace huisbot.Helpers;
 
 /// <summary>
 /// Provides utility methods for any complex maths.

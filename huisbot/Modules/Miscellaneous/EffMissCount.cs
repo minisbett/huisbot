@@ -1,9 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Helpers;
 using huisbot.Models.Osu;
 
 namespace huisbot.Modules.Miscellaneous;
+
+// TODO: overhaul this command (put up-to-date and improve embed)
 
 /// <summary>
 /// The partial interaction module for the effmisscount command.
@@ -26,22 +27,19 @@ public partial class MiscellaneousCommandModule
     // Check if either a beatmap ID or a maximum combo and slider count were specified.
     if (beatmapId is null && (maxCombo is null || sliderCount is null))
     {
-      await FollowupAsync(embed: Embeds.Error("Either a beatmap or a maximum combo and slider count must be specified."));
+      await FollowupAsync(embed: Embeds.Error("Either a beatmap, or a maximum combo and slider count must be specified."));
       return;
     }
 
-    // If a beatmap was specified, get the beatmap and set the maximum combo and slider count.
+    // If a beatmap was specified, fetch the required information from it.
     if (beatmapId is not null)
     {
-      OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
-      if (beatmap is null)
-        return;
+      if (await GetBeatmapAsync(beatmapId) is not OsuBeatmap beatmap) return;
 
       maxCombo = beatmap.MaxCombo;
       sliderCount = beatmap.SliderCount;
     }
 
-    // Calculate the combo based misscount and full combo threshold.
     double comboBasedMissCount = 0;
     double fullComboThreshold = 0;
     if (sliderCount > 0)
@@ -51,10 +49,8 @@ public partial class MiscellaneousCommandModule
         comboBasedMissCount = fullComboThreshold / Math.Max(1.0, combo);
     }
 
-    // Calculate the effective misscount.
     double effMissCount = Math.Max(misses, Math.Min(comboBasedMissCount, hits));
 
-    // Return the effective miss count in an embed.
     await FollowupAsync(embed: Embeds.EffMissCount(combo, maxCombo!.Value, sliderCount!.Value, hits, misses, comboBasedMissCount, fullComboThreshold, effMissCount));
   }
 }
