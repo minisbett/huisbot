@@ -182,16 +182,17 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
   /// <param name="rework">The rework.</param>
   /// <param name="name">The name of the user. This is dirty but necessary to display the error.</param>
   /// <returns>The Huis player.</returns>
-  public async Task<HuisPlayer?> GetHuisPlayerAsync(int playerId, HuisRework rework, string name)
+  public async Task<HuisPlayer?> GetHuisPlayerAsync(OsuUser user, HuisRework rework)
   {
-    // Get the player from the Huis API. If it failed, notify the user.
-    HuisPlayer? player = await HuisApi.GetPlayerAsync(playerId, rework);
+    HuisPlayer? player = await HuisApi.GetPlayerAsync(user.Id, rework);
     if (player is null)
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(rework.IsLive ? "live" : "local")} player from the Huis API."));
     // If the player was successfully received but is outdated, notify the user.
     else if (player.IsOutdated)
-      await FollowupAsync(embed: Embeds.Error($"`{name}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.\n" +
-                                              $"Please use the `/queue` command to queue the player."));
+      await FollowupAsync(embed: Embeds.Error($"""
+                                               `{user.Name}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.
+                                               Please use the `/queue` command to queue the user.
+                                               """));
 
     return (player?.IsOutdated ?? true) ? null : player;
   }
