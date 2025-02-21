@@ -8,7 +8,7 @@ using huisbot.Services;
 namespace huisbot.Modules.Huis;
 
 /// <summary>
-/// The interaction module for the score command, calculating the existing score of a player.
+/// The interaction module for the score command, calculating the existing score of a user.
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
