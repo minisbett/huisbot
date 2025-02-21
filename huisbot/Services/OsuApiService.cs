@@ -9,6 +9,7 @@ using System.Net;
 namespace huisbot.Services;
 
 // TODO: get rid of api v1
+// TODO: make this scoped? cuz http client but sucks for saving access token stuff
 
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
@@ -99,7 +100,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
         }));
 
       // Parse the response object into a dynamic object.
-      var result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
+      dynamic? result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
 
       // Check whether the response was successful.
       if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.InternalServerError) // For some reason invalid client id = internal server error.

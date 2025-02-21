@@ -43,8 +43,10 @@ public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionH
     // Go through all slash command data options and combine them to an argument string.
     static string parse(IReadOnlyCollection<SocketSlashCommandDataOption> data, string str = "")
     {
-      foreach (var i in data)
-        str += " " + (i.Type == ApplicationCommandOptionType.SubCommand ? $"{i.Name}{parse(i.Options, str)}" : $"{i.Name}:{i.Value}");
+      foreach (SocketSlashCommandDataOption option in data)
+        str += " " + (option.Type == ApplicationCommandOptionType.SubCommand
+          ? $"{option.Name}{parse(option.Options, str)}"
+          : $"{option.Name}:{option.Value}");
 
       return str;
     }

@@ -17,8 +17,6 @@ namespace huisbot;
 
 // TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
 // TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) return;
-// TODO: update dependencies (maybe not scottplot? see if breaking changes)
-// TODO: make osu api service scoped? cuz http client but sucks for saving access token stuff
 // TODO: refactor pagination sometime
 
 public class Program

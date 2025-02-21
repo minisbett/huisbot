@@ -1,5 +1,4 @@
 ﻿using Discord.Interactions;
-using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Miscellaneous;
 

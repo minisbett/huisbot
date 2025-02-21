@@ -5,7 +5,6 @@ using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -88,7 +87,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
 
     // Construct the script globals, which contains variables for the script to be accessable.
     // TODO: anonymous type? add more services etc.?
-    var globals = new ScriptGlobals
+    ScriptGlobals globals = new()
     {
       Client = Context.Client,
       User = Context.User,
@@ -170,7 +169,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       if (obj == null)
         return "null";
 
-      var type = obj.GetType();
+      Type type = obj.GetType();
 
       // Check whether a DebuggerDisplay property is present on the type and if so, use it for a string representation.
       PropertyInfo? debuggerDisplay = type.GetProperty("DebuggerDisplay", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -185,7 +184,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
         return obj.ToString()!;
 
       // Otherwise, check whether a Count property is present and if so, return the amount of items in the collection.
-      var count = type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+      PropertyInfo? count = type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
       if (count != null)
         return $"[{count.GetValue(obj)} Items]";
 
@@ -210,13 +209,13 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
         if (value is not string)
         {
           // Cast the enumerable to an array to prevent multiple enumerations.
-          var items = enumerable.Cast<object>().ToArray();
+          object[] items = enumerable.Cast<object>().ToArray();
 
           // If the array is not empty, append each item in it's inspected version to the string builder.
           if (items.Length > 0)
           {
             builder.AppendLine();
-            foreach (var item in items)
+            foreach (object? item in items)
               builder.AppendLine($"- {InspectProperty(item)}");
           }
         }

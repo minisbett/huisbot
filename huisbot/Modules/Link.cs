@@ -2,8 +2,6 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Osu;
-using huisbot.Services;
-using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules;
 

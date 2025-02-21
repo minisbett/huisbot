@@ -10,7 +10,7 @@ public class NotFoundOr<T> where T : class
   /// <summary>
   /// Indicates the value was not found.
   /// </summary>
-  public static NotFoundOr<T> NotFound => new NotFoundOr<T>();
+  public static NotFoundOr<T> NotFound => new();
 
   /// <summary>
   /// The possibly not found value.

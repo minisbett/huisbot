@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Services;
-using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules;
 
