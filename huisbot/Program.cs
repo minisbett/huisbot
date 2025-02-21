@@ -15,15 +15,11 @@ using System.Globalization;
 
 namespace huisbot;
 
-// TODO: turn .env into appsettings
 // TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
 // TODO: turn usage of ModuleBase methods into: if (await GetFooAsync(...) is not Foo foo) return;
 // TODO: update dependencies (maybe not scottplot? see if breaking changes)
 // TODO: make osu api service scoped? cuz http client but sucks for saving access token stuff
-
-
-// NOTE TO MYSELF TOMORROW:
-// 3. figure out scope validation fail on InteractionService.AddModulesAsync
+// TODO: refactor pagination sometime
 
 public class Program
 {
