@@ -17,69 +17,46 @@ public class QueueCommandModule(IServiceProvider services) : ModuleBase(services
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
-    [Summary("player", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? playerId = null)
+    [Summary("user", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? userId = null)
   {
     await DeferAsync();
 
-    // Get the matching rework for the specified rework identifier.
-    HuisRework? rework = await GetReworkAsync(reworkId);
-    if (rework is null)
-      return;
-
     // If no player identifier was specified, try to get one from a link.
-    if (playerId is null)
-    {
-      // Get the link and check whether the request was successful.
-      OsuDiscordLink? link = await GetOsuDiscordLinkAsync();
-      if (link is null)
+    if (userId is null)
+      if (await GetOsuDiscordLinkAsync() is OsuDiscordLink link)
+        userId = link.OsuId.ToString();
+      else
         return;
 
-      // Set the player identifier to the linked osu! user ID. After that, a player will be retrieved from the osu! API.
-      playerId = link.OsuId.ToString();
-    }
+    if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
+    if (await GetOsuUserAsync(userId) is not OsuUser user) return;
+    if (await GetHuisQueueAsync(rework.Id) is not int[] queue) return;
 
-    // Get the osu! user.
-    OsuUser? user = await GetOsuUserAsync(playerId);
-    if (user is null)
-      return;
-
-    // Get the calculation queue.
-    int[]? queue = await GetHuisQueueAsync(rework.Id);
-    if (queue is null)
-      return;
-
-    // Check whether the player is already queued. If so, notify the user.
+    // Ensure the user is not queued yet.
     if (queue.Contains(user.Id))
     {
-      await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is currently being calculated in the specified rework."));
+      await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is already queued in the specified rework."));
       return;
     }
 
-    // Queue the player.
-    if (!await QueuePlayerAsync(user, rework.Id, Context.User.Id))
-      return;
-
-    // Asynchronously check whether the player is no longer in the queue and if so, notify the user.
+    // Queue the player and asynchronously check whether the player is no longer in the queue, meaning re-calculation finished.
+    if (!await QueuePlayerAsync(user, rework.Id, Context.User.Id)) return;
     _ = Task.Run(async () =>
     {
       // Wait an initial 10 seconds, since it's not only pointless to check immediately,
-      // but it also takes some time before the player appears in the queue.
+      // but it also takes some time before the player appears on the queue API endpoint.
       await Task.Delay(10000);
 
-      // Wait until the player is no longer in the queue.
       while (true)
       {
-        // Check if the player is still in the queue.
-        queue = await GetHuisQueueAsync(rework.Id);
-        if (queue is null)
-          return;
+        if (await GetHuisQueueAsync(rework.Id) is not int[] queue) return;
+
         if (!queue.Contains(user.Id))
         {
           await FollowupAsync(embed: Embeds.Success($"`{user.Name}` has been successfully re-calculated."));
           break;
         }
 
-        // Wait 3 seconds before checking again.
         await Task.Delay(3000);
       }
     });

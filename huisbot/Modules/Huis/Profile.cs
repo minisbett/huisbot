@@ -35,7 +35,6 @@ public class ProfileCommandModule(IServiceProvider services) : ModuleBase(servic
     if (await GetHuisPlayerAsync(user, local) is not HuisPlayer localUser) return;
     if (await GetHuisPlayerAsync(user, live) is not HuisPlayer liveUser) return;
 
-    // Show the user embed.
     await FollowupAsync(embed: Embeds.Player(localUser, liveUser, local));
   }
 }
