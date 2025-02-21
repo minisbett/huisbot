@@ -112,7 +112,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
       _http.DefaultRequestHeaders.Remove("Authorization");
       _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.access_token}");
       _accessTokenExpiresAt = DateTimeOffset.Now.AddSeconds((int)result.expires_in - 10);
-      logger.LogInformation("The osu! API v2 access token has been updated and expires at {date}.", _accessTokenExpiresAt);
+      logger.LogInformation("The osu! API v2 access token has been updated and expires at {Date}.", _accessTokenExpiresAt);
     }
     catch (Exception ex)
     {
