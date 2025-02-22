@@ -11,7 +11,8 @@ public class OsuApiOptions
   /// the OAuth client ID for the osu! API v2.
   /// </summary>
   [Required]
-  public string ClientId { get; set; } = null!;
+  [Range(0, 65535)]
+  public int ClientId { get; set; }
 
   /// <summary>
   /// the OAuth client secret for the osu! API v2.

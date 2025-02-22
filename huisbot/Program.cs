@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
 using Discord.WebSocket;
+using huisbot.Helpers;
 using huisbot.Models.Options;
 using huisbot.Persistence;
 using huisbot.Services;
@@ -58,6 +59,7 @@ public class Program
         {
           options.TimestampFormat = "[HH:mm:ss] ";
           options.UseUtcTimestamp = true;
+          options.IncludeScopes = true;
           options.ColorBehavior = LoggerColorBehavior.Enabled;
         });
 
@@ -112,8 +114,8 @@ public class Program
         services.AddHostedService(services => services.GetRequiredService<DiscordService>());
 
         // Register all services (API, database, ...)
-        services.AddSingleton<OsuApiService>();
         services.AddSingleton<EmbedService>();
+        services.AddScoped<OsuApiService>();
         services.AddScoped<HuisApiService>();
         services.AddScoped<PersistenceService>();
         services.AddScoped<CachingService>();
@@ -131,7 +133,8 @@ public class Program
         });
 
         // Add an http client for communicating with the osu! API.
-        services.AddHttpClient("osuapi", client =>
+        services.AddKeyedSingleton<ExpiringAccessToken>("osuapi");
+        services.AddHttpClient("osuapi", (services, client) =>
         {
           client.BaseAddress = new Uri("https://osu.ppy.sh/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");

@@ -1,6 +1,8 @@
-﻿using huisbot.Helpers;
+﻿using Discord.Commands;
+using huisbot.Helpers;
 using huisbot.Models.Options;
 using huisbot.Models.Osu;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -9,19 +11,26 @@ using System.Net;
 namespace huisbot.Services;
 
 // TODO: get rid of api v1
-// TODO: make this scoped? cuz http client but sucks for saving access token stuff
 
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
 /// </summary>
-public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApiOptions> options, ILogger<OsuApiService> logger)
+public class OsuApiService
 {
-  private readonly HttpClient _http = httpClientFactory.CreateClient("osuapi");
+  private readonly ExpiringAccessToken _accessToken;
+  private readonly HttpClient _http;
+  private readonly OsuApiOptions _options;
+  private readonly ILogger<OsuApiService> _logger;
 
-  /// <summary>
-  /// The date when the API v2 access token expires.
-  /// </summary>
-  private DateTimeOffset _accessTokenExpiresAt = DateTimeOffset.MinValue;
+  public OsuApiService([FromKeyedServices("osuapi")] ExpiringAccessToken accessToken, IHttpClientFactory httpClientFactory,
+                       IOptions<OsuApiOptions> options, ILogger<OsuApiService> logger)
+  {
+    _accessToken = accessToken;
+    _http = httpClientFactory.CreateClient("osuapi");
+    _http.DefaultRequestHeaders.Add("Authorization", accessToken.ToString());
+    _options = options.Value;
+    _logger = logger;
+  }
 
   /// <summary>
   /// Returns a bool whether a connection to the osu! v1 API can be established.
@@ -31,10 +40,9 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
   {
     try
     {
-      // Try to send a request to the base URL of the osu! v1 API.
       HttpResponseMessage response = await _http.GetAsync("api");
 
-      // Check whether it returns the expected result.
+      // Check whether it returns the expected result, being a redirect response.
       if (response.StatusCode != HttpStatusCode.Redirect)
         throw new Exception($"API returned status code {response.StatusCode}. Expected: Redirect (302).");
 
@@ -42,7 +50,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
+      _logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
       return false;
     }
   }
@@ -53,7 +61,6 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
   /// <returns>Bool whether a connection can be established.</returns>
   public async Task<bool> IsV2AvailableAsync()
   {
-    // Make sure a valid access token exists. If not, v2 is unavailable.
     if (!await EnsureAccessTokenAsync())
       return false;
 
@@ -70,7 +77,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("IsV2Available() returned false: {Message}", ex.Message);
+      _logger.LogError("IsV2Available() returned false: {Message}", ex.Message);
       return false;
     }
   }
@@ -81,42 +88,38 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
   /// <returns>Bool whether the access token is valid or was successfully refreshed.</returns>
   public async Task<bool> EnsureAccessTokenAsync()
   {
-    // Check whether the access token is still valid.
-    if (DateTimeOffset.Now < _accessTokenExpiresAt)
+    if (!_accessToken.IsExpired)
       return true;
 
-    logger.LogInformation("The osu! API v2 access token has expired. Requesting a new one...");
+    _logger.LogInformation("The osu! API v2 access token has expired. Requesting a new one...");
 
     try
     {
-      // Send the request.
       HttpResponseMessage response = await _http.PostAsync($"oauth/token",
         new FormUrlEncodedContent(new Dictionary<string, string>()
         {
-        { "client_id", options.Value.ClientId },
-        { "client_secret", options.Value.ClientSecret },
+        { "client_id", _options.ClientId.ToString() },
+        { "client_secret", _options.ClientSecret },
         { "grant_type", "client_credentials"},
         { "scope", "public" }
         }));
 
-      // Parse the response object into a dynamic object.
-      dynamic? result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
+      OsuAccessToken? token = JsonConvert.DeserializeObject<OsuAccessToken>(await response.Content.ReadAsStringAsync());
 
-      // Check whether the response was successful.
-      if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.InternalServerError) // For some reason invalid client id = internal server error.
+      if (response.StatusCode is HttpStatusCode.Unauthorized)
         throw new Exception("Unauthorized.");
-      if (result?.access_token is null)
-        throw new Exception("The oauth access token response did not contain an access token.");
+      if (token?.Token is null)
+        throw new Exception("The access token is null.");
 
-      // Set the new access token and expiration date and return true.
+      _accessToken.Renew(token.Token, DateTimeOffset.UtcNow.AddSeconds(token.ExpiresIn - 10));
       _http.DefaultRequestHeaders.Remove("Authorization");
-      _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.access_token}");
-      _accessTokenExpiresAt = DateTimeOffset.Now.AddSeconds((int)result.expires_in - 10);
-      logger.LogInformation("The osu! API v2 access token has been updated and expires at {Date}.", _accessTokenExpiresAt);
+      _http.DefaultRequestHeaders.Add("Authorization", _accessToken.ToString());
+
+      _logger.LogInformation("The osu! API v2 access token has been updated and expires at {Date}.", _accessToken.ExpiresAt);
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to request an osu! API v2 access token: {Message}", ex.Message);
+      _logger.LogError("Failed to request an osu! API v2 access token: {Message}", ex.Message);
       return false;
     }
 
@@ -133,7 +136,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={options.Value.ApiKey}");
+      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={_options.ApiKey}");
       OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
 
       // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
@@ -144,7 +147,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the user with identifier \"{Identifier}\" from the osu! API: {Message}", identifier, ex.Message);
+      _logger.LogError("Failed to get the user with identifier \"{Identifier}\" from the osu! API: {Message}", identifier, ex.Message);
       return null;
     }
   }
@@ -158,7 +161,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     try
     {
       // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={options.Value.ApiKey}");
+      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={_options.ApiKey}");
       OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.Id == id);
 
       // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
@@ -170,7 +173,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
+      _logger.LogError("Failed to get the beatmap with ID {Id} from the osu! API: {Message}", id, ex.Message);
       return null;
     }
   }
@@ -202,7 +205,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}", scoreId, ex.Message);
+      _logger.LogError("Failed to get the score with ID {Id} from the osu! API: {Message}", scoreId, ex.Message);
       return null;
     }
   }
@@ -235,7 +238,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the {Index}-th {Type} score of {userId} from the osu! API: {Message}", index, type, userId, ex.Message);
+      _logger.LogError("Failed to get the {Index}-th {Type} score of {userId} from the osu! API: {Message}", index, type, userId, ex.Message);
       return null;
     }
   }
