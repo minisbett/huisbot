@@ -41,5 +41,5 @@ public class OsuUser
   /// The ISO country code of the user.
   /// </summary>
   [JsonProperty("country")]
-  public string Country { get; private set; }
+  public string Country { get; private set; } = null!;
 }

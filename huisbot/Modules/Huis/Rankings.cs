@@ -2,18 +2,17 @@
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
-using huisbot.Utilities;
-using Microsoft.Extensions.Configuration;
+using huisbot.Services;
 
 namespace huisbot.Modules.Huis;
 
 /// <summary>
-/// The interaction module for the rankings group & player and score subcommand, displaying the global leaderboard in a rework.
+/// The interaction module for the rankings group (player and score subcommand), displaying the global leaderboard in a rework.
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
 [Group("rankings", "Commands for the global player/score rankings of a rework.")]
-public class RankingsCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class RankingsCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   /// <summary>
   /// Represents the cached score values for providing pagination via Discord message components.
@@ -49,30 +48,18 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     await DeferAsync();
 
-    // Get the sorting option.
-    Sort? sort = await GetSortAsync(sortId, Sort.RankingPlayers);
-    if (sort is null)
-      return;
-
-    // Get the matching rework for the specified rework identifier.
-    HuisRework? rework = await GetReworkAsync(reworkId);
-    if (rework is null)
-      return;
-
-    // Get the player rankings.
-    HuisPlayer[]? players = await GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked);
-    if (players is null)
-      return;
+    if (await GetSortAsync(sortId, Sort.RankingPlayers) is not Sort sort) return;
+    if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
+    if (await GetPlayerRankingsAsync(rework.Id, sort, onlyUpToDate, hideUnranked) is not HuisPlayer[] players) return;
 
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
     _playerPaginationCache[cacheId] = new PlayerPaginationCacheEntry(players, rework, sort);
-    int maxPage = (int)Math.Ceiling(players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(players.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
-    // Return the embed to the user.
     await FollowupAsync(embed: Embeds.PlayerRankings(players, rework, sort, page), components: builder.Build());
   }
 
@@ -86,30 +73,18 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     await DeferAsync();
 
-    // Get the sorting option.
-    Sort? sort = await GetSortAsync(sortId, Sort.RankingScores);
-    if (sort is null)
-      return;
-
-    // Get the matching rework for the specified rework identifier.
-    HuisRework? rework = await GetReworkAsync(reworkId);
-    if (rework is null)
-      return;
-
-    // Get the score rankings.
-    HuisScore[]? scores = await GetScoreRankingsAsync(rework.Id, sort);
-    if (scores is null)
-      return;
+    if (await GetSortAsync(sortId, Sort.RankingPlayers) is not Sort sort) return;
+    if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
+    if (await GetScoreRankingsAsync(rework.Id, sort) is not HuisScore[] scores) return;
 
     // Cache the results and build a message component for pagination navigation.
     string cacheId = Guid.NewGuid().ToString();
     _scorePaginationCache[cacheId] = new ScorePaginationCacheEntry(scores, rework, sort);
-    int maxPage = (int)Math.Ceiling(scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    int maxPage = (int)Math.Ceiling(scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
-    // Return the embed to the user.
     await FollowupAsync(embed: Embeds.ScoreRankings(scores, rework, sort, page), components: builder.Build());
   }
 
@@ -118,17 +93,17 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     await DeferAsync();
 
-    // Get the message and cache entry.
+    // Get the corresponding cache entry of the message.
     IUserMessage msg = (Context.Interaction as IComponentInteraction)!.Message;
     ScorePaginationCacheEntry entry = _scorePaginationCache[cacheId];
 
-    // Re-build the message component for the pagination navigation.
-    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / Embeds.SCORES_PER_PAGE);
+    // Re-build the message component for further pagination navigation.
+    int maxPage = (int)Math.Ceiling(entry.Scores.Length * 1d / EmbedService.SCORES_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_score:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_score:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
-    // Modify the message with a new embed based on the cached values and requested page.
+    // Update the embed with the values of the requested page.
     await msg.ModifyAsync(x =>
     {
       x.Embed = Embeds.ScoreRankings(entry.Scores, entry.Rework, entry.Sort, page);
@@ -141,17 +116,17 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     await DeferAsync();
 
-    // Get the message and cache entry.
+    // Get the corresponding cache entry of the message.
     IUserMessage msg = (Context.Interaction as IComponentInteraction)!.Message;
     PlayerPaginationCacheEntry entry = _playerPaginationCache[cacheId];
 
-    // Re-build the message component for the pagination navigation.
-    int maxPage = (int)Math.Ceiling(entry.Players.Length * 1d / Embeds.PLAYERS_PER_PAGE);
+    // Re-build the message component for further pagination navigation.
+    int maxPage = (int)Math.Ceiling(entry.Players.Length * 1d / EmbedService.PLAYERS_PER_PAGE);
     ComponentBuilder builder = new ComponentBuilder()
       .WithButton("←", $"rankings_player:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"rankings_player:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
-    // Modify the message with a new embed based on the cached values and requested page.
+    // Update the embed with the values of the requested page.
     await msg.ModifyAsync(x =>
     {
       x.Embed = Embeds.PlayerRankings(entry.Players, entry.Rework, entry.Sort, page);
@@ -166,10 +141,7 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     public override Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
       IParameterInfo pInfo, IServiceProvider services)
-    {
-      // Return the sorting options.
-      return Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingScores.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
-    }
+        => Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingScores.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
   }
 
   /// <summary>
@@ -179,9 +151,6 @@ public class RankingsCommandModule(IServiceProvider services, IConfiguration con
   {
     public override Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
       IParameterInfo pInfo, IServiceProvider services)
-    {
-      // Return the sorting options.
-      return Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingPlayers.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
-    }
+        => Task.FromResult(AutocompletionResult.FromSuccess(Sort.RankingPlayers.Select(x => new AutocompleteResult(x.DisplayName, x.Id))));
   }
 }

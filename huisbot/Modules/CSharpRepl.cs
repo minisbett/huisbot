@@ -1,14 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
-using huisbot.Helpers;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -22,7 +18,9 @@ namespace huisbot.Modules;
 
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionContext>
+#pragma warning disable CS9107
+public class CSharpReplCommandModule(IServiceProvider services, Database database) : ModuleBase(services)
+#pragma warning restore CS9107
 {
   /// <summary>
   /// A list of namespaces to import in the script context.
@@ -42,6 +40,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     "Discord.Rest",
     "Discord.WebSocket",
     "huisbot",
+    "huisbot.Helpers",
     "huisbot.Models",
     "huisbot.Models.Huis",
     "huisbot.Models.Osu",
@@ -51,7 +50,6 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     "huisbot.Modules.Miscellaneous",
     "huisbot.Persistence",
     "huisbot.Services",
-    "huisbot.Utilities"
   ];
 
   /// <summary>
@@ -59,75 +57,54 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   /// and the array will be maintained through-out the applications' lifespan. This list is used to
   /// let the script engine know which assemblies to load when executing the code.
   /// </summary>
-  private static Assembly[]? _references = null;
+  private static readonly Assembly[] _references = null!;
 
-  private readonly IServiceProvider _provider;
-  private readonly IConfiguration _config;
-  private readonly OsuApiService _osu;
-  private readonly HuisApiService _huis;
-
-  public CSharpReplCommandModule(IServiceProvider provider, IConfiguration config, OsuApiService osu, HuisApiService huis)
+  static CSharpReplCommandModule()
   {
-    _provider = provider;
-    _config = config;
-    _osu = osu;
-    _huis = huis;
-
-    // If the references array has not been initialized yet, initialize it with all assemblies referenced by the entry assembly.
-    if (_references is null)
-    {
-      AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
-      Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
-      _references = references;
-    }
+    // Load all assemblies referenced by the entry assembly once on program start (static constructor).
+    AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
+    Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
+    _references = references;
   }
 
   [SlashCommand("csharprepl", "Runs C# code in the runtime context of the bot client application.")]
   public async Task CSharpReplAsync(
     [Summary("code", "The C# code to execute.")] string code)
   {
-    // Make sure that the user is the owner of the application.
-    RestApplication app = Program.Application;
-    if (!(Context.User.Id == Program.Application.Owner.Id || Context.User.Id == Program.Application.Team?.OwnerUserId))
+    await DeferAsync();
+
+    // Ensure that the user is the owner of the application.
+    if (Context.User.Id != Discord.BotOwnerId)
     {
       await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;
     }
 
-    // If the code does not end with a semicolon, add one.
     if (!code.EndsWith(';'))
       code += ";";
 
-    // Construct the script options using the loaded references and the specified namespaces to import.
     ScriptOptions options = ScriptOptions.Default.AddReferences(_references).AddImports(_imports);
-
-    // Construct the script globals, which contains variables for the script to be accessable.
-    var globals = new ScriptGlobals()
+    ScriptGlobals globals = new()
     {
       Client = Context.Client,
       User = Context.User,
       Channel = Context.Channel,
       Guild = Context.Guild,
-      ServiceProvider = _provider,
-      Config = _config,
-      OsuApi = _osu,
-      HuisApi = _huis,
-      Caching = _provider.GetRequiredService<CachingService>(),
-      Database = _provider.GetRequiredService<Database>()
+      Services = services,
+      OsuApi = OsuApi,
+      HuisApi = HuisApi,
+      Database = database
     };
 
-    // Respond to the interaction because the script might take more than the 3 second timeout on interaction responses.
     await RespondAsync(embed: Embeds.Neutral("Executing code..."));
 
     ScriptState<object> state;
     try
     {
-      // Try to run the specified code and save the resulting ScriptState object.
       state = await CSharpScript.RunAsync(code, options, globals);
     }
     catch (Exception ex)
     {
-      // If an error occured, notify the user.
       await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Error($"```cs\n{ex.Message}```"));
       return;
     }
@@ -137,16 +114,10 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     if (state.ReturnValue is null)
     {
       await ModifyOriginalResponseAsync(msg => msg.Embed = Embeds.Success("Action performed successfully."));
-
       return;
     }
 
-    // Inspect the resulting object (or exception if one exists) and save the string representation.
     string str = Inspect(state.Exception ?? state.ReturnValue);
-
-    // As a safety measure, replace secrets from the config with a placeholder.
-    foreach (string secret in new string[] { "BOT_TOKEN", "OSU_API_KEY", "HUIS_ONION_KEY", "OSU_OAUTH_CLIENT_ID", "OSU_OAUTH_CLIENT_SECRET" })
-      str = str.Replace(_config.GetValue<string>(secret)!, "<censored>");
 
     // If the string representation is too long, send a file containing it.
     if (str.Length > 2000 - 8 /* ```\n\n``` */)
@@ -164,7 +135,6 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
       return;
     }
 
-    // Edit the original response and replace the content with the string representation.
     await ModifyOriginalResponseAsync(msg =>
     {
       msg.Embed = null;
@@ -183,11 +153,10 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
   {
     static string InspectProperty(object obj)
     {
-      // If the specified propety is null, return "null".
       if (obj == null)
         return "null";
 
-      var type = obj.GetType();
+      Type type = obj.GetType();
 
       // Check whether a DebuggerDisplay property is present on the type and if so, use it for a string representation.
       PropertyInfo? debuggerDisplay = type.GetProperty("DebuggerDisplay", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -195,14 +164,14 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
         return debuggerDisplay.GetValue(obj)!.ToString()!;
 
       // Otherwise, check whether a ToString method not inherited from the object type is present on the type and if so, use it for
-      // a string representation. It would mean that the type overrides the ToString method and thus has a custom string representation.
+      // a string representation. It means that the type overrides the ToString method and thus has a custom string representation.
       MethodInfo? toString = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
           .Where(x => x.Name == "ToString" && x.DeclaringType != typeof(object)).FirstOrDefault();
       if (toString != null)
         return obj.ToString()!;
 
       // Otherwise, check whether a Count property is present and if so, return the amount of items in the collection.
-      var count = type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+      PropertyInfo? count = type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
       if (count != null)
         return $"[{count.GetValue(obj)} Items]";
 
@@ -227,13 +196,13 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
         if (value is not string)
         {
           // Cast the enumerable to an array to prevent multiple enumerations.
-          var items = enumerable.Cast<object>().ToArray();
+          object[] items = enumerable.Cast<object>().ToArray();
 
           // If the array is not empty, append each item in it's inspected version to the string builder.
           if (items.Length > 0)
           {
             builder.AppendLine();
-            foreach (var item in items)
+            foreach (object? item in items)
               builder.AppendLine($"- {InspectProperty(item)}");
           }
         }
@@ -290,12 +259,7 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     /// <summary>
     /// The service provider of the application.
     /// </summary>
-    public required IServiceProvider ServiceProvider { get; init; }
-
-    /// <summary>
-    /// The configuration of the application.
-    /// </summary>
-    public required IConfiguration Config { get; init; }
+    public required IServiceProvider Services { get; init; }
 
     /// <summary>
     /// The osu! api service.
@@ -306,11 +270,6 @@ public class CSharpReplCommandModule : InteractionModuleBase<SocketInteractionCo
     /// The huis api service.
     /// </summary>
     public required HuisApiService HuisApi { get; init; }
-
-    /// <summary>
-    /// The caching service.
-    /// </summary>
-    public required CachingService Caching { get; init; }
 
     /// <summary>
     /// The EF MySQL database object.
