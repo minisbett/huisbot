@@ -3,7 +3,7 @@
 namespace huisbot.Models.Osu;
 
 /// <summary>
-/// Represents a beatmap from the osu! API v1.
+/// Represents a beatmap from the osu! API v2.
 /// </summary>
 public class OsuBeatmap
 {
@@ -16,7 +16,7 @@ public class OsuBeatmap
   /// <summary>
   /// The ID of the beatmap.
   /// </summary>
-  [JsonProperty("beatmap_id")]
+  [JsonProperty("id")]
   public int Id { get; private set; }
 
   /// <summary>
@@ -28,80 +28,86 @@ public class OsuBeatmap
   /// <summary>
   /// The hit length of the beatmap in seconds.
   /// </summary>
-  [JsonProperty("hit_length")]
+  [JsonProperty("total_length")]
   public int Length { get; private set; }
-
-  /// <summary>
-  /// The BPM of the beatmap.
-  /// </summary>
-  [JsonProperty("bpm")]
-  public double BPM { get; private set; }
 
   /// <summary>
   /// The amount of hit circles in the beatmap.
   /// </summary>
-  [JsonProperty("count_normal")]
+  [JsonProperty("count_circles")]
   public int CircleCount { get; private set; }
 
   /// <summary>
   /// The amount of sliders in the beatmap.
   /// </summary>
-  [JsonProperty("count_slider")]
+  [JsonProperty("count_sliders")]
   public int SliderCount { get; private set; }
 
   /// <summary>
   /// The amount of spinners in the beatmap.
   /// </summary>
-  [JsonProperty("count_spinner")]
+  [JsonProperty("count_spinners")]
   public int SpinnerCount { get; private set; }
 
   /// <summary>
   /// The circle size of the beatmap.
   /// </summary>
-  [JsonProperty("diff_size")]
+  [JsonProperty("cs")]
   public double CircleSize { get; private set; }
 
   /// <summary>
   /// The approach rate of the beatmap.
   /// </summary>
-  [JsonProperty("diff_approach")]
+  [JsonProperty("ar")]
   public double ApproachRate { get; private set; }
 
   /// <summary>
   /// The overall difficulty of the beatmap.
   /// </summary>
-  [JsonProperty("diff_overall")]
+  [JsonProperty("accuracy")]
   public double OverallDifficulty { get; private set; }
 
   /// <summary>
   /// The hp drain rate of the beatmap.
   /// </summary>
-  [JsonProperty("diff_drain")]
+  [JsonProperty("drain")]
   public double DrainRate { get; private set; }
-
-  /// <summary>
-  /// The artist of the song of the beatmap.
-  /// </summary>
-  [JsonProperty("artist")]
-  public string? Artist { get; private set; }
-
-  /// <summary>
-  /// The title of the song of the beatmap.
-  /// </summary>
-  [JsonProperty("title")]
-  public string? Title { get; private set; }
 
   /// <summary>
   /// The dififculty name of the beatmap.
   /// </summary>
   [JsonProperty("version")]
-  public string? Version { get; private set; }
+  public string Version { get; private set; } = null!;
 
   /// <summary>
-  /// The creator of the beatmap.
+  /// The beatmap set this beatmap belongs to.
   /// </summary>
-  [JsonProperty("creator")]
-  public string? Mapper { get; private set; }
+  [JsonProperty("beatmapset")]
+  public OsuBeatmapSet Set { get; private set; } = null!;
+
+  /// <summary>
+  /// Represents the beatmap set of a <see cref="OsuBeatmap"/> from the osu! API v2.
+  /// </summary>
+  public class OsuBeatmapSet
+  {
+    /// <summary>
+    /// The artist of the song of the beatmap.
+    /// </summary>
+    [JsonProperty("artist")]
+    public string Artist { get; private set; } = null!;
+
+    /// <summary>
+    /// The title of the song of the beatmap.
+    /// </summary>
+    [JsonProperty("title")]
+    public string Title { get; private set; } = null!;
+
+    /// <summary>
+    /// The BPM of the beatmap.
+    /// </summary>
+    [JsonProperty("bpm")]
+    public float BPM { get; private set; }
+  }
 
   /// <summary>
   /// Returns the length of the beatmap, including clock rate changes through specified mods.
@@ -122,7 +128,7 @@ public class OsuBeatmap
   public double GetBPM(OsuMods mods)
   {
     // Return the BPM multiplied by the clock rate of the mods.
-    return BPM * mods.ClockRate;
+    return Set.BPM * mods.ClockRate;
   }
 
   /// <summary>

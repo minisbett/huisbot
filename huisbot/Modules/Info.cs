@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using huisbot.Helpers;
-using huisbot.Services;
 
 namespace huisbot.Modules;
 
@@ -10,14 +8,18 @@ namespace huisbot.Modules;
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class InfoCommandModule(OsuApiService osu, HuisApiService huis) : InteractionModuleBase<SocketInteractionContext>
+public class InfoCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("info", "Displays info about the bot.")]
   public async Task HandleAsync()
   {
     await DeferAsync();
 
-    // Return the info embed to the user.
-    await FollowupAsync(embed: Embeds.Info(await osu.IsV1AvailableAsync(), await osu.IsV2AvailableAsync(), await huis.IsAvailableAsync()));
+    bool osuApiV2 = await OsuApi.IsV2AvailableAsync();
+    bool huisApi = await HuisApi.IsAvailableAsync();
+
+    (int guildInstalls, int userInstalls) = await Discord.GetInstallCountsAsync();
+
+    await FollowupAsync(embed: Embeds.Info(osuApiV2, huisApi, guildInstalls, userInstalls));
   }
 }
