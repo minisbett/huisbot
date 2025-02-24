@@ -58,9 +58,9 @@ public class InteractionHandler(DiscordSocketClient client, ILogger<InteractionH
     string cmd = $"/{command.CommandName}{parse(command.Data.Options)}";
     Logger.LogInformation(
       """
-      Guild: {Guild}
+        Guild: {Guild}
       Channel: {Channel}
-      User: {User}
+         User: {User}
       Command: {Command}
       """, guild, channel, user, cmd);
 

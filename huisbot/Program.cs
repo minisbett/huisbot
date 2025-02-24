@@ -36,8 +36,6 @@ public class Program
     catch (Exception ex) when (ex is not HostAbortedException)
     {
       Environment.ExitCode = 727;
-      Console.ForegroundColor = ConsoleColor.Red;
-      Console.WriteLine(ex);
     }
   }
 
@@ -59,7 +57,6 @@ public class Program
         {
           options.TimestampFormat = "[HH:mm:ss] ";
           options.UseUtcTimestamp = true;
-          options.IncludeScopes = true;
           options.ColorBehavior = LoggerColorBehavior.Enabled;
         });
 
@@ -132,14 +129,15 @@ public class Program
             client.DefaultRequestHeaders.Add("x-onion-key", onionKey);
         });
 
-        // Add an http client for communicating with the osu! API.
-        services.AddKeyedSingleton<ExpiringAccessToken>("osuapi");
-        services.AddHttpClient("osuapi", (services, client) =>
+        // Add an http client for communicating with the osu! API. 
+        services.AddTransient<OsuOAuthDelegatingHandler>();
+        services.AddKeyedSingleton<ExpiringAccessToken>(nameof(OsuApiService));
+        services.AddHttpClient(nameof(OsuApiService), (services, client) =>
         {
           client.BaseAddress = new Uri("https://osu.ppy.sh/");
           client.DefaultRequestHeaders.Add("User-Agent", $"huisbot/{VERSION}");
           client.DefaultRequestHeaders.Add("x-api-version", "20220705");
-        });
+        }).AddHttpMessageHandler<OsuOAuthDelegatingHandler>();
 
         // Register our data context for accessing our database.
         services.AddDbContext<Database>(options =>

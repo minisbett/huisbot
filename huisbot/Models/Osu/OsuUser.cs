@@ -1,45 +1,67 @@
 ﻿using Newtonsoft.Json;
+using System.Diagnostics.Metrics;
 
 namespace huisbot.Models.Osu;
 
 /// <summary>
-/// Represents a user from the osu! API v1.
+/// Represents a user from the osu! API v2.
 /// </summary>
 public class OsuUser
 {
   /// <summary>
-  /// The ID of the user.
+  /// The ID of the osu! user.
   /// </summary>
-  [JsonProperty("user_id")]
+  [JsonProperty("id")]
   public int Id { get; private set; }
 
   /// <summary>
-  /// The name of the user.
+  /// The name of the osu! user.
   /// </summary>
   [JsonProperty("username")]
-  public string? Name { get; private set; }
+  public string? Username { get; private set; }
 
   /// <summary>
-  /// The total PP of the user.
-  /// </summary>
-  [JsonProperty("pp_raw")]
-  public double? PP { get; private set; }
-
-  /// <summary>
-  /// The global rank of the user in performance ranking.
-  /// </summary>
-  [JsonProperty("pp_rank")]
-  public int GlobalRank { get; private set; }
-
-  /// <summary>
-  /// The country rank of the user in performance ranking.
-  /// </summary>
-  [JsonProperty("pp_country_rank")]
-  public int CountryRank { get; private set; }
-
-  /// <summary>
-  /// The ISO country code of the user.
+  /// The country of the osu! user.
   /// </summary>
   [JsonProperty("country")]
-  public string Country { get; private set; } = null!;
+  public OsuUserCountry Country { get; private set; } = null!;
+
+  /// <summary>
+  /// The statistics (global rank, country rank) of the osu! user.
+  /// </summary>
+  [JsonProperty("statistics")]
+  public OsuUserStatistics Statistics { get; private set; } = null!;
+
+  /// <summary>
+  /// Represents the <see cref="Country"/> property of a user on the osu! API v2.
+  /// </summary>
+  public class OsuUserCountry
+  {
+    /// <summary>
+    /// The BCP 47 language tag of this country.
+    /// </summary>
+    [JsonProperty("code")]
+    public string Code { get; private set; } = default!;
+  }
+
+  public class OsuUserStatistics
+  {
+    /// <summary>
+    /// The country rank of the osu! user.
+    /// </summary>
+    [JsonProperty("country_rank")]
+    public int CountryRank { get; private set; }
+
+    /// <summary>
+    /// The global rank of the osu! user.
+    /// </summary>
+    [JsonProperty("global_rank")]
+    public int GlobalRank { get; private set; }
+    
+    /// <summary>
+    /// The total performance points the user has.
+    /// </summary>
+    [JsonProperty("pp")]
+    public float PP { get; private set; }
+  }
 }

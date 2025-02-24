@@ -413,7 +413,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
     // Check whether the user is in the PP guild and has the Onion role.
     DiscordIdOptions options = services.GetRequiredService<IOptions<DiscordIdOptions>>().Value;
     SocketGuildUser user = context.Client.GetGuild(options.PPGuild).GetUser(context.User.Id);
-    return user != null && user.Roles.Any(x => x.Id == options.OnionRole);
+    return user?.Roles.Any(x => x.Id == options.OnionRole) ?? false;
   }
 
   /// <summary>
@@ -440,7 +440,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
       // Check whether the user is in the PP guild and has the PP role.
       DiscordIdOptions options = services.GetRequiredService<IOptions<DiscordIdOptions>>().Value;
       SocketGuildUser user = Context.Client.GetGuild(options.PPGuild).GetUser(Context.User.Id);
-      return user != null && user.Roles.Any(x => x.Id == options.PPRole);
+      return user?.Roles.Any(x => x.Id == options.PPRole) ?? false;
     }
   }
 }

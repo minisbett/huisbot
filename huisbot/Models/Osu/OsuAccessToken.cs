@@ -1,9 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace huisbot.Models.Osu;
 
@@ -16,11 +11,17 @@ internal class OsuAccessToken
   /// The access token.
   /// </summary>
   [JsonProperty("access_token")]
-  public string Token { get; private set; } = null!;
+  public string? Token { get; private set; }
 
   /// <summary>
   /// The amount of seconds in which the token expires.
   /// </summary>
   [JsonProperty("expires_in")]
-  public int ExpiresIn { get; private set; }
+  public int? ExpiresIn { get; private set; }
+
+  /// <summary>
+  /// The description of the authorization error. If null, no error occurred.
+  /// </summary>
+  [JsonProperty("error_description")]
+  public string? ErrorDescription { get; private set; }
 }
