@@ -184,7 +184,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
       await FollowupAsync(embed: Embeds.InternalError($"Failed to get the {(rework.IsLive ? "live" : "local")} player from the Huis API."));
     else if (player.IsOutdated)
       await FollowupAsync(embed: Embeds.Error($"""
-                                               `{user.Name}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.
+                                               `{user.Username}` is outdated in the *{(rework.IsLive ? "live" : "specified")}* rework.
                                                Please use the `/queue` command to queue the user.
                                                """));
 
@@ -212,11 +212,11 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
   {
     bool? queued = await HuisApi.QueuePlayerAsync(user.Id, reworkId, discordId);
     if (queued is null) 
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to queue user `{user.Name}`."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to queue user `{user.Username}`."));
     else if (!queued.Value)
       await FollowupAsync(embed: Embeds.Error("You are currently being ratelimited. Please wait a while beforing queuing someone again."));
     else
-      await FollowupAsync(embed: Embeds.Neutral($"`{user.Name}` has been queued. You will be notified once it completed."));
+      await FollowupAsync(embed: Embeds.Neutral($"`{user.Username}` has been queued. You will be notified once it completed."));
 
     return queued ?? false;
   }
@@ -233,7 +233,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
   {
     HuisScore[]? scores = await HuisApi.GetTopPlaysAsync(user.Id, reworkId, scoreType);
     if (scores is null)
-      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{user.Name}`."));
+      await FollowupAsync(embed: Embeds.InternalError($"Failed to get the top plays of `{user.Username}`."));
 
     return scores;
   }

@@ -135,15 +135,12 @@ public class OsuApiService
   {
     try
     {
-      // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={_options.ApiKey}");
-      OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
-
-      // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
-      if (user is null)
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{(identifier.All(char.IsDigit) ? identifier : "@" + identifier)}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuUser>.NotFound;
 
-      return user.WasFound();
+      string json = await response.Content.ReadAsStringAsync();
+      return JsonConvert.DeserializeObject<OsuUser>(json)?.WasFound();
     }
     catch (Exception ex)
     {

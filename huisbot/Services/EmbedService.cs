@@ -302,7 +302,7 @@ public class EmbedService(DiscordService discord)
     string diffComparison = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
 
     EmbedAuthorBuilder author = user is null ? new() : new EmbedAuthorBuilder()
-        .WithName($"{user.Name}: {user.PP:N}pp (#{user.GlobalRank:N0} | #{user.CountryRank:N0} {user.Country})")
+        .WithName($"{user.Username}: {user.Statistics.PP:N}pp (#{user.Statistics.GlobalRank:N0} | #{user.Statistics.CountryRank:N0} {user.Country.Code})")
         .WithIconUrl($"https://a.ppy.sh/{user.Id}")
         .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
 
@@ -411,7 +411,7 @@ public class EmbedService(DiscordService discord)
 
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
-      .WithTitle($"{scoreTypeStr} Scores of {user.Name} ({sort.DisplayName})")
+      .WithTitle($"{scoreTypeStr} Scores of {user.Username} ({sort.DisplayName})")
       .WithDescription(string.Join("\n", description))
       .Build();
   }
@@ -551,7 +551,7 @@ public class EmbedService(DiscordService discord)
   /// <param name="user">The osu! user that was linked.</param>
   public Embed LinkSuccessful(OsuUser user) => BaseEmbed
     .WithColor(Color.Green)
-    .WithDescription($"Your Discord account was successfully linked to the osu! account `{user.Name}`.")
+    .WithDescription($"Your Discord account was successfully linked to the osu! account `{user.Username}`.")
     .WithThumbnailUrl($"https://a.ppy.sh/{user.Id}")
     .Build();
 

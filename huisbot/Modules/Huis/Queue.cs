@@ -35,7 +35,7 @@ public class QueueCommandModule(IServiceProvider services) : ModuleBase(services
     // Ensure the user is not queued yet.
     if (queue.Contains(user.Id))
     {
-      await FollowupAsync(embed: Embeds.Neutral($"The player `{user.Name}` is already queued in the specified rework."));
+      await FollowupAsync(embed: Embeds.Neutral($"The user `{user.Username}` is already queued in the specified rework."));
       return;
     }
 
@@ -53,7 +53,7 @@ public class QueueCommandModule(IServiceProvider services) : ModuleBase(services
 
         if (!queue.Contains(user.Id))
         {
-          await FollowupAsync(embed: Embeds.Success($"`{user.Name}` has been successfully re-calculated."));
+          await FollowupAsync(embed: Embeds.Success($"`{user.Username}` has been successfully re-calculated."));
           break;
         }
 
