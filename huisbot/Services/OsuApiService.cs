@@ -62,7 +62,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
     }
   }
 
-  
+
 
   /// <summary>
   /// Returns the the osu! user by the specified ID or name. Returns <see cref="OsuUser.NotFound"/> if the user could not be found.

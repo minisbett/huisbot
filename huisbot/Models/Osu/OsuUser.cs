@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Diagnostics.Metrics;
 
 namespace huisbot.Models.Osu;
 
@@ -57,7 +56,7 @@ public class OsuUser
     /// </summary>
     [JsonProperty("global_rank")]
     public int GlobalRank { get; private set; }
-    
+
     /// <summary>
     /// The total performance points the user has.
     /// </summary>

@@ -43,7 +43,7 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
         misses ??= score.Statistics?.Misses;
         modsStr ??= score.Mods;
       }
-      
+
       if (beatmapId is null)
       {
         await FollowupAsync(embed: Embeds.Error("Please specify a beatmap."));

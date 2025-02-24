@@ -90,7 +90,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
     // Find a rework with a matching identifier.
     HuisRework[]? reworks = await GetReworksAsync();
     HuisRework? rework = reworks?.FirstOrDefault(x => x.Id.ToString() == reworkId || x.Code == reworkId || x.Name == reworkId);
-    
+
     if (reworks is null)
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
     else if (rework is null)
@@ -211,7 +211,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
   public async Task<bool> QueuePlayerAsync(OsuUser user, int reworkId, ulong discordId)
   {
     bool? queued = await HuisApi.QueuePlayerAsync(user.Id, reworkId, discordId);
-    if (queued is null) 
+    if (queued is null)
       await FollowupAsync(embed: Embeds.InternalError($"Failed to queue user `{user.Username}`."));
     else if (!queued.Value)
       await FollowupAsync(embed: Embeds.Error("You are currently being ratelimited. Please wait a while beforing queuing someone again."));
