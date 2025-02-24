@@ -1,44 +1,17 @@
 ﻿using huisbot.Helpers;
-using huisbot.Models.Options;
 using huisbot.Models.Osu;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Net;
 
 namespace huisbot.Services;
 
-// TODO: get rid of api v1
-
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
 /// </summary>
-public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApiOptions> options, ILogger<OsuApiService> logger)
+public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiService> logger)
 {
   private readonly HttpClient _http = httpClientFactory.CreateClient(nameof(OsuApiService));
-
-  /// <summary>
-  /// Returns a bool whether a connection to the osu! v1 API can be established.
-  /// </summary>
-  /// <returns>Bool whether a connection can be established.</returns>
-  public async Task<bool> IsV1AvailableAsync()
-  {
-    try
-    {
-      HttpResponseMessage response = await _http.GetAsync("api");
-
-      // Check whether it returns the expected result, being a redirect response.
-      if (response.StatusCode != HttpStatusCode.Redirect)
-        throw new Exception($"API returned status code {response.StatusCode}. Expected: Redirect (302).");
-
-      return true;
-    }
-    catch (Exception ex)
-    {
-      logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
-      return false;
-    }
-  }
 
   /// <summary>
   /// Returns a bool whether a connection to the osu! v2 API can be established.
@@ -95,16 +68,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IOptions<OsuApi
   {
     try
     {
-      // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={options.Value.ApiKey}");
-      OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.Id == id);
-
-      // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
-      if (beatmap is null)
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/beatmaps/{id}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuBeatmap>.NotFound;
 
-      // Return the beatmap.
-      return beatmap.WasFound();
+      string json = await response.Content.ReadAsStringAsync();
+      return JsonConvert.DeserializeObject<OsuBeatmap>(json)?.WasFound();
     }
     catch (Exception ex)
     {

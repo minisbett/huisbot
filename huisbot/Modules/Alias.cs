@@ -48,7 +48,7 @@ public class AliasGroupModule : InteractionModuleBase<SocketInteractionContext>
 
       if (await GetBeatmapAsync(beatmapId.ToString()) is not OsuBeatmap beatmap) return;
 
-      string displayName = $"{beatmap.Title} [{beatmap.Version}]";
+      string displayName = $"{beatmap.Set.Title} [{beatmap.Version}]";
       await Persistence.AddBeatmapAliasAsync(aliasText, beatmapId, displayName);
       await FollowupAsync(embed: Embeds.Success($"""
                                                  The beatmap alias `{aliasText}` was successfully added.

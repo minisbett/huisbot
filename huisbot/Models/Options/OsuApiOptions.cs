@@ -19,10 +19,4 @@ public class OsuApiOptions
   /// </summary>
   [Required]
   public string ClientSecret { get; set; } = null!;
-
-  /// <summary>
-  /// the API key for the osu! API v1.
-  /// </summary>
-  [Required]
-  public string ApiKey { get; set; } = null!;
 }

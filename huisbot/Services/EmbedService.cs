@@ -196,12 +196,11 @@ public class EmbedService(DiscordService discord)
   /// <summary>
   /// Returns an embed for displaying info about the bot (version, uptime, api status, ...).
   /// </summary>
-  /// <param name="osuApiV1">Bool whether the osu! API v1 is available.</param>
   /// <param name="osuApiV2">Bool whether the osu! API v2 is available.</param>
   /// <param name="huisApi">Bool whether the Huis api is available.</param>
   /// <param name="guildInstalls">The amount of guilds the application is installed in.</param>
   /// <param name="userInstalls">The amount of users that installed the application.</param>
-  public Embed Info(bool osuApiV1, bool osuApiV2, bool huisApi, int guildInstalls, int userInstalls)
+  public Embed Info(bool osuApiV2, bool huisApi, int guildInstalls, int userInstalls)
   {
     // Build an uptime string (eg. "4 hours, 22 minutes, 1 second") from the time since startup.
     string uptimeStr = string.Join(", ", new (int Value, string Unit)[]
@@ -220,7 +219,6 @@ public class EmbedService(DiscordService discord)
                             """;
 
     string status = $"""
-                     {(osuApiV1 ? "✅" : "❌")} osu!api v1
                      {(osuApiV2 ? "✅" : "❌")} osu!api v2
                      {(huisApi ? "✅" : "❌")} Huismetbenen
                      """;
@@ -308,7 +306,7 @@ public class EmbedService(DiscordService discord)
 
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)")
+      .WithTitle($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)")
       .WithAuthor(author)
       .AddField(rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)", ppText, true)
       .AddField("Score Info", scoreText, true)
@@ -349,7 +347,7 @@ public class EmbedService(DiscordService discord)
 
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
-      .WithTitle($"{beatmap.Artist} - {beatmap.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
+      .WithTitle($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
       .AddField("Difficulty", difficulty, true)
       .AddField("Difficult Strains", strainCounts, true)
       .AddField("\u200B", "\u200B", true)
@@ -508,7 +506,7 @@ public class EmbedService(DiscordService discord)
   /// <param name="oldPP">The old PP.</param>
   /// <param name="newPP">The new PP.</param>
   /// <returns>A string representing the difference between two PP values.</returns>
-  private string GetPPDifferenceText(double oldPP, double newPP)
+  private static string GetPPDifferenceText(double oldPP, double newPP)
   {
     // Round the PP values, as decimals are irrelevant info and hurts the display flexibility.
     oldPP = Math.Round(oldPP);
@@ -528,7 +526,7 @@ public class EmbedService(DiscordService discord)
   /// - If title + version still > 60, it trims the title to 27 characters
   /// </summary>
   /// <returns>The shortened display text.</returns>
-  private string FormatScoreText(HuisScore score)
+  private static string FormatScoreText(HuisScore score)
   {
     // Trim the version if title + version is too long. If it's still too long, trim title as well.
     string title = score.Title ?? "";

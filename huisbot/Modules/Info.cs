@@ -15,12 +15,11 @@ public class InfoCommandModule(IServiceProvider services) : ModuleBase(services)
   {
     await DeferAsync();
 
-    bool osuApiV1 = await OsuApi.IsV1AvailableAsync();
     bool osuApiV2 = await OsuApi.IsV2AvailableAsync();
     bool huisApi = await HuisApi.IsAvailableAsync();
 
     (int guildInstalls, int userInstalls) = await Discord.GetInstallCountsAsync();
 
-    await FollowupAsync(embed: Embeds.Info(osuApiV1, osuApiV2, huisApi, guildInstalls, userInstalls));
+    await FollowupAsync(embed: Embeds.Info(osuApiV2, huisApi, guildInstalls, userInstalls));
   }
 }
