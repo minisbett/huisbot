@@ -44,6 +44,12 @@ public class HuisPlayer
   public double NewPP { get; private set; }
 
   /// <summary>
+  /// The current global rank of the player. This is null if Huis is not able to know the rank of the player.
+  /// </summary>
+  [JsonProperty("old_global_rank")]
+  public int? Rank { get; private set; }
+
+  /// <summary>
   /// The bonus PP of the player.
   /// </summary>
   [JsonProperty("bonus_pp")]
@@ -80,12 +86,6 @@ public class HuisPlayer
   public DateTime LastUpdated { get; private set; }
 
   /// <summary>
-  /// The actual rank of the player. This can be null, indicating the rank is not known.
-  /// </summary>
-  [JsonProperty("global_rank_real")]
-  public int? Rank { get; private set; }
-
-  /// <summary>
   /// The most recent algorithm version the player was calculated in, used to determine whether a player is up-to-date or not.
   /// </summary>
   [JsonProperty("pp_version")]
@@ -93,6 +93,6 @@ public class HuisPlayer
 
   public override string ToString()
   {
-    return $"{Id} #{Rank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
+    return $"{Id} #{Rank}->#{NewRank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
   }
 }

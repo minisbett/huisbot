@@ -56,9 +56,9 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
     // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
     Func<HuisScore, double> selector = sort.Code switch
     {
-      "live_pp" => x => x.LivePP,
-      "pp_diff" => x => x.LocalPP - x.LivePP,
-      _ => x => x.LocalPP
+      "live_pp" => x => x.Values.LivePP,
+      "pp_diff" => x => x.Values.LocalPP - x.Values.LivePP,
+      _ => x => x.Values.LocalPP
     };
     HuisScore[] sortedScores = [.. sort.IsAscending ? scores.OrderBy(selector) : scores.OrderByDescending(selector)];
 

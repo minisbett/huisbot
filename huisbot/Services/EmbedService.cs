@@ -387,12 +387,12 @@ public class EmbedService(DiscordService discord)
     {
       // Get the placement of each score, as well as the difference.
       int placement = rawScores.ToList().IndexOf(score) + 1;
-      int placementDiff = rawScores.OrderByDescending(x => x.LivePP).ToList().IndexOf(score) + 1 - placement;
+      int placementDiff = rawScores.OrderByDescending(x => x.Values.LivePP).ToList().IndexOf(score) + 1 - placement;
       string placementStr = $"**#{placement}**" + (placementDiff != 0 ? $" ({placementDiff:+#;-#;0})" : "");
 
-      description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
-      description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
-                      $"▸ {score.Count100} {Emojis["100"]} {score.Count50} {Emojis["50"]} {score.Misses} {Emojis["miss"]}");
+      description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.Beatmap.Id})");
+      description.Add($"▸ {GetPPDifferenceText(score.Values.LivePP, score.Values.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
+                      $"▸ {score.Statistics.Count100} {Emojis["100"]} {score.Statistics.Count50} {Emojis["50"]} {score.Statistics.Misses} {Emojis["miss"]}");
     }
 
     description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
@@ -431,7 +431,7 @@ public class EmbedService(DiscordService discord)
     {
       double oldPP = Math.Round(player.OldPP);
       double newPP = Math.Round(player.NewPP);
-      playerStrs.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
+      playerStrs.Add($"**#{player.NewRank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
       ppOldStrs.Add(oldPP.ToString("#,##0.##"));
       ppNewStrs.Add($"**{newPP:#,##0.##}pp**" + (oldPP != newPP ? $" ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)" : ""));
     }
@@ -470,10 +470,10 @@ public class EmbedService(DiscordService discord)
     int scorePlacement = (page - 1) * SCORES_PER_PAGE; // Keep track of the placement of the score
     foreach (HuisScore score in scores.Skip((page - 1) * SCORES_PER_PAGE).Take(SCORES_PER_PAGE))
     {
-      description.Add($"**#{++scorePlacement}** [{score.Username}](https://osu.ppy.sh/u/{score.UserId}) on " +
-                      $"[{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.BeatmapId})");
-      description.Add($"▸ {GetPPDifferenceText(score.LivePP, score.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
-                      $"▸ {score.Count100} {Emojis["100"]} {score.Count50} {Emojis["50"]} {score.Misses} {Emojis["miss"]}");
+      description.Add($"**#{++scorePlacement}** [{score.User.Name}](https://osu.ppy.sh/u/{score.User.Id}) on " +
+                      $"[{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.Beatmap.Id})");
+      description.Add($"▸ {GetPPDifferenceText(score.Values.LivePP, score.Values.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
+                      $"▸ {score.Statistics.Count100} {Emojis["100"]} {score.Statistics.Count50} {Emojis["50"]} {score.Statistics.Misses} {Emojis["miss"]}");
     }
 
     description.Add($"\n*Displaying scores {page * SCORES_PER_PAGE - (SCORES_PER_PAGE - 1)}-" +
@@ -529,8 +529,8 @@ public class EmbedService(DiscordService discord)
   private static string FormatScoreText(HuisScore score)
   {
     // Trim the version if title + version is too long. If it's still too long, trim title as well.
-    string title = score.Title ?? "";
-    string version = score.Version ?? "";
+    string title = score.Beatmap.Title ?? "";
+    string version = score.Beatmap.Version ?? "";
     if ($"{title} [{version}]".Length > 60 && version.Length > 27)
       version = $"{version[..27]}...";
     if ($"{title} [{version}]".Length > 60)

@@ -24,7 +24,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.7.2";
+  public const string VERSION = "2.8.0";
 
   public static async Task Main(string[] args)
   {
