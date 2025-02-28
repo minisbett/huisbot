@@ -2,7 +2,6 @@
 using Discord.Interactions;
 using huisbot.Models.Huis;
 using huisbot.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace huisbot.Modules.Huis;
@@ -15,16 +14,17 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
   public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
     IParameterInfo pInfo, IServiceProvider services)
   {
-    // Get all reworks and check whether the request was successful. If not, return an error result.
-    IEnumerable<HuisRework>? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
+    // Retrieve all reworks from the Huis API service.
+    // TODO: replace creating a scope here with https://github.com/discord-net/Discord.Net/pull/3068
+    IEnumerable<HuisRework>? reworks = await services.CreateScope().ServiceProvider.GetRequiredService<HuisApiService>().GetReworksAsync();
     if (reworks is null)
       return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
 
-    // If the user does not have Onion-level authorization, strip off all Onion-level reworks.
-    if (!ModuleBase.CheckOnion((SocketInteractionContext)context, services.GetRequiredService<IConfiguration>()))
+    // Strip off all Onion-level reworks if the user does not have Onion-authorization.
+    if (!ModuleBase.CheckOnion((SocketInteractionContext)context, services))
       reworks = reworks.Where(x => !x.IsOnionLevel);
 
-    // Get all suggested reworks where the name or code contains the input value.
+    // Filter all reworks based on the input terms with a contains lookup on the name and code.
     string input = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";
     IEnumerable<HuisRework> suggestedReworks = reworks.Where(x => (x.Name?.Contains(input, StringComparison.CurrentCultureIgnoreCase) ?? false)
                                                                || (x.Code?.Contains(input, StringComparison.CurrentCultureIgnoreCase) ?? false));

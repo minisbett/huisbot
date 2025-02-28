@@ -3,24 +3,22 @@ using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
-using huisbot.Utilities;
-using Microsoft.Extensions.Configuration;
 
 namespace huisbot.Modules.Huis;
 
 /// <summary>
-/// The interaction module for the simulate command, calculating the score of a player in a rework.
+/// The interaction module for the simulate command, calculating the score of a user in a rework.
 /// </summary>
 [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
 [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
-public class SimulateCommandModule(IServiceProvider services, IConfiguration configuration) : ModuleBase(services, configuration)
+public class SimulateCommandModule(IServiceProvider services) : ModuleBase(services)
 {
   [SlashCommand("simulate", "Simulates a score in the specified rework with the specified parameters.")]
   public async Task HandleAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null,
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? refReworkId = null,
     [Summary("beatmap", "The ID, URL or alias of the beatmap.")] string? beatmapId = null,
     [Summary("combo", "The maximum combo in the score.")] int? combo = null,
     [Summary("100s", "The amount of 100s/oks in the score.")] int? count100 = null,
@@ -33,10 +31,9 @@ public class SimulateCommandModule(IServiceProvider services, IConfiguration con
   {
     await DeferAsync();
 
-    // Check if either a beatmap ID was specified, or if a recent bot message with a beatmap URL can be found.
+    // If no beatmap ID was specified, find a message by an osu! bot.
     if (beatmapId is null)
     {
-      // Look for a message with a score in the channel.
       if (await Utils.FindOsuBotScore(Context) is EmbedScoreInfo score)
       {
         beatmapId = score.BeatmapId.ToString();
@@ -47,7 +44,6 @@ public class SimulateCommandModule(IServiceProvider services, IConfiguration con
         modsStr ??= score.Mods;
       }
 
-      // If there was no beatmap ID found, respond with an error.
       if (beatmapId is null)
       {
         await FollowupAsync(embed: Embeds.Error("Please specify a beatmap."));
@@ -55,49 +51,31 @@ public class SimulateCommandModule(IServiceProvider services, IConfiguration con
       }
     }
 
-    // Get the matching rework for the specified rework identifier.
-    HuisRework? rework = await GetReworkAsync(reworkId);
-    if (rework is null)
-      return;
+    if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
+    if (await GetReworkAsync(refReworkId ?? HuisRework.LiveId.ToString()) is not HuisRework refRework) return;
+    if (await GetBeatmapAsync(beatmapId) is not OsuBeatmap beatmap) return;
 
-    // Get the matching reference rework for the specified rework identifier.
-    HuisRework? refRework = await GetReworkAsync(referenceReworkId ?? HuisRework.LiveId.ToString());
-    if (refRework is null)
-      return;
-
-    // Parse the mod-related parameters.
+    // Build an OsuMods object based on the specified parameters.
     OsuMods mods = OsuMods.FromString(modsStr ?? "");
     mods.SetClockRate(clockRate);
 
-    // Get the beatmap from the identifier.
-    OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId!);
-    if (beatmap is null)
-      return;
-
-    // Display the calculation progress in an embed to the user.
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
-    // Get the local result from the Huis API and check whether it was successful.
     int? sliderTailHits = sliderTailMisses is null ? null : beatmap.SliderCount - sliderTailMisses.Value;
     OsuScoreStatistics statistics = new(count100, count50, misses, largeTickMisses, sliderTailHits);
     HuisCalculationResponse? localScore = await CalculateScoreAsync(new(beatmap, rework, mods, combo, statistics));
     if (localScore is null)
       return;
 
-    // If the requested rework is the same as the reference, calculation is done here.
+    // If the requested rework is the same as the reference, set the scores equal and don't perform another calculation.
     HuisCalculationResponse? refScore = localScore;
     if (rework != refRework)
     {
-      // Update the calculation progress embed.
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
-      // Get the reference rework result from the Huis API and check whether it was successful.
-      refScore = await CalculateScoreAsync(new(beatmap, refRework, mods, combo, statistics));
-      if (refScore is null)
-        return;
+      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, mods, combo, statistics))) is null) return;
     }
 
-    // Send the result in an embed to the user.
     await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap));
   }
 }

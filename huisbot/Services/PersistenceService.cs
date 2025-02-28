@@ -1,7 +1,7 @@
-﻿using huisbot.Models.Huis;
+﻿using huisbot.Helpers;
+using huisbot.Models.Huis;
 using huisbot.Models.Persistence;
 using huisbot.Persistence;
-using huisbot.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace huisbot.Services;

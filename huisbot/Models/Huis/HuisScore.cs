@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using huisbot.Models.Osu;
+using Newtonsoft.Json;
 
 namespace huisbot.Models.Huis;
 
@@ -14,69 +15,34 @@ public class HuisScore
   public long ScoreId { get; private set; }
 
   /// <summary>
-  /// The ID of the user.
+  /// The user of the score.
   /// </summary>
-  [JsonProperty("user_id")]
-  public int UserId { get; private set; }
+  [JsonProperty("user")]
+  public HuisScoreUser User { get; private set; } = default!;
 
   /// <summary>
-  /// The ID of the beatmap.
+  /// The beatmap of the score.
   /// </summary>
-  [JsonProperty("beatmap_id")]
-  public int BeatmapId { get; private set; }
+  [JsonProperty("beatmap")]
+  public HuisScoreBeatmap Beatmap { get; private set; } = default!;
 
   /// <summary>
-  /// The PP in the live PP system. If the information is not available (eg. osu! API does not provide PP for this score), this is 0.
+  /// The difficulty & performance values of the score.
   /// </summary>
-  public double LivePP => LivePPInternal ?? 0;
+  [JsonProperty("values")]
+  public HuisScoreValues Values { get; private set; } = default!;
 
   /// <summary>
-  /// The PP in the live PP system. This may be null if Huismetbenen returned a score where it couldn't get the live PP.
-  /// This can happen when a user manually adds a score to the Huismetbenen database, and the osu! API does not provide the live PP.
+  /// The hit statistics of the score.
   /// </summary>
-  [JsonProperty("live_pp")]
-  private double? LivePPInternal { get; set; }
-
-  /// <summary>
-  /// The PP in the local PP system. If the information is not available (Huismetbenen did not calculate it), this is 0.
-  /// </summary>
-  public double LocalPP => LocalPPInternal ?? 0;
-
-  /// <summary>
-  /// The PP in the local PP system. This may be null if <see cref="LivePPInternal"/>, as Huismetbenen then does not calculate it.
-  /// </summary>
-  [JsonProperty("local_pp")]
-  private double? LocalPPInternal { get; set; }
+  [JsonProperty("statistics")]
+  public OsuScoreStatistics Statistics { get; private set; } = default!;
 
   /// <summary>
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string Mods { get; private set; } = null!;
-
-  /// <summary>
-  /// The amount of 300s/greats of the score.
-  /// </summary>
-  [JsonProperty("great")]
-  public int Count300 { get; private set; }
-
-  /// <summary>
-  /// The amount of 100s/oks of the score.
-  /// </summary>
-  [JsonProperty("good")] // BUG: This is actually called "ok", but Huismetbenen mistakenly calls them "good".
-  public int Count100 { get; private set; }
-
-  /// <summary>
-  /// The amount of 50s/mehs of the score.
-  /// </summary>
-  [JsonProperty("meh")]
-  public int Count50 { get; private set; }
-
-  /// <summary>
-  /// The amount of misses of the score.
-  /// </summary>
-  [JsonProperty("miss")]
-  public int Misses { get; private set; }
+  public OsuMods Mods { get; private set; } = [];
 
   /// <summary>
   /// The accuracy of the score.
@@ -91,7 +57,7 @@ public class HuisScore
   public int MaxCombo { get; private set; }
 
   /// <summary>
-  /// The date the score was set.
+  /// The datetime at which the score was set.
   /// </summary>
   [JsonProperty("score_date")]
   public DateTime ScoreDate { get; private set; }
@@ -102,40 +68,81 @@ public class HuisScore
   [JsonProperty("score_rank")]
   public string? ScoreRank { get; private set; }
 
-  /// <summary>
-  /// The username of the user.
-  /// </summary>
-  [JsonProperty("username")]
-  public string? Username { get; private set; }
-
-  /// <summary>
-  /// The title of the beatmap.
-  /// </summary>
-  [JsonProperty("title")]
-  public string? Title { get; private set; }
-
-  /// <summary>
-  /// The artist of the beatmap.
-  /// </summary>
-  [JsonProperty("artist")]
-  public string? Artist { get; private set; }
-
-  /// <summary>
-  /// The difficulty name of the beatmap.
-  /// </summary>
-  [JsonProperty("diff_name")]
-  public string? Version { get; private set; }
-
-  /// <summary>
-  /// The mapper of the beatmap.
-  /// </summary>
-  [JsonProperty("creator_name")]
-  public string? Mapper { get; private set; }
-
   public override string ToString()
   {
-    string mods = Mods == "" ? "" : $" +{Mods}";
-    return $"{Username} | {Artist} - {Title} ({Mapper}) [{Version}]{mods} " +
-           $"{Accuracy}% {MaxCombo}x {LivePP} -> {LocalPP}pp [{Count300}/{Count100}/{Count50}/{Misses}]";
+    return $"{User.Name} | {Beatmap.Artist} - {Beatmap.Title} ({Beatmap.Creator}) [{Beatmap.Version}]{Mods.PlusString} " +
+           $"{Accuracy}% {MaxCombo}x {Values.LivePP} -> {Values.LocalPP}pp [{Statistics.Count300}/{Statistics.Count100}/{Statistics.Count50}/{Statistics.Misses}]";
+  }
+
+  /// <summary>
+  /// Represents the user of a <see cref="HuisScore"/>.
+  /// </summary>
+  public class HuisScoreUser
+  {
+    /// <summary>
+    /// The ID of the user of the score.
+    /// </summary>
+    [JsonProperty("id")]
+    public int Id { get; private set; }
+
+    /// <summary>
+    /// The name of the user of the score.
+    /// </summary>
+    [JsonProperty("name")]
+    public string Name { get; private set; } = default!;
+  }
+
+  /// <summary>
+  /// Represents the beatmap of a <see cref="HuisScore"/>.
+  /// </summary>
+  public class HuisScoreBeatmap
+  {
+    /// <summary>
+    /// The ID of the beatmap.
+    /// </summary>
+    [JsonProperty("id")]
+    public int Id { get; private set; }
+
+    /// <summary>
+    /// The title of the beatmap.
+    /// </summary>
+    [JsonProperty("title")]
+    public string Title { get; private set; } = null!;
+
+    /// <summary>
+    /// The artist of the beatmap.
+    /// </summary>
+    [JsonProperty("artist")]
+    public string Artist { get; private set; } = null!;
+
+    /// <summary>
+    /// The difficulty name of the beatmap.
+    /// </summary>
+    [JsonProperty("diff_name")]
+    public string Version { get; private set; } = null!;
+
+    /// <summary>
+    /// The mapper of the beatmap.
+    /// </summary>
+    [JsonProperty("creator_name")]
+    public string Creator { get; private set; } = null!;
+  }
+
+  /// <summary>
+  /// Represents the difficulty & performance values of a <see cref="HuisScore"/>.
+  /// </summary>
+  public class HuisScoreValues
+  {
+    /// <summary>
+    /// The PP of the score in the local rework.
+    /// </summary>
+    [JsonProperty("local_pp")]
+    public double LocalPP { get; private set; }
+
+    /// <summary>
+    /// The PP of the score in the live PP system.
+    /// </summary>
+    [JsonProperty("live_pp")]
+    public double LivePP { get; private set; }
   }
 }

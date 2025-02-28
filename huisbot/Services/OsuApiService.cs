@@ -1,6 +1,5 @@
-﻿using huisbot.Models.Osu;
-using huisbot.Utilities;
-using Microsoft.Extensions.Configuration;
+﻿using huisbot.Helpers;
+using huisbot.Models.Osu;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
@@ -10,53 +9,9 @@ namespace huisbot.Services;
 /// <summary>
 /// The osu! API service is responsible for communicating with the osu! API.
 /// </summary>
-public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<OsuApiService> logger)
+public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiService> logger)
 {
-  private readonly HttpClient _http = httpClientFactory.CreateClient("osuapi");
-
-  /// <summary>
-  /// The API key for the osu! v1 API.
-  /// </summary>
-  private readonly string _apiKey = config["OSU_API_KEY"] ?? throw new InvalidOperationException("The environment variable 'OSU_API_KEY' is not set.");
-
-  /// <summary>
-  /// The client ID for the osu! v2 API.
-  /// </summary>
-  private readonly string _clientId = config["OSU_OAUTH_CLIENT_ID"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_ID' is not set.");
-
-  /// <summary>
-  /// The client secret for the osu! v2 API.
-  /// </summary>
-  private readonly string _clientSecret = config["OSU_OAUTH_CLIENT_SECRET"] ?? throw new InvalidOperationException("The environment variable 'OSU_OAUTH_CLIENT_SECRET' is not set.");
-
-  /// <summary>
-  /// The date when the API v2 access token expires.
-  /// </summary>
-  private DateTimeOffset _accessTokenExpiresAt = DateTimeOffset.MinValue;
-
-  /// <summary>
-  /// Returns a bool whether a connection to the osu! v1 API can be established.
-  /// </summary>
-  /// <returns>Bool whether a connection can be established.</returns>
-  public async Task<bool> IsV1AvailableAsync()
-  {
-    try
-    {
-      // Try to send a request to the base URL of the osu! v1 API.
-      HttpResponseMessage response = await _http.GetAsync("api");
-
-      // Check whether it returns the expected result.
-      if (response.StatusCode != HttpStatusCode.Redirect)
-        throw new Exception($"API returned status code {response.StatusCode}. Expected: Redirect (302).");
-
-      return true;
-    }
-    catch (Exception ex)
-    {
-      logger.LogError("IsV1Available() returned false: {Message}", ex.Message);
-      return false;
-    }
-  }
+  private readonly HttpClient _http = httpClientFactory.CreateClient(nameof(OsuApiService));
 
   /// <summary>
   /// Returns a bool whether a connection to the osu! v2 API can be established.
@@ -64,18 +19,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
   /// <returns>Bool whether a connection can be established.</returns>
   public async Task<bool> IsV2AvailableAsync()
   {
-    // Make sure a valid access token exists. If not, v2 is unavailable.
-    if (!await EnsureAccessTokenAsync())
-      return false;
-
     try
     {
-      // Try to send a request to the base URL of the osu! v2 API.
+      // Try to send a request to the base URL of the osu! v2 API, which should return a NotFound (Unauthorized if invalid client credentials).
       HttpResponseMessage response = await _http.GetAsync("api/v2");
-
-      // Check whether it returns the expected result.
       if (response.StatusCode != HttpStatusCode.NotFound)
-        throw new Exception($"API returned status code {response.StatusCode}. Expected: NotFound (404)."); // Gives 401 Unauthorized if invalid client credentials.
+        throw new Exception($"API returned status code {response.StatusCode}. Expected: NotFound (404).");
 
       return true;
     }
@@ -86,53 +35,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
     }
   }
 
-  /// <summary>
-  /// Ensures that the current osu! API v2 access token is valid and returns whether it is valid or was successfully refreshed.
-  /// </summary>
-  /// <returns>Bool whether the access token is valid or was successfully refreshed.</returns>
-  public async Task<bool> EnsureAccessTokenAsync()
-  {
-    // Check whether the access token is still valid.
-    if (DateTimeOffset.Now < _accessTokenExpiresAt)
-      return true;
 
-    logger.LogInformation("The osu! API v2 access token has expired. Requesting a new one...");
-
-    try
-    {
-      // Send the request.
-      HttpResponseMessage response = await _http.PostAsync($"oauth/token",
-        new FormUrlEncodedContent(new Dictionary<string, string>()
-        {
-        { "client_id", _clientId },
-        { "client_secret", _clientSecret },
-        { "grant_type", "client_credentials"},
-        { "scope", "public" }
-        }));
-
-      // Parse the response object into a dynamic object.
-      var result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
-
-      // Check whether the response was successful.
-      if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.InternalServerError) // For some reason invalid client id = internal server error.
-        throw new Exception("Unauthorized.");
-      if (result?.access_token is null)
-        throw new Exception("The oauth access token response did not contain an access token.");
-
-      // Set the new access token and expiration date and return true.
-      _http.DefaultRequestHeaders.Remove("Authorization");
-      _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.access_token}");
-      _accessTokenExpiresAt = DateTimeOffset.Now.AddSeconds((int)result.expires_in - 10);
-      logger.LogInformation("The osu! API v2 access token has been updated and expires at {date}.", _accessTokenExpiresAt);
-    }
-    catch (Exception ex)
-    {
-      logger.LogError("Failed to request an osu! API v2 access token: {Message}", ex.Message);
-      return false;
-    }
-
-    return true;
-  }
 
   /// <summary>
   /// Returns the the osu! user by the specified ID or name. Returns <see cref="OsuUser.NotFound"/> if the user could not be found.
@@ -143,15 +46,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
   {
     try
     {
-      // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_user?u={identifier}&k={_apiKey}");
-      OsuUser? user = JsonConvert.DeserializeObject<OsuUser[]>(json)?.FirstOrDefault();
-
-      // Check whether the deserialized json is null/an empty array. If so, the user could not be found. The API returns "[]" when the user could not be found.
-      if (user is null)
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{(identifier.All(char.IsDigit) ? identifier : "@" + identifier)}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuUser>.NotFound;
 
-      return user.WasFound();
+      string json = await response.Content.ReadAsStringAsync();
+      return JsonConvert.DeserializeObject<OsuUser>(json)?.WasFound();
     }
     catch (Exception ex)
     {
@@ -168,16 +68,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
   {
     try
     {
-      // Get the user from the API.
-      string json = await _http.GetStringAsync($"api/get_beatmaps?b={id}&k={_apiKey}");
-      OsuBeatmap? beatmap = JsonConvert.DeserializeObject<OsuBeatmap[]>(json)?.FirstOrDefault(x => x.Id == id);
-
-      // Check whether the deserialized json is null/an empty array. If so, the beatmap could not be found. The API returns "[]" when the beatmap could not be found.
-      if (beatmap is null)
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/beatmaps/{id}");
+      if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuBeatmap>.NotFound;
 
-      // Return the beatmap.
-      return beatmap.WasFound();
+      string json = await response.Content.ReadAsStringAsync();
+      return JsonConvert.DeserializeObject<OsuBeatmap>(json)?.WasFound();
     }
     catch (Exception ex)
     {
@@ -193,18 +89,12 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
   /// <returns>The score with the specified ID./returns>
   public async Task<NotFoundOr<OsuScore>?> GetScoreAsync(long scoreId)
   {
-    // Make sure a valid access token exists. If not, return null.
-    if (!await EnsureAccessTokenAsync())
-      return null;
-
     try
     {
-      // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
       HttpResponseMessage response = await _http.GetAsync($"api/v2/scores/{scoreId}");
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
 
-      // Parse the score object.
       string json = await response.Content.ReadAsStringAsync();
       OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
 
@@ -227,22 +117,14 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
   /// <returns>The X-th best score.</returns>
   public async Task<NotFoundOr<OsuScore>?> GetUserScoreAsync(int userId, int index, ScoreType type)
   {
-    // Make sure a valid access token exists. If not, return null.
-    if (!await EnsureAccessTokenAsync())
-      return null;
-
     try
     {
-      // Get the score from the API and check whether a 404 was returned. If so, the score was not found.
-      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{userId}/scores/{type.ToString().ToLower()}?mode=osu&limit=1&offset={index - 1}");
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{userId}/scores/{type.ToString().ToLower()}?limit=1&offset={index - 1}");
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuScore>.NotFound;
 
-      // Parse the response.
       string json = await response.Content.ReadAsStringAsync();
-      OsuScore[]? scores = JsonConvert.DeserializeObject<OsuScore[]>(json);
-
-      return scores?.Length > 0 ? scores[0].WasFound() : null;
+      return JsonConvert.DeserializeObject<OsuScore[]>(json)?.FirstOrDefault()?.WasFound();
     }
     catch (Exception ex)
     {
@@ -253,7 +135,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, IConfiguration 
 }
 
 /// <summary>
-/// Represents a type of score for fetching user scores via <see cref="OsuApiService.GetUserScoreAsync(int, int, string)"/>.
+/// Represents a type of score for fetching user scores via <see cref="OsuApiService.GetUserScoreAsync(int, int, ScoreType)"/>.
 /// </summary>
 public enum ScoreType
 {

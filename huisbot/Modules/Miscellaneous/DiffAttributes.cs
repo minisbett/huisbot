@@ -4,14 +4,13 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Modules.Huis;
-using huisbot.Utilities;
 
 namespace huisbot.Modules.Miscellaneous;
 
 public partial class MiscellaneousCommandModule
 {
   /// <summary>
-  /// The partial interaction module for the effmisscount command.
+  /// The partial interaction module for the diffattributes command.
   /// </summary>
   [IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)]
   [CommandContextType(InteractionContextType.BotDm, InteractionContextType.PrivateChannel, InteractionContextType.Guild)]
@@ -25,17 +24,15 @@ public partial class MiscellaneousCommandModule
   {
     await DeferAsync();
 
-    // Check if either a beatmap ID was specified, or if a recent bot message with a beatmap URL can be found.
+    // If no beatmap ID was specified, find a message by an osu! bot.
     if (beatmapId is null)
     {
-      // Look for a message with a score in the channel.
       if (await Utils.FindOsuBotScore(Context) is EmbedScoreInfo score)
       {
         beatmapId = score.BeatmapId.ToString();
         modsStr ??= score.Mods;
       }
 
-      // If there was no beatmap ID found, respond with an error.
       if (beatmapId is null)
       {
         await FollowupAsync(embed: Embeds.Error("Please specify a beatmap."));
@@ -43,32 +40,17 @@ public partial class MiscellaneousCommandModule
       }
     }
 
-    // Get the matching rework for the specified rework identifier.
-    HuisRework? rework = await GetReworkAsync(reworkId);
-    if (rework is null)
-      return;
+    if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
+    if (await GetBeatmapAsync(beatmapId) is not OsuBeatmap beatmap) return;
 
-    // Parse the mod-related parameters.
+    // Build an OsuMods object based on the specified parameters.
     OsuMods mods = OsuMods.FromString(modsStr ?? "");
     mods.SetClockRate(clockRate);
 
-    // Get the beatmap from the identifier.
-    OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId!);
-    if (beatmap is null)
-      return;
-
-    // Construct the calculation request.
-    HuisCalculationRequest request = new(beatmap, rework, mods);
-
-    // Display the calculation progress in an embed to the user.
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, null, false));
 
-    // Get the result from the Huis API and check whether it was successful.
-    HuisCalculationResponse? localScore = await CalculateScoreAsync(request);
-    if (localScore is null)
-      return;
+    if (await CalculateScoreAsync(new(beatmap, rework, mods)) is not HuisCalculationResponse localScore) return;
 
-    // Send the result in an embed to the user.
     await ModifyOriginalResponseAsync(x => x.Embed = Embeds.DifficultyAttributes(localScore, rework, beatmap));
   }
 }

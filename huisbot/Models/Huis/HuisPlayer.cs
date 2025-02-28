@@ -29,7 +29,7 @@ public class HuisPlayer
   /// The name of the player.
   /// </summary>
   [JsonProperty("name")]
-  public string? Name { get; private set; }
+  public string Name { get; private set; } = null!;
 
   /// <summary>
   /// The live PP of the player.
@@ -42,6 +42,12 @@ public class HuisPlayer
   /// </summary>
   [JsonProperty("new_pp_incl_bonus")]
   public double NewPP { get; private set; }
+
+  /// <summary>
+  /// The current global rank of the player. This is null if Huis is not able to know the rank of the player.
+  /// </summary>
+  [JsonProperty("old_global_rank")]
+  public int? Rank { get; private set; }
 
   /// <summary>
   /// The bonus PP of the player.
@@ -74,24 +80,10 @@ public class HuisPlayer
   public double FLPP { get; private set; }
 
   /// <summary>
-  /// The weighted reading PP of the player in the rework the player object is from.
-  /// This skill only exists in some reworks, and therefore may be null.
-  /// </summary>
-  [JsonProperty("weighted_reading_pp")]
-  public double ReadingPP { get; private set; }
-
-  /// <summary>
   /// The last time the player got updated on Huismetbenen.
   /// </summary>
   [JsonProperty("last_updated")]
   public DateTime LastUpdated { get; private set; }
-
-  /// <summary>
-  /// The actual rank of the player.
-  /// Might be null, indiucating the rank is not known.
-  /// </summary>
-  [JsonProperty("global_rank_real")]
-  public int? Rank { get; private set; }
 
   /// <summary>
   /// The most recent algorithm version the player was calculated in, used to determine whether a player is up-to-date or not.
@@ -101,6 +93,6 @@ public class HuisPlayer
 
   public override string ToString()
   {
-    return $"{Id} #{Rank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
+    return $"{Id} #{Rank}->#{NewRank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
   }
 }

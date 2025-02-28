@@ -31,7 +31,7 @@ public class OsuMod(string acronym)
 /// <summary>
 /// Represents a collection of <see cref="OsuMod"/> and provides utility methods and properties.
 /// </summary>
-public class OsuMods : List<OsuMod>
+public partial class OsuMods : List<OsuMod>
 {
   /// <summary>
   /// The clock rate of the mods.
@@ -134,7 +134,7 @@ public class OsuMods : List<OsuMod>
     OsuMods mods = [];
 
     // Go through the mod string with two characters at once, and optionally the mod settings in () after the acronym.
-    foreach (Match match in Regex.Matches(modsStr, @"([A-Za-z]{2})(?:\((.*?)\))?"))
+    foreach (Match match in ModsRegex().Matches(modsStr))
     {
       OsuMod mod = new(match.Groups[1].Value);
       string extra = match.Groups[2].Value;
@@ -148,4 +148,7 @@ public class OsuMods : List<OsuMod>
 
     return mods;
   }
+
+  [GeneratedRegex(@"([A-Za-z]{2})(?:\((.*?)\))?")]
+  private static partial Regex ModsRegex();
 }

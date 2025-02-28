@@ -1,5 +1,5 @@
-﻿using huisbot.Models.Huis;
-using huisbot.Utilities;
+﻿using huisbot.Helpers;
+using huisbot.Models.Huis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -91,7 +91,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   /// <summary>
   /// Queues the specified player in the rework with the specified ID.<br/><br/>
   /// A requester identifier needs to be provided and will be passed to Huismetbenen in order to provide ratelimits
-  /// based on the person invoking the queuing, rather than the Onion-key associated with this application.
+  /// based on the person invoking the queueing, rather than the Onion-key associated with this application.
   /// This is only of relevance if the application is using an Onion-key and is therefore an authenticated 3rd-party app.
   /// </summary>
   /// <param name="playerId">The osu! user ID.</param>
