@@ -431,7 +431,7 @@ public class EmbedService(DiscordService discord)
     {
       double oldPP = Math.Round(player.OldPP);
       double newPP = Math.Round(player.NewPP);
-      playerStrs.Add($"**#{player.NewRank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
+      playerStrs.Add($"**#{player.Rank?.ToString() ?? "-"}** [{player.Name}](https://osu.ppy.sh/u/{player.Id})");
       ppOldStrs.Add(oldPP.ToString("#,##0.##"));
       ppNewStrs.Add($"**{newPP:#,##0.##}pp**" + (oldPP != newPP ? $" ({newPP - oldPP:+#,##0.##;-#,##0.##}pp)" : ""));
     }
