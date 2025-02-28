@@ -93,6 +93,6 @@ public class HuisPlayer
 
   public override string ToString()
   {
-    return $"{Id} #{Rank}->#{NewRank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
+    return $"{Id} #{Rank} {Name} - {OldPP} -> {NewPP}pp (Aim: {AimPP}, Tap: {TapPP}, Acc: {AccPP}, FL: {FLPP})";
   }
 }
