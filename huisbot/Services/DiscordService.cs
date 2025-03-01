@@ -42,8 +42,8 @@ public class DiscordService(DiscordSocketClient client, ILogger<DiscordService> 
     RestApplication app = await Client.GetApplicationInfoAsync();
     BotOwnerId = app.Team is null ? app.Owner.Id : app.Team.OwnerUserId;
 
-    Logger.LogInformation("Fetched {Emotes} application emotes.", ApplicationEmotes.Length);
-    Logger.LogInformation("Fetched bot owner ID: {Id}.", BotOwnerId);
+    Logger.LogInformation("Fetched {Amount} application emotes: {Emotes}", ApplicationEmotes.Length, string.Join(", ", ApplicationEmotes.Select(x => x.Name)));
+    Logger.LogInformation("Fetched bot owner ID: {Id}", BotOwnerId);
   }
 
   /// <summary>
@@ -51,7 +51,7 @@ public class DiscordService(DiscordSocketClient client, ILogger<DiscordService> 
   /// </summary>
   public async Task<(int GuildInstalls, int UserInstalls)> GetInstallCountsAsync()
   {
-    await Client.WaitForReadyAsync(new CancellationToken());
+    await Client.WaitForReadyAsync(CancellationToken.None);
     RestApplication app = await Client.GetApplicationInfoAsync();
     return (app.ApproximateGuildCount ?? -1, app.ApproximateUserInstallCount ?? -1);
   }
