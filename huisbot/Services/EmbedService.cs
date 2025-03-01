@@ -390,7 +390,7 @@ public class EmbedService(DiscordService discord)
       int placementDiff = rawScores.OrderByDescending(x => x.Values.LivePP).ToList().IndexOf(score) + 1 - placement;
       string placementStr = $"**#{placement}**" + (placementDiff != 0 ? $" ({placementDiff:+#;-#;0})" : "");
 
-      description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/b/{score.Beatmap.Id})");
+      description.Add($"{placementStr} [{FormatScoreText(score)}](https://osu.ppy.sh/scores/{score.ScoreId})");
       description.Add($"▸ {GetPPDifferenceText(score.Values.LivePP, score.Values.LocalPP)} ▸ {score.Accuracy:N2}% {score.MaxCombo}x " +
                       $"▸ {score.Statistics.Count100} {Emojis["100"]} {score.Statistics.Count50} {Emojis["50"]} {score.Statistics.Misses} {Emojis["miss"]}");
     }
@@ -536,7 +536,7 @@ public class EmbedService(DiscordService discord)
     if ($"{title} [{version}]".Length > 60)
       title = $"{title[..27]}...";
 
-    return $"{title} [{version}] {score.Mods}".TrimEnd(' ');
+    return $"{title} [{version}]{score.Mods.PlusString}";
   }
 
   #endregion
