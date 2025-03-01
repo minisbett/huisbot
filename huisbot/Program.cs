@@ -36,6 +36,7 @@ public class Program
     catch (Exception ex) when (ex is not HostAbortedException)
     {
       Environment.ExitCode = 727;
+      Console.WriteLine(ex);
     }
   }
 
