@@ -76,7 +76,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
     // Ensure that the user is the owner of the application.
     if (Context.User.Id != Discord.BotOwnerId)
     {
-      await RespondAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
+      await FollowupAsync(embed: Embeds.Error("Only the owner of the application is permitted to use this command."));
       return;
     }
 
@@ -96,7 +96,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       Database = database
     };
 
-    await RespondAsync(embed: Embeds.Neutral("Executing code..."));
+    await FollowupAsync(embed: Embeds.Neutral("Executing code..."));
 
     ScriptState<object> state;
     try
