@@ -126,6 +126,12 @@ public class HuisScore
     /// </summary>
     [JsonProperty("creator_name")]
     public string Creator { get; private set; } = null!;
+
+    /// <summary>
+    /// The maximum combo of the beatmap.
+    /// </summary>
+    [JsonProperty("max_combo")]
+    public int MaxCombo { get; private set; }
   }
 
   /// <summary>

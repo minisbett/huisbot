@@ -31,13 +31,15 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
   public async Task HandleScoreAsync(
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId,
-    [Summary("user", "The osu! ID or name of the player. Optional, defaults to your linked osu! user.")] string? userId = null,
+    [Summary("user", "The osu! ID or name of the user. Optional, defaults to your linked osu! user.")] string? userId = null,
     [Summary("type", "The type of top scores to return (top scores, flashlight scores or pinned scores).")]
     [Choice("Top Scores", "topranks")] [Choice("Flashlight Scores", "flashlight")]
     [Choice("Pinned Scores", "pinned")] string scoreType = "topranks",
     [Summary("page", "The page of the scores. 1 page displays 10 scores.")][MinValue(1)] int page = 1,
     [Summary("sort", "The sorting for the scores. Defaults to sort by Local PP.")]
-    [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp_desc")
+    [Autocomplete(typeof(ProfileScoresSortAutocomplete))] string sortId = "local_pp_desc",
+    [Summary("filterTopRanks", "Bool whether only the top score on each beatmap should be returned. Defaults to true.")]
+    bool filterTopRanks = true)
   {
     await DeferAsync();
 
@@ -52,6 +54,13 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
     if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
     if (await GetOsuUserAsync(userId) is not OsuUser user) return;
     if (await GetTopPlaysAsync(user, rework.Id, scoreType) is not HuisScore[] scores) return;
+
+    // If filtering for top ranks is enabled, only include the best score on each beatmap.
+    // For that, for every beatmap in those scores, pick the first occuring score with that beatmap when sorting by local PP. 
+    if (filterTopRanks)
+      scores = scores.Select(x => x.Beatmap.Id).Distinct()
+                     .Select(id => scores.OrderByDescending(x => x.Values.LocalPP).First(x => x.Beatmap.Id == id))
+                     .ToArray();
 
     // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
     Func<HuisScore, double> selector = sort.Code switch

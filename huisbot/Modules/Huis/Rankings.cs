@@ -73,7 +73,7 @@ public class RankingsCommandModule(IServiceProvider services) : ModuleBase(servi
   {
     await DeferAsync();
 
-    if (await GetSortAsync(sortId, Sort.RankingPlayers) is not Sort sort) return;
+    if (await GetSortAsync(sortId, Sort.RankingScores) is not Sort sort) return;
     if (await GetReworkAsync(reworkId) is not HuisRework rework) return;
     if (await GetScoreRankingsAsync(rework.Id, sort) is not HuisScore[] scores) return;
 
