@@ -18,7 +18,23 @@ public class OsuMod(string acronym)
   /// The mod settings.
   /// </summary>
   [JsonProperty("settings")]
-  public Dictionary<string, object> Settings { get; private set; } = [];
+  public Dictionary<string, object> Settings
+  {
+    get => field;
+    set
+    {
+      field = [];
+
+      // Ensure that all number values are doubles for better handling of object-unboxing.
+      foreach (KeyValuePair<string, object> setting in value)
+        field[setting.Key] = setting.Value switch
+        {
+          int @int => (double)@int,
+          long @long => (double)@long,
+          _ => setting.Value
+        };
+    }
+  } = [];
 
   /// <summary>
   /// Returns the value by the specified settings key, or null if the setting does not exist.
