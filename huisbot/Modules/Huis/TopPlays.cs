@@ -56,12 +56,10 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
     if (await GetTopPlaysAsync(user, rework.Id, scoreType) is not HuisScore[] scores) return;
 
     // If filtering for top ranks is enabled, only include the best score on each beatmap.
-    // For that, sort the scores by local PP and for every beatmap in those scores, pick the first occuring score with that beatmap. 
+    // For that, for every beatmap in those scores, pick the first occuring score with that beatmap when sorting by local PP. 
     if (filterTopRanks)
-      scores = scores.OrderByDescending(x => x.Values.LocalPP)
-                     .Select(x => x.Beatmap.Id)
-                     .Distinct()
-                     .Select(id => scores.First(x => x.Beatmap.Id == id))
+      scores = scores.Select(x => x.Beatmap.Id).Distinct()
+                     .Select(id => scores.OrderByDescending(x => x.Values.LocalPP).First(x => x.Beatmap.Id == id))
                      .ToArray();
 
     // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
