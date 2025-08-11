@@ -24,4 +24,16 @@ internal class DiscordIdOptions
   /// </summary>
   [Required]
   public ulong PPRole { get; set; }
+
+  /// <summary>
+  /// The ID of the guild where the bot is logging messages.
+  /// </summary>
+  [Required]
+  public ulong LoggingGuild { get; set; }
+
+  /// <summary>
+  /// The ID of the channel where the bot is logging messages.
+  /// </summary>
+  [Required]
+  public ulong LoggingChannel { get; set; }
 }

@@ -3,6 +3,7 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using Microsoft.Extensions.Logging;
 
 namespace huisbot.Services;
 
@@ -103,7 +104,7 @@ public class EmbedService(DiscordService discord)
   public Embed Rework(HuisRework rework)
   {
     // Parse the rich text description of the rework into markdown, taking unsupported headers into consideration.
-    string description = rework.Description!;
+    string description = rework.Description;
     foreach (string tag in Enumerable.Range(1, 4).SelectMany(x => new string[] { $"<h{x}>", $"</h{x}>" }))
       description = description.Replace(tag, "");
     description = new ReverseMarkdown.Converter().Convert(description);
@@ -495,6 +496,26 @@ public class EmbedService(DiscordService discord)
     .WithAuthor($"{user.Username} ({user.Id})", user.GetAvatarUrl())
     .WithTitle($"{rework.Name!} (v{rework.PPVersion})")
     .WithDescription(text)
+    .Build();
+
+  /// <summary>
+  /// Returns an embed for displaying a .NET logging extension log message.
+  /// </summary>
+  /// <param name="level">The log level.</param>
+  /// <param name="category">The name of the category.</param>
+  /// <param name="message">The log message.</param>
+  public Embed Log(LogLevel level, string category, string message) => BaseEmbed
+    .WithColor(new Dictionary<LogLevel, Color>()
+    {
+      [LogLevel.Trace] = Color.DarkerGrey,
+      [LogLevel.Debug] = Color.DarkerGrey,
+      [LogLevel.Information] = Color.Green,
+      [LogLevel.Warning] = Color.LightOrange,
+      [LogLevel.Error] = Color.Red,
+      [LogLevel.Critical] = Color.DarkRed
+    }[level])
+    .WithAuthor(category)
+    .WithDescription($"```\n{message}\n```")
     .Build();
 
   /// <summary>

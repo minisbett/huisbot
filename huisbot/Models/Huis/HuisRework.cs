@@ -31,22 +31,28 @@ public class HuisRework
   public string? Name { get; private set; }
 
   /// <summary>
-  /// The type of rework. (LIVE, REWORK_PUBLIC_ACTIVE, REWORK_PUBLIC_INACTIVE, HISTORIC, MASTER)
+  /// The category of the rework. (LIVE, HISTORIC, CONFIRMED, ABANDONED, WIP, PROPOSED)
   /// </summary>
-  [JsonProperty("rework_type_code")]
-  public string? ReworkType { get; private set; }
+  [JsonProperty("category")]
+  private string Category { get; set; } = "";
+
+  /// <summary>
+  /// The visibility of the rework. (PUBLIC, ONION)
+  /// </summary>
+  [JsonProperty("visibility")]
+  private string Visibility { get; set; } = "";
 
   /// <summary>
   /// The URL to the rework on GitHub. This may or may not be targetting the correct branch directly.
   /// </summary>
   [JsonProperty("url")]
-  public string? GitHubUrl { get; private set; }
+  private string? GitHubUrl { get; set; }
 
   /// <summary>
   /// The ID of the current commit. The corresponding GitHub repository can be found in <see cref="GitHubUrl"/>.
   /// </summary>
   [JsonProperty("commit")]
-  public string? Commit { get; private set; }
+  private string? Commit { get; set; }
 
   /// <summary>
   /// The ID of the ruleset/gamemode the rework is for.
@@ -58,7 +64,7 @@ public class HuisRework
   /// The description of the rework, as displayed in the banner text on the website.
   /// </summary>
   [JsonProperty("banner_text")]
-  public string? Description { get; private set; }
+  public string Description { get; private set; } = "";
 
   /// <summary>
   /// The version of the rework, used to determine whether a player is up-to-date or not or cache values for a rework state.
@@ -67,35 +73,44 @@ public class HuisRework
   public int PPVersion { get; private set; }
 
   /// <summary>
-  /// Bool whether this rework is only accessible with Onion-level authorization.
-  /// </summary>
-  [JsonProperty("for_onions")]
-  public bool IsOnionLevel { get; private set; }
-
-  /// <summary>
   /// Bool whether the rework is the live pp system.
   /// </summary>
-  public bool IsLive => ReworkType == "LIVE";
+  public bool IsLive => Category == "LIVE";
 
   /// <summary>
-  /// Bool whether the rework is public or not. If the rework is live, confirmed or historic this is false.
+  /// Bool whether the rework is public and accessible to everyone.
   /// </summary>
-  public bool IsPublic => ReworkType?.StartsWith("REWORK_PUBLIC") ?? false;
+  public bool IsPublic => Visibility == "PUBLIC";
 
   /// <summary>
-  /// Bool whether the rework is marked as active or not.
+  /// Bool whether the rework is only accessible for onion-level authorization.
   /// </summary>
-  public bool IsActive => !ReworkType?.EndsWith("INACTIVE") ?? false;
+  public bool IsOnionOnly => Visibility == "ONION";
 
   /// <summary>
-  /// Bool whether the rework is historic. 
+  /// Bool whether the rework is considered abandoned.
   /// </summary>
-  public bool IsHistoric => ReworkType == "HISTORIC";
+  public bool IsAbandoned => Category == "ABANDONED";
 
   /// <summary>
-  /// Bool whether the rework is the one containung changes confirmed for next deploy.
+  /// Bool whether the rework is proposed for the next deploy.
   /// </summary>
-  public bool IsConfirmed => ReworkType == "MASTER";
+  public bool IsProposed => Category == "PROPOSED";
+
+  /// <summary>
+  /// Bool whether the rework is work in progress.
+  /// </summary>
+  public bool IsWIP => Category == "WIP";
+
+  /// <summary>
+  /// Bool whether the rework is confirmed for the next deploy.
+  /// </summary>
+  public bool IsConfirmed => Category == "CONFIRMED";
+
+  /// <summary>
+  /// Bool whether the rework is considered historic.
+  /// </summary>
+  public bool IsHistoric => Category == "HISTORIC";
 
   /// <summary>
   /// The URL to the rework on the Huismetbenen website.
@@ -120,21 +135,26 @@ public class HuisRework
 
   /// <summary>
   /// A human readable string for the rework status.<br/>
-  /// Example: 🔒 Private • ✅ Active
+  /// Example: 🔒 Onion-only • 💀 Abandoned
   /// </summary>
   public string ReworkTypeString
   {
-    get => this switch
+    get
     {
-      { IsLive: true } => "🔴 Live",
-      { IsHistoric: true } => "📜 Historic",
-      { IsConfirmed: true } => "✅ Confirmed for next deploy",
-      { IsPublic: true, IsActive: true } => "🌐 Public • ✅ Active",
-      { IsPublic: true, IsActive: false } => "🌐 Public • 💀 Inactive",
-      { IsPublic: false, IsActive: true } => "🔒 Onion-only • ✅ Active",
-      { IsPublic: false, IsActive: false } => "🔒 Onion-only • 💀 Inactive",
-      _ => ReworkType ?? "null"
-    };
+      if (IsLive)
+        return "🔴 Live";
+      else if (IsHistoric)
+        return "📜 Historic";
+      else if (IsConfirmed)
+        return "✅ Confirmed";
+      else if (IsProposed)
+        return "💍 Proposed";
+
+      string str = IsPublic ? "🌐 Public" : IsOnionOnly ? "🔒 Onion-only" : Visibility;
+      str += " • ";
+      str += IsAbandoned ? "💀 Abandoned" : IsWIP ? "⌛ WIP" : Category;
+      return str;
+    }
   }
 
   /// <summary>

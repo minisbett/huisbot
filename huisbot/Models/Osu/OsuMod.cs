@@ -118,7 +118,7 @@ public partial class OsuMods : List<OsuMod>
   }
 
   /// <summary>
-  /// Returns the mod by the specified acronyms, or null if the mod does not exist.
+  /// Returns the mod matching one of the specified acronyms, or null if the mod does not exist.
   /// </summary>
   /// <param name="acronyms">The acronyms.</param>
   /// <returns>The mod or null if the mod does not exist.</returns>

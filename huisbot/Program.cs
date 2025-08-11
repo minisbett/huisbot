@@ -24,7 +24,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.8.1";
+  public const string VERSION = "2.8.2";
 
   public static async Task Main(string[] args)
   {
@@ -105,6 +105,8 @@ public class Program
         });
 
         services.AddHostedService<InteractionHandler>();
+
+        services.AddSingleton<ILoggerProvider, DiscordLogger>();
 
         // Add the Discord service, responsible for retrieving Discord-related information.
         // The service is first registered as a singleton as hosted services themselves cannot be injected.
