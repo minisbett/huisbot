@@ -21,15 +21,15 @@ public class ReworksCommandModule(IServiceProvider services) : ModuleBase(servic
 
     // Strip off all Onion-level reworks if the user does not have Onion-authorization.
     if (!IsOnion)
-      reworks = reworks.Where(x => !x.IsOnionLevel).ToArray();
+      reworks = [.. reworks.Where(x => !x.IsOnionOnly)];
 
     // Filter out some rather uninteresting reworks if more than 25 reworks exist, as only up to 25 items can be displayed in a select menu.
     if (reworks.Length > 25)
-      reworks = reworks.Where(x => !x.IsHistoric).ToArray();
+      reworks = [.. reworks.Where(x => !x.IsHistoric)];
     if (reworks.Length > 25)
-      reworks = reworks.Where(x => x.IsActive).ToArray();
+      reworks = [.. reworks.Where(x => !x.IsAbandoned)];
     if (reworks.Length > 25)
-      reworks = reworks.Take(25).ToArray(); // As a "last resort", limit the reworks to 25
+      reworks = [.. reworks.Take(25)]; // As a "last resort", limit the reworks to 25
 
     MessageComponent component = new ComponentBuilder()
       .WithSelectMenu(new SelectMenuBuilder()
@@ -50,7 +50,7 @@ public class ReworksCommandModule(IServiceProvider services) : ModuleBase(servic
 
     // Block this interaction if the selected rework is Onion-level and the user does not have Onion-authorization.
     // This can happen if a non-Onion user tries to interact with a select menu created by a user with Onion-authorization.
-    if (rework.IsOnionLevel && !IsOnion)
+    if (rework.IsOnionOnly && !IsOnion)
     {
       await Context.Interaction.RespondAsync(embed: Embeds.NotOnion, ephemeral: true);
       return;

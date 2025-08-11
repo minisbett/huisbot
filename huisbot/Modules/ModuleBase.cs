@@ -71,11 +71,12 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
     return [
       .. reworks.Where(x => x.IsLive),
       .. reworks.Where(x => x.IsConfirmed),
-      .. reworks.Where(x => x.IsPublic && x.IsActive),
-      // Exclude confirmed, historic & live reworks because they are non-public and active.
-      .. reworks.Where(x => !x.IsPublic && x.IsActive && !x.IsConfirmed && !x.IsHistoric && !x.IsLive),
-      .. reworks.Where(x => !x.IsActive),
-      .. reworks.Where(x => x.IsHistoric)
+      .. reworks.Where(x => x.IsProposed),
+      .. reworks.Where(x => x.IsWIP && x.IsPublic),
+      .. reworks.Where(x => x.IsWIP && x.IsOnionOnly),
+      .. reworks.Where(x => x.IsAbandoned && x.IsPublic),
+      .. reworks.Where(x => x.IsAbandoned && x.IsOnionOnly),
+      .. reworks.Where(x => x.IsHistoric),
     ];
   }
 
@@ -95,7 +96,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
       await FollowupAsync(embed: Embeds.InternalError("Failed to get the reworks from the Huis API."));
     else if (rework is null)
       await FollowupAsync(embed: Embeds.Error($"The rework `{reworkId}` could not be found."));
-    else if (rework.IsOnionLevel && !IsOnion) // Disallow non-Onion users to access Onion-level reworks
+    else if (rework.IsOnionOnly && !IsOnion) // Disallow non-Onion users to access Onion-level reworks
     {
       await FollowupAsync(embed: Embeds.NotOnion);
       return null;

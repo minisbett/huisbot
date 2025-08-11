@@ -20,7 +20,7 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
 
     // Strip off all Onion-level reworks if the user does not have Onion-authorization.
     if (!ModuleBase.CheckOnion((SocketInteractionContext)context, services))
-      reworks = reworks.Where(x => !x.IsOnionLevel);
+      reworks = reworks.Where(x => !x.IsOnionOnly);
 
     // Filter all reworks based on the input terms with a contains lookup on the name and code.
     string input = acInteraction.Data.Current.Value?.ToString()?.ToLower() ?? "";

@@ -103,7 +103,7 @@ public class EmbedService(DiscordService discord)
   public Embed Rework(HuisRework rework)
   {
     // Parse the rich text description of the rework into markdown, taking unsupported headers into consideration.
-    string description = rework.Description!;
+    string description = rework.Description;
     foreach (string tag in Enumerable.Range(1, 4).SelectMany(x => new string[] { $"<h{x}>", $"</h{x}>" }))
       description = description.Replace(tag, "");
     description = new ReverseMarkdown.Converter().Convert(description);
