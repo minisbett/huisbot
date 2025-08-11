@@ -14,9 +14,7 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
   public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction acInteraction,
     IParameterInfo pInfo, IServiceProvider services)
   {
-    // Retrieve all reworks from the Huis API service.
-    // TODO: replace creating a scope here with https://github.com/discord-net/Discord.Net/pull/3068
-    IEnumerable<HuisRework>? reworks = await services.CreateScope().ServiceProvider.GetRequiredService<HuisApiService>().GetReworksAsync();
+    IEnumerable<HuisRework>? reworks = await services.GetRequiredService<HuisApiService>().GetReworksAsync();
     if (reworks is null)
       return AutocompletionResult.FromError(PreconditionResult.FromError("Failed to get the reworks from the Huis API."));
 
