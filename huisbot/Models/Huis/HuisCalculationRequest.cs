@@ -66,13 +66,31 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   public double ClockRate { get; } = mods.ClockRate;
 
   /// <summary>
+  /// The circle size of the score. This will be null if the circle size is not forcefully overwritten.
+  /// </summary>
+  [JsonProperty("circle_size")]
+  public double? CircleSize { get; } = mods.AdjustedCircleSize;
+
+  /// <summary>
+  /// The approach rate of the score. This will be null if the circle size is not forcefully overwritten.
+  /// </summary>
+  [JsonProperty("approach_rate")]
+  public double? ApproachRate { get; } = mods.AdjustedApproachRate;
+
+  /// <summary>
+  /// The overall difficulty of the score. This will be null if the circle size is not forcefully overwritten.
+  /// </summary>
+  [JsonProperty("overall_difficulty")]
+  public double? OverallDifficulty { get; } = mods.AdjustedOverallDifficulty;
+
+  /// <summary>
   /// The code of the rework. This property is used for JSON serialization for sending the request.
   /// </summary>
   [JsonProperty("rework")]
   public string ReworkCode => Rework.Code!;
 
   /// <summary>
-  /// The rework.
+  /// The rework, stored in the calculation request for the calculation code to access information of the rework (caching by pp version).
   /// </summary>
   [JsonIgnore]
   public HuisRework Rework { get; } = rework;

@@ -36,6 +36,8 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
     "Microsoft.EntityFrameworkCore",
     "Microsoft.Extensions.Configuration",
     "Microsoft.Extensions.DependencyInjection",
+    "Newtonsoft.Json",
+    "Newtonsoft.Json.Linq",
     "Discord",
     "Discord.Rest",
     "Discord.WebSocket",
