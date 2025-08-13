@@ -71,7 +71,6 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
   public async Task CSharpReplAsync(
     [Summary("code", "The C# code to execute.")] string code)
   {
-    throw new Exception();
     await DeferAsync();
 
     // Ensure that the user is the owner of the application.

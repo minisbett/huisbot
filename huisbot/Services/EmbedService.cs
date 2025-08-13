@@ -521,10 +521,22 @@ public class EmbedService(DiscordService discord)
       .WithDescription($"```\n{message}\n```");
 
     if (exception is not null)
-      embed = embed.AddField("Exception", $"```\n{exception.Message}\n{exception.StackTrace}```");
+    {
+      string str = $"{exception.Message}\n{exception.StackTrace}";
+      if (str.Length > 1017)
+        str = str[..1017];
+
+      embed = embed.AddField("Exception", $"```\n{str}```");
+    }
 
     if (exception?.InnerException is not null)
-      embed = embed.AddField("Inner Exception", $"```\n{exception.InnerException.Message}\n{exception.InnerException.StackTrace}```");
+    {
+      string str = $"{exception.InnerException.Message}\n{exception.InnerException.StackTrace}";
+      if (str.Length > 1017)
+        str = str[..1017];
+
+      embed = embed.AddField("Inner Exception", $"```\n{str}```");
+    }
 
     return embed.Build();
   }
