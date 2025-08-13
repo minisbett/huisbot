@@ -138,6 +138,9 @@ public class OsuBeatmap
   /// <returns>The mod-adjusted circle size.</returns>
   public double GetAdjustedCS(OsuMods mods)
   {
+    if (mods.AdjustedCircleSize is not null)
+      return mods.AdjustedCircleSize.Value;
+
     double cs = CircleSize;
 
     // If HardRock, the CS is multiplied by 1.3.
@@ -157,6 +160,9 @@ public class OsuBeatmap
   /// <returns>The mod-adjusted approach rate.</returns>
   public double GetAdjustedAR(OsuMods mods)
   {
+    if (mods.AdjustedApproachRate is not null)
+      return mods.AdjustedApproachRate.Value;
+
     double ar = ApproachRate;
 
     // If HardRock, the AR is multiplied by 1.4, up to 10.
@@ -179,6 +185,9 @@ public class OsuBeatmap
   /// <returns>The mod-adjusted overall difficulty.</returns>
   public double GetAdjustedOD(OsuMods mods)
   {
+    if (mods.AdjustedOverallDifficulty is not null)
+      return mods.AdjustedOverallDifficulty.Value;
+
     double od = OverallDifficulty;
 
     // If HardRock, the OD is multiplied by 1.4.

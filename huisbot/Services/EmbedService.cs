@@ -307,7 +307,7 @@ public class EmbedService(DiscordService discord)
 
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
-      .WithTitle($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)")
+      .WithTitle(Escape($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)"))
       .WithAuthor(author)
       .AddField(rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)", ppText, true)
       .AddField("Score Info", scoreText, true)
@@ -348,7 +348,7 @@ public class EmbedService(DiscordService discord)
 
     return BaseEmbed
       .WithColor(new Color(0xFFD4A8))
-      .WithTitle($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)")
+      .WithTitle(Escape($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{score.Score.Mods.PlusString} ({score.DifficultyAttributes.DifficultyRating:N2}★)"))
       .AddField("Difficulty", difficulty, true)
       .AddField("Difficult Strains", strainCounts, true)
       .AddField("\u200B", "\u200B", true)
@@ -499,26 +499,6 @@ public class EmbedService(DiscordService discord)
     .Build();
 
   /// <summary>
-  /// Returns an embed for displaying a .NET logging extension log message.
-  /// </summary>
-  /// <param name="level">The log level.</param>
-  /// <param name="category">The name of the category.</param>
-  /// <param name="message">The log message.</param>
-  public Embed Log(LogLevel level, string category, string message) => BaseEmbed
-    .WithColor(new Dictionary<LogLevel, Color>()
-    {
-      [LogLevel.Trace] = Color.DarkerGrey,
-      [LogLevel.Debug] = Color.DarkerGrey,
-      [LogLevel.Information] = Color.Green,
-      [LogLevel.Warning] = Color.LightOrange,
-      [LogLevel.Error] = Color.Red,
-      [LogLevel.Critical] = Color.DarkRed
-    }[level])
-    .WithAuthor(category)
-    .WithDescription($"```\n{message}\n```")
-    .Build();
-
-  /// <summary>
   /// Returns a string representing the difference between two PP values, including the old and new PP values.
   /// </summary>
   /// <param name="oldPP">The old PP.</param>
@@ -554,7 +534,7 @@ public class EmbedService(DiscordService discord)
     if ($"{title} [{version}]".Length > 60)
       title = $"{title[..27]}...";
 
-    return $"{title} [{version}]{score.Mods.PlusString}";
+    return Escape($"{title} [{version}]{score.Mods.PlusString}");
   }
 
   #endregion
@@ -584,7 +564,7 @@ public class EmbedService(DiscordService discord)
     if (aliases.Any())
       foreach (IGrouping<int, BeatmapAlias> group in aliases.GroupBy(x => x.BeatmapId))
         aliasesStr += $"""
-                       [{group.First().DisplayName}](https://osu.ppy.sh/b/{group.Key})
+                       [{Escape(group.First().DisplayName)}](https://osu.ppy.sh/b/{group.Key})
                        ▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}
 
 
@@ -614,7 +594,7 @@ public class EmbedService(DiscordService discord)
     if (aliases.Any())
       foreach (IGrouping<long, ScoreAlias> group in aliases.GroupBy(x => x.ScoreId))
         aliasesStr += $"""
-                       [{group.First().DisplayName}](https://osu.ppy.sh/scores/{group.Key})
+                       [{Escape(group.First().DisplayName)}](https://osu.ppy.sh/scores/{group.Key})
                        ▸ {string.Join(", ", group.Select(j => $"`{j.Alias}`"))}
 
 
@@ -657,5 +637,55 @@ public class EmbedService(DiscordService discord)
                       """)
     .Build();
 
+  /// <summary>
+  /// Returns an embed for displaying a .NET logging extension log message.
+  /// </summary>
+  /// <param name="level">The log level.</param>
+  /// <param name="category">The name of the category.</param>
+  /// <param name="message">The log message.</param>
+  /// <param name="message">The exception.</param>
+  public Embed Log(LogLevel level, string category, string message, Exception? exception)
+  {
+    EmbedBuilder embed = BaseEmbed
+      .WithColor(new Dictionary<LogLevel, Color>()
+      {
+        [LogLevel.Trace] = Color.DarkerGrey,
+        [LogLevel.Debug] = Color.DarkerGrey,
+        [LogLevel.Information] = Color.Green,
+        [LogLevel.Warning] = Color.LightOrange,
+        [LogLevel.Error] = Color.Red,
+        [LogLevel.Critical] = Color.DarkRed
+      }[level])
+      .WithAuthor(category)
+      .WithDescription($"```\n{message}\n```");
+
+    if (exception is not null)
+    {
+      string str = $"{exception.Message}\n{exception.StackTrace}";
+      if (str.Length > 1017)
+        str = str[..1017];
+
+      embed = embed.AddField("Exception", $"```\n{str}```");
+    }
+
+    if (exception?.InnerException is not null)
+    {
+      string str = $"{exception.InnerException.Message}\n{exception.InnerException.StackTrace}";
+      if (str.Length > 1017)
+        str = str[..1017];
+
+      embed = embed.AddField("Inner Exception", $"```\n{str}```");
+    }
+
+    return embed.Build();
+  }
+
   #endregion
+
+  /// <summary>
+  /// Escapes a string for preventing markdown-application on Discords' side.
+  /// </summary>
+  /// <param name="str">The string.</param>
+  /// <returns>The markdown-escaped string.</returns>
+  private static string Escape(string str) => str.Replace("*", @"\*").Replace("_", @"\_").Replace("~", @"\~");
 }

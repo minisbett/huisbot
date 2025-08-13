@@ -15,7 +15,7 @@ internal static partial class Utils
   /// </summary>
   /// <param name="alias">The alias.</param>
   /// <returns>The formatted alias.</returns>
-  public static string GetFormattedAlias(string alias) => new(alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' ')).ToArray());
+  public static string GetFormattedAlias(string alias) => new([.. alias.ToLower().Where(x => x is not ('-' or '_' or '.' or ' '))]);
 
   /// <summary>
   /// Tries to find osu! score information from common Discord bots in the last 100 messages of the channel of the interaction context.
@@ -25,7 +25,7 @@ internal static partial class Utils
   public static async Task<EmbedScoreInfo?> FindOsuBotScore(SocketInteractionContext interaction)
   {
     // Go through all of the last 100 messages with an embed, excluding the bot's own messages.
-    IMessage[] messages = (await interaction.Channel.GetMessagesAsync(100).FlattenAsync()).ToArray();
+    IMessage[] messages = [.. await interaction.Channel.GetMessagesAsync(100).FlattenAsync()];
     foreach (IEmbed embed in messages.Where(x => x.Embeds.Count > 0 && x.Author.Id != interaction.Client.CurrentUser.Id).Select(x => x.Embeds.First()))
     {
       // Find a beatmap URL in the author URL or normal URL of the embed.

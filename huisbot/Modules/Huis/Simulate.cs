@@ -27,7 +27,10 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     [Summary("largeTickMisses", "(Lazer) The amount of large tick misses in the score.")] int? largeTickMisses = null,
     [Summary("sliderTailMisses", "(Lazer) The amount of misses in the score.")] int? sliderTailMisses = null,
     [Summary("mods", "The mods used in the score.")] string? modsStr = null,
-    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1)
+    [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1,
+    [Summary("cs", "The circle size (CS) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? circleSize = null,
+    [Summary("ar", "The approach rate (AR) of the score. Automatically adds DA.")][MinValue(-10)][MaxValue(11)] double? approachRate = null,
+    [Summary("od", "The overall difficulty (OD) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? overallDifficulty = null)
   {
     await DeferAsync();
 
@@ -58,6 +61,9 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     // Build an OsuMods object based on the specified parameters.
     OsuMods mods = OsuMods.FromString(modsStr ?? "");
     mods.SetClockRate(clockRate);
+    if(circleSize is not null) mods.SetCS(circleSize.Value);
+    if(approachRate is not null) mods.SetAR(approachRate.Value);
+    if(overallDifficulty is not null) mods.SetOD(overallDifficulty.Value);
 
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
