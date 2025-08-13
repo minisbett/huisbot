@@ -36,7 +36,7 @@ internal class DiscordLogger(IServiceProvider services) : ILoggerProvider, ILogg
     if (channel is null)
       return;
 
-    Embed embed = embeds.Log(logLevel, _categoryName, formatter(state, exception));
+    Embed embed = embeds.Log(logLevel, _categoryName, formatter(state, exception), exception);
     _ = Task.Run(async () => await channel.SendMessageAsync(embed: embed));
   }
 }

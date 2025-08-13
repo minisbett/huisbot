@@ -504,19 +504,30 @@ public class EmbedService(DiscordService discord)
   /// <param name="level">The log level.</param>
   /// <param name="category">The name of the category.</param>
   /// <param name="message">The log message.</param>
-  public Embed Log(LogLevel level, string category, string message) => BaseEmbed
-    .WithColor(new Dictionary<LogLevel, Color>()
-    {
-      [LogLevel.Trace] = Color.DarkerGrey,
-      [LogLevel.Debug] = Color.DarkerGrey,
-      [LogLevel.Information] = Color.Green,
-      [LogLevel.Warning] = Color.LightOrange,
-      [LogLevel.Error] = Color.Red,
-      [LogLevel.Critical] = Color.DarkRed
-    }[level])
-    .WithAuthor(category)
-    .WithDescription($"```\n{message}\n```")
-    .Build();
+  /// <param name="message">The exception.</param>
+  public Embed Log(LogLevel level, string category, string message, Exception? exception)
+  {
+    EmbedBuilder embed = BaseEmbed
+      .WithColor(new Dictionary<LogLevel, Color>()
+      {
+        [LogLevel.Trace] = Color.DarkerGrey,
+        [LogLevel.Debug] = Color.DarkerGrey,
+        [LogLevel.Information] = Color.Green,
+        [LogLevel.Warning] = Color.LightOrange,
+        [LogLevel.Error] = Color.Red,
+        [LogLevel.Critical] = Color.DarkRed
+      }[level])
+      .WithAuthor(category)
+      .WithDescription($"```\n{message}\n```");
+
+    if (exception is not null)
+      embed = embed.AddField("Exception", $"```\n{exception.Message}\n{exception.StackTrace}```");
+
+    if (exception?.InnerException is not null)
+      embed = embed.AddField("Inner Exception", $"```\n{exception.InnerException.Message}\n{exception.InnerException.StackTrace}```");
+
+    return embed.Build();
+  }
 
   /// <summary>
   /// Returns a string representing the difference between two PP values, including the old and new PP values.
