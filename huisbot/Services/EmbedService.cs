@@ -612,32 +612,6 @@ public class EmbedService(DiscordService discord)
   }
 
   /// <summary>
-  /// Returns an embed for displaying the effective misscount breakdown of the specified score.
-  /// </summary>
-  /// <param name="combo">The combo of the score.</param>
-  /// <param name="maxCombo">The maximum achievable combo.</param>
-  /// <param name="sliderCount">The amount of sliders.</param>
-  /// <param name="hits">The amount of 100s and 50s combined.</param>
-  /// <param name="misses">The amount of misses.</param>
-  /// <param name="cbmc">The combo-based misscount.</param>
-  /// <param name="fct">The full-combo threshold.</param>
-  /// <param name="emc">The effective misscount.</param>
-  public Embed EffMissCount(int combo, int maxCombo, int sliderCount, int hits, int misses, double cbmc, double fct, double emc) => BaseEmbed
-    .WithColor(Color.Red)
-    .WithTitle("Effective Misscount Breakdown")
-    .WithDescription($"""
-                      ▸ {combo}/{maxCombo}x ▸ {hits} {Emojis["100"]}{Emojis["50"]} {misses} {Emojis["miss"]} ▸ {sliderCount} {Emojis["sliders"]}
-                      ```
-                      combo-based misscount | {cbmc.ToString($"N{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}
-                      full-combo threshold  | {fct.ToString($"N{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}
-                      -------------------------------
-                      effective misscount   | {emc.ToString($"N{Math.Max(0, 6 - ((int)emc).ToString().Length)}")}
-                      ```
-                      *The reference code can be found [here](https://github.com/ppy/osu/blob/3d569850b15ad66b3c95e009f173298d65a8e3de/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L249).*
-                      """)
-    .Build();
-
-  /// <summary>
   /// Returns an embed for displaying a .NET logging extension log message.
   /// </summary>
   /// <param name="level">The log level.</param>
