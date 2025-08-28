@@ -9,6 +9,12 @@ namespace huisbot.Models.Huis;
 public class HuisCalculationScore
 {
   /// <summary>
+  /// The total legacy (score V1) score of the score.
+  /// </summary>
+  [JsonProperty("legacy_total_score")]
+  public int LegacyTotalScore { get; private set; }
+
+  /// <summary>
   /// The accuracy of the score.
   /// </summary>
   [JsonProperty("accuracy")]

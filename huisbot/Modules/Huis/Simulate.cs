@@ -30,7 +30,8 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     [Summary("clockRate", "The clock rate of the score. Automatically adds DT/HT.")][MinValue(0.5)][MaxValue(2)] double clockRate = 1,
     [Summary("cs", "The circle size (CS) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? circleSize = null,
     [Summary("ar", "The approach rate (AR) of the score. Automatically adds DA.")][MinValue(-10)][MaxValue(11)] double? approachRate = null,
-    [Summary("od", "The overall difficulty (OD) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? overallDifficulty = null)
+    [Summary("od", "The overall difficulty (OD) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? overallDifficulty = null,
+    [Summary("scorev1", "The total legacy score (score v1) of the score.")][MinValue(0)] int? legacyTotalScore = null)
   {
     await DeferAsync();
 
@@ -69,7 +70,7 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
 
     int? sliderTailHits = sliderTailMisses is null ? null : beatmap.SliderCount - sliderTailMisses.Value;
     OsuScoreStatistics statistics = new(count100, count50, misses, largeTickMisses, sliderTailHits);
-    HuisCalculationResponse? localScore = await CalculateScoreAsync(new(beatmap, rework, mods, combo, statistics));
+    HuisCalculationResponse? localScore = await CalculateScoreAsync(new(beatmap, rework, mods, combo, legacyTotalScore, statistics));
     if (localScore is null)
       return;
 
@@ -79,7 +80,8 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
-      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, mods, combo, statistics))) is null) return;
+      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, mods, combo, legacyTotalScore, statistics))) is null)
+        return;
     }
 
     await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap));

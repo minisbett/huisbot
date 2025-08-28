@@ -9,7 +9,7 @@ namespace huisbot.Models.Huis;
 /// <remarks>
 /// Creates a new <see cref="HuisCalculationRequest"/> for the specified beatmap and rework.
 /// </remarks>
-public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMods mods, int? combo = null, OsuScoreStatistics? statistics = null)
+public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMods mods, int? combo = null, int? legacyTotalScore = null, OsuScoreStatistics? statistics = null)
 {
   /// <summary>
   /// The mods of the score.
@@ -28,6 +28,12 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   /// </summary>
   [JsonProperty("combo")]
   public int? Combo { get; } = combo;
+
+  /// <summary>
+  /// The total legacy (score V1) score of the score.
+  /// </summary>
+  [JsonProperty("legacy_total_score")]
+  public int? LegacyTotalScore { get; } = legacyTotalScore;
 
   /// <summary>
   /// The 100s/oks of the score.
