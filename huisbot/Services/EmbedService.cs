@@ -259,6 +259,7 @@ public class EmbedService(DiscordService discord)
   /// <param name="rework">The rework.</param>
   /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
+  /// <param name="score">The real score.</param>
   /// <param name="user">The user the real score is based on.</param>
   public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
   {
@@ -278,23 +279,26 @@ public class EmbedService(DiscordService discord)
     string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
     string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
     string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
-    string ltm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]}";
-    string stm = $"{beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
+    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
+    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
     string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
     string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
     string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
-    string CSAR = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1}`";
-    string ODHP = $"`OD {beatmap.GetAdjustedOD(local.Score.Mods):N1} HP {beatmap.GetAdjustedHP(local.Score.Mods):N1}`";
     string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
-    string visualizer = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    string CSAROD = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
     #endregion
     string scoreText = $"""
                         ▸ {acc} ▸ {combo}
                         ▸ {hit300} {hit100} {hit50} {misses}
-                        ▸ {(local.Score.Mods.IsClassic ? "" : $"{ltm} {stm}")} {circles} {sliders} {spinners}
-                        ▸ {CSAR} ▸ {bpm}
-                        ▸ {ODHP} ▸ {visualizer}
-                        """.Replace("▸  ", "▸ "); // Remove the double whitespace if this is a classic score (no ltm and stm)
+                        ▸ {circles} {sliders} {spinners} {bpm}
+                        ▸ {CSAROD}
+
+                        """;
+
+    if (local.PerformanceAttributes.AimEstimatedSliderBreaks is not null)
+      scoreText += $"▸ {estimatedMisses} ";
+    if (!local.Score.Mods.IsClassic)
+      scoreText += $"▸ {ltmstm}";
 
     // Construct the difficulty rating comparison string (eg. "10.65→10.66★" or "7.33★" if there is no change)
     (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);

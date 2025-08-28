@@ -200,23 +200,4 @@ public class OsuBeatmap
     // Ensure scaling of the pre-empt through the clock rate of the mods.
     return Math.Min(11.11, (80 - (80 - 6 * od) / mods.ClockRate) / 6);
   }
-
-  /// <summary>
-  /// Returns the mod-adjusted drain rate of the beatmap.
-  /// </summary>
-  /// <param name="mods">The mods.</param>
-  /// <returns>The mod-adjusted drain rate.</returns>
-  public double GetAdjustedHP(OsuMods mods)
-  {
-    double hp = DrainRate;
-
-    // If HardRock, the HP is multiplied by 1.4.
-    if (mods.IsHardRock)
-      hp *= 1.4;
-    // If Easy, the HP is multiplied by 0.5.
-    else if (mods.IsEasy)
-      hp *= 0.5;
-
-    return Math.Min(hp, 10);
-  }
 }
