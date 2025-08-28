@@ -259,6 +259,7 @@ public class EmbedService(DiscordService discord)
   /// <param name="rework">The rework.</param>
   /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
+  /// <param name="score">The real score.</param>
   /// <param name="user">The user the real score is based on.</param>
   public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
   {
@@ -278,23 +279,26 @@ public class EmbedService(DiscordService discord)
     string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
     string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
     string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
-    string ltm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]}";
-    string stm = $"{beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
+    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
+    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
     string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
     string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
     string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
-    string CSAR = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1}`";
-    string ODHP = $"`OD {beatmap.GetAdjustedOD(local.Score.Mods):N1} HP {beatmap.GetAdjustedHP(local.Score.Mods):N1}`";
     string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
-    string visualizer = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id})";
+    string CSAROD = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
     #endregion
     string scoreText = $"""
                         ▸ {acc} ▸ {combo}
                         ▸ {hit300} {hit100} {hit50} {misses}
-                        ▸ {(local.Score.Mods.IsClassic ? "" : $"{ltm} {stm}")} {circles} {sliders} {spinners}
-                        ▸ {CSAR} ▸ {bpm}
-                        ▸ {ODHP} ▸ {visualizer}
-                        """.Replace("▸  ", "▸ "); // Remove the double whitespace if this is a classic score (no ltm and stm)
+                        ▸ {circles} {sliders} {spinners} {bpm}
+                        ▸ {CSAROD}
+
+                        """;
+
+    if (local.PerformanceAttributes.AimEstimatedSliderBreaks is not null)
+      scoreText += $"▸ {estimatedMisses} ";
+    if (!local.Score.Mods.IsClassic)
+      scoreText += $"▸ {ltmstm}";
 
     // Construct the difficulty rating comparison string (eg. "10.65→10.66★" or "7.33★" if there is no change)
     (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
@@ -610,32 +614,6 @@ public class EmbedService(DiscordService discord)
                         """)
       .Build();
   }
-
-  /// <summary>
-  /// Returns an embed for displaying the effective misscount breakdown of the specified score.
-  /// </summary>
-  /// <param name="combo">The combo of the score.</param>
-  /// <param name="maxCombo">The maximum achievable combo.</param>
-  /// <param name="sliderCount">The amount of sliders.</param>
-  /// <param name="hits">The amount of 100s and 50s combined.</param>
-  /// <param name="misses">The amount of misses.</param>
-  /// <param name="cbmc">The combo-based misscount.</param>
-  /// <param name="fct">The full-combo threshold.</param>
-  /// <param name="emc">The effective misscount.</param>
-  public Embed EffMissCount(int combo, int maxCombo, int sliderCount, int hits, int misses, double cbmc, double fct, double emc) => BaseEmbed
-    .WithColor(Color.Red)
-    .WithTitle("Effective Misscount Breakdown")
-    .WithDescription($"""
-                      ▸ {combo}/{maxCombo}x ▸ {hits} {Emojis["100"]}{Emojis["50"]} {misses} {Emojis["miss"]} ▸ {sliderCount} {Emojis["sliders"]}
-                      ```
-                      combo-based misscount | {cbmc.ToString($"N{Math.Max(0, 6 - ((int)cbmc).ToString().Length)}")}
-                      full-combo threshold  | {fct.ToString($"N{Math.Max(0, 6 - ((int)fct).ToString().Length)}")}
-                      -------------------------------
-                      effective misscount   | {emc.ToString($"N{Math.Max(0, 6 - ((int)emc).ToString().Length)}")}
-                      ```
-                      *The reference code can be found [here](https://github.com/ppy/osu/blob/3d569850b15ad66b3c95e009f173298d65a8e3de/osu.Game.Rulesets.Osu/Difficulty/OsuPerformanceCalculator.cs#L249).*
-                      """)
-    .Build();
 
   /// <summary>
   /// Returns an embed for displaying a .NET logging extension log message.

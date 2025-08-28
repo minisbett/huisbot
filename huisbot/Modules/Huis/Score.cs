@@ -27,7 +27,7 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
 
     IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
-    if (await CalculateScoreAsync(new(beatmap, rework, score.Mods, score.MaxCombo, score.Statistics)) is not HuisCalculationResponse localScore) return;
+    if (await CalculateScoreAsync(new(beatmap, rework, score.Mods, score.MaxCombo, score.LegacyTotalScore, score.Statistics)) is not HuisCalculationResponse localScore) return;
 
     // If the requested rework is the same as the reference, set the scores equal and don't perform another calculation.
     HuisCalculationResponse? refScore = localScore;
@@ -35,7 +35,7 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
-      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, score.Mods, score.MaxCombo, score.Statistics))) is null) return;
+      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, score.Mods, score.MaxCombo, score.LegacyTotalScore, score.Statistics))) is null) return;
     }
 
     await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap, score, user));

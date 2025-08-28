@@ -32,6 +32,12 @@ public class OsuScore
   public OsuScoreBeatmapSet BeatmapSet { get; private set; } = null!;
 
   /// <summary>
+  /// The total legacy (score V1) score of the score.
+  /// </summary>
+  [JsonProperty("legacy_total_score")]
+  public int LegacyTotalScore { get; private set; }
+
+  /// <summary>
   /// The maximum achieved combo of the score.
   /// </summary>
   public int MaxCombo => MaxComboAPI ?? MaxComboHuis!.Value;

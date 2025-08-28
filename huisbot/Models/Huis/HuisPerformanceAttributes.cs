@@ -36,4 +36,22 @@ public class HuisPerformanceAttributes
   /// </summary>
   [JsonProperty("flashlight")]
   public double FLPP { get; private set; }
+
+  /// <summary>
+  /// The effective miss count of the calculated score.
+  /// </summary>
+  [JsonProperty("effective_miss_count")]
+  public double EffectiveMissCount { get; private set; }
+
+  /// <summary>
+  /// The estimated number of slider breaks for the aim portion of the score.
+  /// </summary>
+  [JsonProperty("aim_estimated_slider_breaks")]
+  public double? AimEstimatedSliderBreaks { get; private set; }
+
+  /// <summary>
+  /// The estimated number of slider breaks for the speed portion of the score.
+  /// </summary>
+  [JsonProperty("speed_estimated_slider_breaks")]
+  public double? SpeedEstimatedSliderBreaks { get; private set; }
 }
