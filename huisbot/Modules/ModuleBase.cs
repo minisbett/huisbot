@@ -326,7 +326,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
   public async Task<OsuScore?> GetScoreAsync(string scoreId)
   {
     // Check if the provided identifier is an ID already.
-    if (!int.TryParse(scoreId, out int _))
+    if (!long.TryParse(scoreId, out long _))
     {
       // If not an ID, match a beatmap URL and extract the ID from it.
       Match match = ScoreUrlRegex().Match(scoreId);

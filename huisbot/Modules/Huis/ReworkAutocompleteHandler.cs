@@ -28,6 +28,6 @@ public class ReworkAutocompleteHandler : AutocompleteHandler
                                                                || (x.Code?.Contains(input, StringComparison.CurrentCultureIgnoreCase) ?? false));
 
     // Return the first 25 reworks, since more are not supported due to Discord API limitations.
-    return AutocompletionResult.FromSuccess(suggestedReworks.Select(x => new AutocompleteResult(x.Name, x.Code)).Take(25));
+    return AutocompletionResult.FromSuccess(suggestedReworks.Take(25).Select(x => new AutocompleteResult(x.Name, x.Code)));
   }
 }

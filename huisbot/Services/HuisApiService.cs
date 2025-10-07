@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 
 namespace huisbot.Services;
@@ -231,11 +232,12 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   /// <returns>The global score rankings in the specified rework.</returns>
   public async Task<HuisScore[]?> GetScoreRankingsAsync(int reworkId, Sort sort)
   {
-    string url = $"/rankings/topscores/{reworkId}?sort={sort.Code}&order={(sort.IsAscending ? "asc" : "desc")}";
     try
     {
       // Get the ranking data from the API.
-      string json = await _http.GetStringAsync(url);
+      HttpResponseMessage response = await _http.PostAsJsonAsync<dynamic>("/rankings/topscores",
+        new { rework_id = reworkId, sort_field = sort.Code, sort_order = sort.IsAscending ? "asc" : "desc" });
+      string json = await response.Content.ReadAsStringAsync();
       HuisScore[]? scores = JsonConvert.DeserializeObject<HuisScore[]>(json);
 
       // Check whether the deserialized json is valid.
@@ -243,8 +245,8 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
     }
     catch (Exception ex)
     {
-      logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://api.pp.huismetbenen.nl{Url}",
-        ex.Message, url);
+      logger.LogError("Failed to get the global score leaderboard from the Huis API: {Message} https://api.pp.huismetbenen.nl rework_id={Id} sort_field={Code} sort_order={Order}",
+        ex.Message, reworkId, sort.Code, sort.IsAscending ? "asc" : "desc");
       return null;
     }
   }

@@ -16,15 +16,12 @@ using System.Globalization;
 
 namespace huisbot;
 
-// TODO: (after notfoundor<> replaced with results) proper internal error handling with error logging channel
-// TODO: refactor pagination sometime
-
 public class Program
 {
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.9.1";
+  public const string VERSION = "2.9.3";
 
   public static async Task Main(string[] args)
   {
