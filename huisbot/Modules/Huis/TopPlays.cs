@@ -5,6 +5,8 @@ using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
 using huisbot.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace huisbot.Modules.Huis;
 
@@ -58,9 +60,8 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
     // If filtering for top ranks is enabled, only include the best score on each beatmap.
     // For that, for every beatmap in those scores, pick the first occuring score with that beatmap when sorting by local PP. 
     if (filterTopRanks)
-      scores = scores.Select(x => x.Beatmap.Id).Distinct()
-                     .Select(id => scores.OrderByDescending(x => x.Values.LocalPP).First(x => x.Beatmap.Id == id))
-                     .ToArray();
+      scores = [.. scores.Select(x => x.Beatmap.Id).Distinct()
+                         .Select(id => scores.OrderByDescending(x => x.Values.LocalPP).First(x => x.Beatmap.Id == id))];
 
     // Apply the sorting to the scores, since this is done inside the browser on Huis and has no API parameter.
     Func<HuisScore, double> selector = sort.Code switch
@@ -97,12 +98,15 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
       .WithButton("←", $"topplays:page:{cacheId},{page - 1}", ButtonStyle.Secondary, disabled: page == 1)
       .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
+    if (msg is null)
+      services.GetRequiredService<ILogger<TopPlaysCommandModule>>().LogError($"msg is null. Context.Interaction: {Context.Interaction.GetType()}");
+
     // Update the embed with the values of the requested page.
-    await msg.ModifyAsync(x =>
+    await (msg?.ModifyAsync(x =>
     {
       x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, entry.ScoreType, page);
       x.Components = builder.Build();
-    });
+    }) ?? Task.CompletedTask);
   }
 
   /// <summary>
