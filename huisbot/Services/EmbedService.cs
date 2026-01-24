@@ -114,7 +114,7 @@ public class EmbedService(DiscordService discord)
     // Step 2: Inside those paragraphs, if length > 1024 cut at the last \n
     //         that'd still ensure <= 1024 length until the paragraph is processed
     // Step 3: If the parts are still too big, cut them off with "..."
-    List<string> descriptionParts = description
+    List<string> descriptionParts = [.. description
         .Split("\n\n")
         .SelectMany(section =>
         {
@@ -138,8 +138,7 @@ public class EmbedService(DiscordService discord)
             result.Add(section);
 
           return result;
-        })
-        .ToList();
+        })];
 
     if (descriptionParts.Count == 0)
       descriptionParts.Add("*This rework has no description.*");
@@ -175,6 +174,7 @@ public class EmbedService(DiscordService discord)
                     ▸ **Tap**: {GetPPDifferenceText(live.TapPP, local.TapPP)}
                     ▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}
                     {(local.FLPP + live.FLPP > 0 ? $"▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}" : "")}
+                    {(local.ReadingPP + live.ReadingPP > 0 ? $"▸ **Reading**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}" : "")}
                     """;
 
     string links = $"""
@@ -268,9 +268,14 @@ public class EmbedService(DiscordService discord)
                      ▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}
                      ▸ **Tap**: {GetPPDifferenceText(reference.PerformanceAttributes.TapPP, local.PerformanceAttributes.TapPP)}
                      ▸ **Acc**: {GetPPDifferenceText(reference.PerformanceAttributes.AccPP, local.PerformanceAttributes.AccPP)}
-                     {(local.Score.Mods.IsFlashlight ? $"▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}" : "")}
-                     ▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}
-                     """.Replace("\r\n\r\n", "\r\n"); // Remove the blank line if this is not a flashlight score
+                     """;
+
+    if (local.Score.Mods.IsFlashlight)
+      ppText += $"\n▸ **FL**: {GetPPDifferenceText(reference.PerformanceAttributes.FLPP, local.PerformanceAttributes.FLPP)}";
+    if (local.PerformanceAttributes.ReadingPP is not null || reference.PerformanceAttributes.ReadingPP is not null)
+      ppText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP ?? 0)}";
+
+    ppText += $"\n▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
 
     #region score components
     string acc = $"{local.Score.Accuracy:N2}%";
@@ -292,11 +297,9 @@ public class EmbedService(DiscordService discord)
                         ▸ {hit300} {hit100} {hit50} {misses}
                         ▸ {circles} {sliders} {spinners} {bpm}
                         ▸ {CSAROD}
-
+                        ▸ {estimatedMisses}
                         """;
 
-    if (local.PerformanceAttributes.AimEstimatedSliderBreaks is not null)
-      scoreText += $"▸ {estimatedMisses} ";
     if (!local.Score.Mods.IsClassic)
       scoreText += $"▸ {ltmstm}";
 

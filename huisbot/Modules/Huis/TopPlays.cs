@@ -99,7 +99,7 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
       .WithButton("→", $"topplays:page:{cacheId},{page + 1}", ButtonStyle.Secondary, disabled: page == maxPage);
 
     if (msg is null)
-      services.GetRequiredService<ILogger<TopPlaysCommandModule>>().LogError($"msg is null. Context.Interaction: {Context.Interaction.GetType()}");
+      services.GetRequiredService<ILogger<TopPlaysCommandModule>>().LogError("msg is null. Context.Interaction: {Context}", Context.Interaction.GetType());
 
     // Update the embed with the values of the requested page.
     await (msg?.ModifyAsync(x =>

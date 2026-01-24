@@ -65,7 +65,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
   {
     // Load all assemblies referenced by the entry assembly once on program start (static constructor).
     AssemblyName[] refAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies();
-    Assembly[] references = refAssemblies.Select(Assembly.Load).Concat([Assembly.GetEntryAssembly()!]).ToArray();
+    Assembly[] references = [.. refAssemblies.Select(Assembly.Load), Assembly.GetEntryAssembly()!];
     _references = references;
   }
 
@@ -198,7 +198,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
         if (value is not string)
         {
           // Cast the enumerable to an array to prevent multiple enumerations.
-          object[] items = enumerable.Cast<object>().ToArray();
+          object[] items = [.. enumerable.Cast<object>()];
 
           // If the array is not empty, append each item in it's inspected version to the string builder.
           if (items.Length > 0)
@@ -213,8 +213,7 @@ public class CSharpReplCommandModule(IServiceProvider services, Database databas
       else
       {
         // Get all non-inherited properties of the object.
-        PropertyInfo[] properties = value.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => x.GetIndexParameters().Length == 0).ToArray();
+        PropertyInfo[] properties = [.. value.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(x => x.GetIndexParameters().Length == 0)];
 
         // If properties are present, append them to the string builder.
         if (properties.Length > 0)

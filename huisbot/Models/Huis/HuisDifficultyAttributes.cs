@@ -32,6 +32,12 @@ public class HuisDifficultyAttributes
   public double? FlashlightDifficulty { get; private set; }
 
   /// <summary>
+  /// The reading difficulty of the calculated score.
+  /// </summary>
+  [JsonProperty("reading_difficulty")]
+  public double? ReadingDifficulty { get; private set; }
+
+  /// <summary>
   /// The speed notes in the calculated score.
   /// </summary>
   [JsonProperty("speed_note_count")]

@@ -36,7 +36,7 @@ public class ReworksCommandModule(IServiceProvider services) : ModuleBase(servic
         .WithCustomId("rework")
         .WithPlaceholder("Select a rework...")
         .WithMaxValues(1)
-        .WithOptions(reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.ReworkTypeString} )", null, false)).ToList()))
+        .WithOptions([.. reworks.Select(x => new SelectMenuOptionBuilder(x.Name, x.Code, $"{x.Code} ({x.ReworkTypeString} )", null, false))]))
       .Build();
 
     // Show the live "rework" by default.

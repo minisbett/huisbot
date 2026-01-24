@@ -35,7 +35,7 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
   }
 
   /// <summary>
-  /// Returns an array of all reworks from the API.
+  /// Returns an array of all reworks from the API. The reworks will be ordered by relevance.
   /// </summary>
   /// <returns>The reworks.</returns>
   public async Task<HuisRework[]?> GetReworksAsync()
@@ -53,6 +53,18 @@ public class HuisApiService(IHttpClientFactory httpClientFactory, CachingService
       // Check whether the deserialized json is valid.
       if (reworks is null || reworks.Length == 0)
         throw new Exception("Deserialization of JSON returned null.");
+
+      // Put the reworks in order of relevancy.
+      reworks = [
+        .. reworks.Where(x => x.IsLive),
+        .. reworks.Where(x => x.IsConfirmed),
+        .. reworks.Where(x => x.IsProposed),
+        .. reworks.Where(x => x.IsWIP && x.IsPublic),
+       .. reworks.Where(x => x.IsWIP && x.IsOnionOnly),
+        .. reworks.Where(x => x.IsAbandoned && x.IsPublic),
+        .. reworks.Where(x => x.IsAbandoned && x.IsOnionOnly),
+        .. reworks.Where(x => x.IsHistoric),
+      ];
 
       // Cache the reworks and return them.
       caching.SetReworks(reworks);
