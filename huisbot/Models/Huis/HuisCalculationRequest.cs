@@ -15,7 +15,7 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   /// The mods of the score.
   /// </summary>
   [JsonProperty("mods")]
-  public string[] Mods { get; } = mods.Select(x => x.Acronym).ToArray();
+  public string[] Mods { get; } = [.. mods.Select(x => x.Acronym)];
 
   /// <summary>
   /// The ID of the beatmap.

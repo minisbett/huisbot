@@ -38,6 +38,12 @@ public class HuisPerformanceAttributes
   public double FLPP { get; private set; }
 
   /// <summary>
+  /// The reading PP of the calculated score.
+  /// </summary>
+  [JsonProperty("reading")]
+  public double? ReadingPP { get; private set; }
+
+  /// <summary>
   /// The effective miss count of the calculated score.
   /// </summary>
   [JsonProperty("effective_miss_count")]
