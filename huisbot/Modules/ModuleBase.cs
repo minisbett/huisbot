@@ -67,17 +67,7 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
       return null;
     }
 
-    // Order the reworks by relevancy for the user and return them.
-    return [
-      .. reworks.Where(x => x.IsLive),
-      .. reworks.Where(x => x.IsConfirmed),
-      .. reworks.Where(x => x.IsProposed),
-      .. reworks.Where(x => x.IsWIP && x.IsPublic),
-      .. reworks.Where(x => x.IsWIP && x.IsOnionOnly),
-      .. reworks.Where(x => x.IsAbandoned && x.IsPublic),
-      .. reworks.Where(x => x.IsAbandoned && x.IsOnionOnly),
-      .. reworks.Where(x => x.IsHistoric),
-    ];
+    return reworks;
   }
 
   /// <summary>
