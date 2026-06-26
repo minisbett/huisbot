@@ -35,7 +35,7 @@ public class EmbedService(DiscordService discord)
   /// Returns a base embed all other embeds are based on.
   /// </summary>
   private EmbedBuilder BaseEmbed => new EmbedBuilder()
-    .WithFooter($"huisbot v{Program.VERSION} by minisbett", "https://pp.huismetbenen.nl/favicon.ico")
+    .WithFooter($"huisbot v{Program.VERSION}", "https://pp.huismetbenen.nl/favicon.ico")
     .WithCurrentTimestamp();
 
   /// <summary>
