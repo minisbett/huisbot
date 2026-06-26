@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.ComponentModel;
+using Discord;
 using Discord.Interactions;
 using huisbot.Helpers;
 using huisbot.Models.Huis;
@@ -31,7 +32,8 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     [Summary("cs", "The circle size (CS) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? circleSize = null,
     [Summary("ar", "The approach rate (AR) of the score. Automatically adds DA.")][MinValue(-10)][MaxValue(11)] double? approachRate = null,
     [Summary("od", "The overall difficulty (OD) of the score. Automatically adds DA.")][MinValue(0)][MaxValue(11)] double? overallDifficulty = null,
-    [Summary("scorev1", "The total legacy score (score v1) of the score.")][MinValue(0)] int? legacyTotalScore = null)
+    [Summary("scorev1", "The total legacy score (score v1) of the score.")][MinValue(0)] int? legacyTotalScore = null,
+    [Summary("modifier", "Modifies the score to be calculated (eg. Full Combo).")] ScoreModifier.Modifier? modifier = null)
   {
     await DeferAsync();
 
@@ -66,11 +68,15 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     if(approachRate is not null) mods.SetAR(approachRate.Value);
     if(overallDifficulty is not null) mods.SetOD(overallDifficulty.Value);
 
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
+    await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
     int? sliderTailHits = sliderTailMisses is null ? null : beatmap.SliderCount - sliderTailMisses.Value;
     OsuScoreStatistics statistics = new(count100, count50, misses, largeTickMisses, sliderTailHits);
-    HuisCalculationResponse? localScore = await CalculateScoreAsync(new(beatmap, rework, mods, combo, legacyTotalScore, statistics));
+    HuisCalculationRequest request = new(beatmap, rework, mods, combo, legacyTotalScore, statistics);
+    if (modifier is not null)
+      ScoreModifier.Modify(request, beatmap, modifier.Value);
+    
+    HuisCalculationResponse? localScore = await CalculateScoreAsync(request);
     if (localScore is null)
       return;
 
@@ -80,10 +86,10 @@ public class SimulateCommandModule(IServiceProvider services) : ModuleBase(servi
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
-      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, mods, combo, legacyTotalScore, statistics))) is null)
-        return;
+      request.Rework = refRework;
+      if ((refScore = await CalculateScoreAsync(request)) is null) return;
     }
 
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap, modifier));
   }
 }

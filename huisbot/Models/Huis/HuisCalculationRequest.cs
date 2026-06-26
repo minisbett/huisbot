@@ -27,7 +27,7 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   /// The maximum combo of the score.
   /// </summary>
   [JsonProperty("combo")]
-  public int? Combo { get; } = combo;
+  public int? Combo { get; set; } = combo;
 
   /// <summary>
   /// The total legacy (score V1) score of the score.
@@ -39,31 +39,31 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   /// The 100s/oks of the score.
   /// </summary>
   [JsonProperty("ok")]
-  public int? Count100 { get; } = statistics?.Count100;
+  public int? Count100 { get; set; } = statistics?.Count100;
 
   /// <summary>
   /// The 50s/mehs of the score.
   /// </summary>
   [JsonProperty("meh")]
-  public int? Count50 { get; } = statistics?.Count50;
+  public int? Count50 { get;  set;} = statistics?.Count50;
 
   /// <summary>
   /// The misses of the score.
   /// </summary>
   [JsonProperty("miss")]
-  public int? Misses { get; } = statistics?.Misses;
+  public int? Misses { get; set; } = statistics?.Misses;
 
   /// <summary>
   /// The large tick misses of the score.
   /// </summary>
   [JsonProperty("large_tick_misses")]
-  public int? LargeTickMisses { get; } = statistics?.LargeTickMisses;
+  public int? LargeTickMisses { get; set; } = statistics?.LargeTickMisses;
 
   /// <summary>
   /// The slider tail misses of the score.
   /// </summary>
   [JsonProperty("slider_tail_misses")]
-  public int? SliderTailMisses { get; } = statistics?.SliderTailHits is null ? null : beatmap.SliderCount - statistics.SliderTailHits;
+  public int? SliderTailMisses { get; set; } = statistics?.SliderTailHits is null ? null : beatmap.SliderCount - statistics.SliderTailHits;
 
   /// <summary>
   /// The clock rate of the score.
@@ -99,7 +99,7 @@ public class HuisCalculationRequest(OsuBeatmap beatmap, HuisRework rework, OsuMo
   /// The rework, stored in the calculation request for the calculation code to access information of the rework (caching by pp version).
   /// </summary>
   [JsonIgnore]
-  public HuisRework Rework { get; } = rework;
+  public HuisRework Rework { get; set; } = rework;
 
   /// <summary>
   /// Returns the JSON string for this calculation request.

@@ -3,6 +3,7 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Modules.Huis;
 using Microsoft.Extensions.Logging;
 
 namespace huisbot.Services;
@@ -173,9 +174,13 @@ public class EmbedService(DiscordService discord)
                     ▸ **Aim**: {GetPPDifferenceText(live.AimPP, local.AimPP)}
                     ▸ **Tap**: {GetPPDifferenceText(live.TapPP, local.TapPP)}
                     ▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}
-                    {(local.FLPP + live.FLPP > 0 ? $"▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}" : "")}
-                    {(local.ReadingPP + live.ReadingPP > 0 ? $"▸ **Reading**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}" : "")}
                     """;
+    
+    if (local.FLPP + live.FLPP > 0)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}";
+
+    if (local.ReadingPP + live.ReadingPP > 0)
+      ppStr += $"\n▸ **Reading**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}";
 
     string links = $"""
                     ▸ [osu! profile](https://osu.ppy.sh/u/{local.Id})
@@ -259,9 +264,10 @@ public class EmbedService(DiscordService discord)
   /// <param name="rework">The rework.</param>
   /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
+  /// <param name="modifier">An optional modification applied to the score to be calculated beforehand.</param>
   /// <param name="score">The real score.</param>
   /// <param name="user">The user the real score is based on.</param>
-  public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
+  public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, ScoreModifier.Modifier? modifier, OsuScore? score = null, OsuUser? user = null)
   {
     #region score components
     string acc = $"{local.Score.Accuracy:N2}%";
@@ -327,7 +333,7 @@ public class EmbedService(DiscordService discord)
       .WithTitle(Escape($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)"))
       .WithAuthor(author)
       .AddField(rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)", ppText, true)
-      .AddField("Score Info", scoreText, true)
+      .AddField("Score Info" + (modifier is null ? "" : $" (if {modifier})"), scoreText, true)
       .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/scores/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{(rework == refRework ? rework.Name : $"{refRework.Name} → {rework.Name}")} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
