@@ -263,6 +263,35 @@ public class EmbedService(DiscordService discord)
   /// <param name="user">The user the real score is based on.</param>
   public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
   {
+    #region score components
+    string acc = $"{local.Score.Accuracy:N2}%";
+    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
+    string hit300 = $"{local.Score.Statistics.Count300} {Emojis["300"]}";
+    string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
+    string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
+    string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
+    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
+    string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
+    string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
+    string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
+    string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
+    string beatmapStats = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
+    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
+    string links = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
+    #endregion
+    
+    string scoreText = $"""
+                        ▸ {acc} ▸ {combo}
+                        ▸ {hit300} {hit100} {hit50} {misses}
+                        ▸ {circles} {sliders} {spinners} {bpm}
+                        ▸ {beatmapStats}
+                        """;
+
+    if (local.Score.Mods.IsClassic)
+      scoreText += $"\n▸ {estimatedMisses}";
+    else
+      scoreText += $"\n▸ {ltmstm}";
+    
     string ppText = $"""
                      ▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}
                      ▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}
@@ -275,37 +304,18 @@ public class EmbedService(DiscordService discord)
     if (local.PerformanceAttributes.ReadingPP is not null || reference.PerformanceAttributes.ReadingPP is not null)
       ppText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP ?? 0)}";
 
+    int ppLineCount = ppText.Count(x => x is '\n') + 1;
+    int scoreLineCount = scoreText.Count(x => x is '\n') + 1;
+
+    ppText += "".PadLeft(Math.Max(0, scoreLineCount - ppLineCount), '\n');
+    scoreText += "".PadLeft(Math.Max(0, ppLineCount - scoreLineCount), '\n');
+
     ppText += $"\n▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
-
-    #region score components
-    string acc = $"{local.Score.Accuracy:N2}%";
-    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
-    string hit300 = $"{local.Score.Statistics.Count300} {Emojis["300"]}";
-    string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
-    string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
-    string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
-    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
-    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
-    string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
-    string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
-    string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
-    string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
-    string CSAROD = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
-    #endregion
-    string scoreText = $"""
-                        ▸ {acc} ▸ {combo}
-                        ▸ {hit300} {hit100} {hit50} {misses}
-                        ▸ {circles} {sliders} {spinners} {bpm}
-                        ▸ {CSAROD}
-                        ▸ {estimatedMisses}
-                        """;
-
-    if (!local.Score.Mods.IsClassic)
-      scoreText += $"▸ {ltmstm}";
+    scoreText += $"\n▸ {links}";
 
     // Construct the difficulty rating comparison string (eg. "10.65→10.66★" or "7.33★" if there is no change)
     (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
-    string diffComparison = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
+    string diffComparison = Math.Round(refDiff, 2) == Math.Round(localDiff, 2) ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
 
     EmbedAuthorBuilder author = user is null ? new() : new EmbedAuthorBuilder()
         .WithName($"{user.Username}: {user.Statistics.PP:N}pp (#{user.Statistics.GlobalRank:N0} | #{user.Statistics.CountryRank:N0} {user.Country.Code})")
@@ -313,7 +323,7 @@ public class EmbedService(DiscordService discord)
         .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
 
     return BaseEmbed
-      .WithColor(new Color(0xFFD4A8))
+      .WithColor(new(0xFFD4A8))
       .WithTitle(Escape($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)"))
       .WithAuthor(author)
       .AddField(rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)", ppText, true)
@@ -350,7 +360,7 @@ public class EmbedService(DiscordService discord)
     string other = $"""
                     Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}
                     Slider Factor: {score.DifficultyAttributes.SliderFactor:N5} ({100 - score.DifficultyAttributes.SliderFactor * 100:N2}%)
-                    [map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}
+                    [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}
                     """;
 
     return BaseEmbed
