@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using huisbot.Models.Osu;
 using System.Text.RegularExpressions;
+using Discord.WebSocket;
 
 namespace huisbot.Helpers;
 
@@ -24,6 +25,9 @@ internal static partial class Utils
   /// <returns>The embed score info.</returns>
   public static async Task<EmbedScoreInfo?> FindOsuBotScore(SocketInteractionContext interaction)
   {
+    if (interaction?.Channel is null)
+      return null;
+    
     // Go through all of the last 100 messages with an embed, excluding the bot's own messages.
     IMessage[] messages = [.. await interaction.Channel.GetMessagesAsync(100).FlattenAsync()];
     foreach (IEmbed embed in messages.Where(x => x.Embeds.Count > 0 && x.Author.Id != interaction.Client.CurrentUser.Id).Select(x => x.Embeds.First()))

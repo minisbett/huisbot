@@ -262,7 +262,14 @@ public partial class ModuleBase(IServiceProvider services) : InteractionModuleBa
     else if (!user.Found)
       await FollowupAsync(embed: Embeds.Error($"No user with identifier `{userId}` could not be found."));
 
-    return (user?.Found ?? false) ? user : null!;
+    try
+    {
+      return user?.Found ?? false ? user : null!;
+    }
+    catch
+    {
+      return null;
+    }
   }
 
   /// <summary>
