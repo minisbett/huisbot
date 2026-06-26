@@ -6,7 +6,6 @@ using huisbot.Models.Options;
 using huisbot.Persistence;
 using huisbot.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,7 @@ public class Program
   /// <summary>
   /// The version of the application.
   /// </summary>
-  public const string VERSION = "2.10.0";
+  public const string VERSION = "2.11.0";
 
   public static async Task Main(string[] args)
   {
