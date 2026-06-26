@@ -46,7 +46,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiS
   {
     try
     {
-      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{(identifier.All(char.IsDigit) ? identifier : "@" + identifier)}");
+      HttpResponseMessage response = await _http.GetAsync($"api/v2/users/{(identifier.All(char.IsDigit) ? identifier : "@" + identifier)}/osu");
       if (response.StatusCode == HttpStatusCode.NotFound)
         return NotFoundOr<OsuUser>.NotFound;
 
@@ -100,7 +100,7 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiS
       OsuScore? score = JsonConvert.DeserializeObject<OsuScore>(json);
 
       // If the score is non-standard, reject it as only standard is supported.
-      return score?.RulesetId > 0 ? NotFoundOr<OsuScore>.NotFound : score?.WasFound();
+      return score?.RulesetId is 0 ? score.WasFound() : NotFoundOr<OsuScore>.NotFound;
     }
     catch (Exception ex)
     {

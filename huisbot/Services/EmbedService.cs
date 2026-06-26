@@ -383,6 +383,30 @@ public class EmbedService(DiscordService discord)
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
   }
+  
+  public Embed EstimateUR(double hitWindow300, double hitWindow100, double hitWindow50, double? mehVariance, int missCountCircles, int mehCountCircles, int okCountCircles, int greatCountCircles, 
+    double? greatProbabilityCircle, double? greatProbabilitySlider, double? ur)
+  {
+    string hitWindows = $"""
+                         {Emojis["300"]} {hitWindow300:N2} ms
+                         {Emojis["100"]} {hitWindow100:N2} ms
+                         {Emojis["50"]} {hitWindow50:N2} ms
+                         """;
+
+    string maths = greatProbabilityCircle.HasValue ? $"Circle probability: {greatProbabilityCircle.Value * 100:N2} %" : $"Slider probability: {greatProbabilitySlider!.Value * 100:N2} %";
+    if (mehVariance is not null)
+      maths += $"\nMeh variance: {mehVariance:N2} ms";
+    maths += $"\n**Total: {ur:N2}**";
+
+    string circleCounts = $"{Emojis["300"]} {greatCountCircles} {Emojis["100"]} {okCountCircles} {Emojis["50"]} {mehCountCircles} {Emojis["miss"]} {missCountCircles}";
+
+    return BaseEmbed
+      .WithTitle("Estimated UR breakdown")
+      .AddField("Hit Windows", hitWindows, true)
+      .AddField("Maths", maths, true)
+      .AddField("Circle Counts", circleCounts)
+      .Build();
+  }
 
   /// <summary>
   /// Returns an embed for displaying the top plays of the specified player in the specified rework.
