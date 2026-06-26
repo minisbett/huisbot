@@ -49,18 +49,18 @@ public class OsuUser
     /// The country rank of the osu! user.
     /// </summary>
     [JsonProperty("country_rank")]
-    public int CountryRank { get; private set; }
+    public int? CountryRank { get; private set; }
 
     /// <summary>
     /// The global rank of the osu! user.
     /// </summary>
     [JsonProperty("global_rank")]
-    public int GlobalRank { get; private set; }
+    public int? GlobalRank { get; private set; }
 
     /// <summary>
     /// The total performance points the user has.
     /// </summary>
     [JsonProperty("pp")]
-    public float PP { get; private set; }
+    public float? PP { get; private set; }
   }
 }

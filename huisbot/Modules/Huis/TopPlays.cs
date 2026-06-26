@@ -102,11 +102,18 @@ public class TopPlaysCommandModule(IServiceProvider services) : ModuleBase(servi
       services.GetRequiredService<ILogger<TopPlaysCommandModule>>().LogError("msg is null. Context.Interaction: {Context}", Context.Interaction.GetType());
 
     // Update the embed with the values of the requested page.
-    await (msg?.ModifyAsync(x =>
+    try
     {
-      x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, entry.ScoreType, page);
-      x.Components = builder.Build();
-    }) ?? Task.CompletedTask);
+      await (msg?.ModifyAsync(x =>
+      {
+        x.Embed = Embeds.TopPlays(entry.User, entry.Scores, entry.SortedScores, entry.Rework, entry.Sort, entry.ScoreType, page);
+        x.Components = builder.Build();
+      }) ?? Task.CompletedTask);
+    }
+    catch // for some reason the code above can throw: https://discord.com/channels/1009893337639161856/1404541894327009290/1518770519074275440
+    {
+      
+    }
   }
 
   /// <summary>

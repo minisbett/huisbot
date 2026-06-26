@@ -51,7 +51,8 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiS
         return NotFoundOr<OsuUser>.NotFound;
 
       string json = await response.Content.ReadAsStringAsync();
-      return JsonConvert.DeserializeObject<OsuUser>(json)?.WasFound();
+      OsuUser? user = JsonConvert.DeserializeObject<OsuUser>(json);
+      return user is null ? NotFoundOr<OsuUser>.NotFound : user.WasFound();
     }
     catch (Exception ex)
     {
@@ -124,7 +125,8 @@ public class OsuApiService(IHttpClientFactory httpClientFactory, ILogger<OsuApiS
         return NotFoundOr<OsuScore>.NotFound;
 
       string json = await response.Content.ReadAsStringAsync();
-      return JsonConvert.DeserializeObject<OsuScore[]>(json)?.FirstOrDefault()?.WasFound();
+      OsuScore? score = JsonConvert.DeserializeObject<OsuScore[]>(json)?.FirstOrDefault();
+      return score is null ? NotFoundOr<OsuScore>.NotFound : score.WasFound();
     }
     catch (Exception ex)
     {

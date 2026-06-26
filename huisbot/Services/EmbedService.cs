@@ -324,7 +324,7 @@ public class EmbedService(DiscordService discord)
     string diffComparison = Math.Round(refDiff, 2) == Math.Round(localDiff, 2) ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
 
     EmbedAuthorBuilder author = user is null ? new() : new EmbedAuthorBuilder()
-        .WithName($"{user.Username}: {user.Statistics.PP:N}pp (#{user.Statistics.GlobalRank:N0} | #{user.Statistics.CountryRank:N0} {user.Country.Code})")
+        .WithName($"{user.Username}: {user.Statistics.PP ?? 0:N}pp (#{user.Statistics.GlobalRank ?? 0:N0} | #{user.Statistics.CountryRank ?? 0:N0} {user.Country.Code})")
         .WithIconUrl($"https://a.ppy.sh/{user.Id}")
         .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
 
