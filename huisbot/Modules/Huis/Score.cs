@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
@@ -15,7 +16,7 @@ namespace huisbot.Modules.Huis;
 [Group("score", "Calculates a score in a rework based on the specified parameters.")]
 public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services)
 {
-  private async Task HandleAsync(string reworkId, string? refReworkId, Task<OsuScore?> scoreTask, OsuUser? user = null)
+  private async Task HandleAsync(string reworkId, string? refReworkId, Task<OsuScore?> scoreTask, ScoreModifier.Modifier? modifier, OsuUser? user = null)
   {
     refReworkId ??= HuisRework.LiveId.ToString();
 
@@ -25,9 +26,13 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     if ((user ??= await GetOsuUserAsync(score.User.Id.ToString())) is null) return; // Only fetch if not passed to this method already
     if (await GetBeatmapAsync(score.Beatmap.Id.ToString()) is not OsuBeatmap beatmap) return;
 
-    IUserMessage msg = await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
+    await FollowupAsync(embed: Embeds.Calculating(rework, rework == refRework ? null : refRework, false));
 
-    if (await CalculateScoreAsync(new(beatmap, rework, score.Mods, score.MaxCombo, score.LegacyTotalScore, score.Statistics)) is not HuisCalculationResponse localScore) return;
+    HuisCalculationRequest request = new(beatmap, rework, score.Mods, score.MaxCombo, score.LegacyTotalScore, score.Statistics);
+    if (modifier is not null)
+      ScoreModifier.Modify(request, beatmap, modifier.Value);
+    
+    if (await CalculateScoreAsync(request) is not HuisCalculationResponse localScore) return;
 
     // If the requested rework is the same as the reference, set the scores equal and don't perform another calculation.
     HuisCalculationResponse? refScore = localScore;
@@ -35,10 +40,11 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     {
       await ModifyOriginalResponseAsync(x => x.Embed = Embeds.Calculating(rework, refRework, true));
 
-      if ((refScore = await CalculateScoreAsync(new(beatmap, refRework, score.Mods, score.MaxCombo, score.LegacyTotalScore, score.Statistics))) is null) return;
+      request.Rework = refRework;
+      if ((refScore = await CalculateScoreAsync(request)) is null) return;
     }
 
-    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap, score, user));
+    await ModifyOriginalResponseAsync(x => x.Embed = Embeds.CalculatedScore(localScore, refScore, rework, refRework, beatmap, modifier, score, user));
   }
 
   [SlashCommand("id", "Calculates a score in a rework based on the specified ID.")]
@@ -47,11 +53,12 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     [Summary("rework", "An identifier for the rework. This can be it's ID, internal code or autocompleted name.")]
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null,
+    [Summary("modifier", "Modifies the score to be calculated (eg. Full Combo).")] ScoreModifier.Modifier? modifier = null)
   {
     await DeferAsync();
 
-    await HandleAsync(reworkId, referenceReworkId, GetScoreAsync(scoreId));
+    await HandleAsync(reworkId, referenceReworkId, GetScoreAsync(scoreId), modifier);
   }
 
   [SlashCommand("best", "Calculates the X-th best score of the specified user in a rework.")]
@@ -61,7 +68,8 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("index", "The index of the score. Defaults to 1.")][MinValue(1)][MaxValue(100)] int index = 1,
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null,
+    [Summary("modifier", "Modifies the score to be calculated (eg. Full Combo).")] ScoreModifier.Modifier? modifier = null)
   {
     await DeferAsync();
 
@@ -74,7 +82,7 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
 
     if (await GetOsuUserAsync(userId) is not OsuUser user) return;
 
-    await HandleAsync(reworkId, referenceReworkId, GetUserScoreAsync(user.Id, index, ScoreType.Best), user);
+    await HandleAsync(reworkId, referenceReworkId, GetUserScoreAsync(user.Id, index, ScoreType.Best), modifier, user);
   }
 
   [SlashCommand("recent", "Calculates the X-th recent score of you or the specified user in a rework.")]
@@ -84,7 +92,8 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
     [Autocomplete(typeof(ReworkAutocompleteHandler))] string reworkId = "master",
     [Summary("index", "The index of the score. Defaults to 1.")][MinValue(1)][MaxValue(100)] int index = 1,
     [Summary("referenceRework", "The reference rework to compare the score to. Defaults to the live PP system.")]
-    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null)
+    [Autocomplete(typeof(ReworkAutocompleteHandler))] string? referenceReworkId = null,
+    [Summary("modifier", "Modifies the score to be calculated (eg. Full Combo).")] ScoreModifier.Modifier? modifier = null)
   {
     await DeferAsync();
 
@@ -97,6 +106,6 @@ public class ScoreCommandModule(IServiceProvider services) : ModuleBase(services
 
     if (await GetOsuUserAsync(userId) is not OsuUser user) return;
 
-    await HandleAsync(reworkId, referenceReworkId, GetUserScoreAsync(user.Id, index, ScoreType.Recent), user);
+    await HandleAsync(reworkId, referenceReworkId, GetUserScoreAsync(user.Id, index, ScoreType.Recent), modifier, user);
   }
 }

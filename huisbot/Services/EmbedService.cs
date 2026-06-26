@@ -3,6 +3,7 @@ using huisbot.Helpers;
 using huisbot.Models.Huis;
 using huisbot.Models.Osu;
 using huisbot.Models.Persistence;
+using huisbot.Modules.Huis;
 using Microsoft.Extensions.Logging;
 
 namespace huisbot.Services;
@@ -34,7 +35,7 @@ public class EmbedService(DiscordService discord)
   /// Returns a base embed all other embeds are based on.
   /// </summary>
   private EmbedBuilder BaseEmbed => new EmbedBuilder()
-    .WithFooter($"huisbot v{Program.VERSION} by minisbett", "https://pp.huismetbenen.nl/favicon.ico")
+    .WithFooter($"huisbot v{Program.VERSION}", "https://pp.huismetbenen.nl/favicon.ico")
     .WithCurrentTimestamp();
 
   /// <summary>
@@ -173,9 +174,13 @@ public class EmbedService(DiscordService discord)
                     ▸ **Aim**: {GetPPDifferenceText(live.AimPP, local.AimPP)}
                     ▸ **Tap**: {GetPPDifferenceText(live.TapPP, local.TapPP)}
                     ▸ **Acc**: {GetPPDifferenceText(live.AccPP, local.AccPP)}
-                    {(local.FLPP + live.FLPP > 0 ? $"▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}" : "")}
-                    {(local.ReadingPP + live.ReadingPP > 0 ? $"▸ **Reading**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}" : "")}
                     """;
+    
+    if (local.FLPP + live.FLPP > 0)
+      ppStr += $"\n▸ **FL**: {GetPPDifferenceText(live.FLPP, local.FLPP)}";
+
+    if (local.ReadingPP + live.ReadingPP > 0)
+      ppStr += $"\n▸ **Reading**: {GetPPDifferenceText(live.ReadingPP, local.ReadingPP)}";
 
     string links = $"""
                     ▸ [osu! profile](https://osu.ppy.sh/u/{local.Id})
@@ -259,10 +264,40 @@ public class EmbedService(DiscordService discord)
   /// <param name="rework">The rework.</param>
   /// <param name="refRework">The reference rework.</param>
   /// <param name="beatmap">The beatmap.</param>
+  /// <param name="modifier">An optional modification applied to the score to be calculated beforehand.</param>
   /// <param name="score">The real score.</param>
   /// <param name="user">The user the real score is based on.</param>
-  public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, OsuScore? score = null, OsuUser? user = null)
+  public Embed CalculatedScore(HuisCalculationResponse local, HuisCalculationResponse reference, HuisRework rework, HuisRework refRework, OsuBeatmap beatmap, ScoreModifier.Modifier? modifier, OsuScore? score = null, OsuUser? user = null)
   {
+    #region score components
+    string acc = $"{local.Score.Accuracy:N2}%";
+    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
+    string hit300 = $"{local.Score.Statistics.Count300} {Emojis["300"]}";
+    string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
+    string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
+    string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
+    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
+    string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
+    string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
+    string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
+    string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
+    string beatmapStats = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
+    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
+    string links = $"[visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [osu! page](https://osu.ppy.sh/b/{beatmap.Id})";
+    #endregion
+    
+    string scoreText = $"""
+                        ▸ {acc} ▸ {combo}
+                        ▸ {hit300} {hit100} {hit50} {misses}
+                        ▸ {circles} {sliders} {spinners} {bpm}
+                        ▸ {beatmapStats}
+                        """;
+
+    if (local.Score.Mods.IsClassic)
+      scoreText += $"\n▸ {estimatedMisses}";
+    else
+      scoreText += $"\n▸ {ltmstm}";
+    
     string ppText = $"""
                      ▸ **PP**: {GetPPDifferenceText(reference.PerformanceAttributes.PP, local.PerformanceAttributes.PP)}
                      ▸ **Aim**: {GetPPDifferenceText(reference.PerformanceAttributes.AimPP, local.PerformanceAttributes.AimPP)}
@@ -275,49 +310,30 @@ public class EmbedService(DiscordService discord)
     if (local.PerformanceAttributes.ReadingPP is not null || reference.PerformanceAttributes.ReadingPP is not null)
       ppText += $"\n▸ **Read**: {GetPPDifferenceText(reference.PerformanceAttributes.ReadingPP ?? 0, local.PerformanceAttributes.ReadingPP ?? 0)}";
 
+    int ppLineCount = ppText.Count(x => x is '\n') + 1;
+    int scoreLineCount = scoreText.Count(x => x is '\n') + 1;
+
+    ppText += "".PadLeft(Math.Max(0, scoreLineCount - ppLineCount), '\n');
+    scoreText += "".PadLeft(Math.Max(0, ppLineCount - scoreLineCount), '\n');
+
     ppText += $"\n▸ [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}";
-
-    #region score components
-    string acc = $"{local.Score.Accuracy:N2}%";
-    string combo = $"{local.Score.MaxCombo}/{beatmap.MaxCombo}x";
-    string hit300 = $"{local.Score.Statistics.Count300} {Emojis["300"]}";
-    string hit100 = $"{local.Score.Statistics.Count100} {Emojis["100"]}";
-    string hit50 = $"{local.Score.Statistics.Count50} {Emojis["50"]}";
-    string misses = $"{local.Score.Statistics.Misses} {Emojis["miss"]}";
-    string estimatedMisses = $"est. {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.AimEstimatedSliderBreaks:N1} / {local.PerformanceAttributes.EffectiveMissCount + local.PerformanceAttributes.SpeedEstimatedSliderBreaks:N1} {Emojis["miss"]}";
-    string ltmstm = $"{local.Score.Statistics.LargeTickMisses ?? 0} {Emojis["largetickmiss"]} {beatmap.SliderCount - local.Score.Statistics.SliderTailHits ?? beatmap.SliderCount} {Emojis["slidertailmiss"]}";
-    string circles = $"{beatmap.CircleCount} {Emojis["circles"]}";
-    string sliders = $"{beatmap.SliderCount} {Emojis["sliders"]}";
-    string spinners = $"{beatmap.SpinnerCount} {Emojis["spinners"]}";
-    string bpm = $"**{Math.Round(beatmap.GetBPM(local.Score.Mods))}** {Emojis["bpm"]}";
-    string CSAROD = $"`CS {beatmap.GetAdjustedCS(local.Score.Mods):N1} AR {beatmap.GetAdjustedAR(local.Score.Mods):N1} OD {beatmap.GetAdjustedOD(local.Score.Mods):N1}`";
-    #endregion
-    string scoreText = $"""
-                        ▸ {acc} ▸ {combo}
-                        ▸ {hit300} {hit100} {hit50} {misses}
-                        ▸ {circles} {sliders} {spinners} {bpm}
-                        ▸ {CSAROD}
-                        ▸ {estimatedMisses}
-                        """;
-
-    if (!local.Score.Mods.IsClassic)
-      scoreText += $"▸ {ltmstm}";
+    scoreText += $"\n▸ {links}";
 
     // Construct the difficulty rating comparison string (eg. "10.65→10.66★" or "7.33★" if there is no change)
     (double refDiff, double localDiff) = (reference.DifficultyAttributes.DifficultyRating, local.DifficultyAttributes.DifficultyRating);
-    string diffComparison = localDiff == refDiff ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
+    string diffComparison = Math.Round(refDiff, 2) == Math.Round(localDiff, 2) ? localDiff.ToString("N2") : $"{refDiff:N2}→{localDiff:N2}";
 
     EmbedAuthorBuilder author = user is null ? new() : new EmbedAuthorBuilder()
-        .WithName($"{user.Username}: {user.Statistics.PP:N}pp (#{user.Statistics.GlobalRank:N0} | #{user.Statistics.CountryRank:N0} {user.Country.Code})")
+        .WithName($"{user.Username}: {user.Statistics.PP ?? 0:N}pp (#{user.Statistics.GlobalRank ?? 0:N0} | #{user.Statistics.CountryRank ?? 0:N0} {user.Country.Code})")
         .WithIconUrl($"https://a.ppy.sh/{user.Id}")
         .WithUrl($"https://osu.ppy.sh/u/{user.Id}");
 
     return BaseEmbed
-      .WithColor(new Color(0xFFD4A8))
+      .WithColor(new(0xFFD4A8))
       .WithTitle(Escape($"{beatmap.Set.Artist} - {beatmap.Set.Title} [{beatmap.Version}]{local.Score.Mods.PlusString} ({diffComparison}★)"))
       .WithAuthor(author)
       .AddField(rework == refRework ? "PP Overview" : "PP Comparison (Ref → Local)", ppText, true)
-      .AddField("Score Info", scoreText, true)
+      .AddField("Score Info" + (modifier is null ? "" : $" (if {modifier})"), scoreText, true)
       .WithUrl(score is null ? $"https://osu.ppy.sh/b/{beatmap.Id}" : $"https://osu.ppy.sh/scores/{score.Id}")
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{(rework == refRework ? rework.Name : $"{refRework.Name} → {rework.Name}")} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
@@ -350,7 +366,7 @@ public class EmbedService(DiscordService discord)
     string other = $"""
                     Speed Notes: {score.DifficultyAttributes.SpeedNoteCount:N2}
                     Slider Factor: {score.DifficultyAttributes.SliderFactor:N5} ({100 - score.DifficultyAttributes.SliderFactor * 100:N2}%)
-                    [map visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}
+                    [visualizer](https://preview.tryz.id.vn/?b={beatmap.Id}) • [Huis Rework]({rework.Url}) • {(rework.CommitUrl is null ? "Source unavailable" : $"[Source]({rework.CommitUrl})")}
                     """;
 
     return BaseEmbed
@@ -366,6 +382,30 @@ public class EmbedService(DiscordService discord)
       .WithImageUrl($"https://assets.ppy.sh/beatmaps/{beatmap.SetId}/covers/slimcover@2x.jpg")
       .WithFooter($"{rework.Name} • {BaseEmbed.Footer.Text}", BaseEmbed.Footer.IconUrl)
     .Build();
+  }
+  
+  public Embed EstimateUR(double hitWindow300, double hitWindow100, double hitWindow50, double? mehVariance, int missCountCircles, int mehCountCircles, int okCountCircles, int greatCountCircles, 
+    double? greatProbabilityCircle, double? greatProbabilitySlider, double? ur)
+  {
+    string hitWindows = $"""
+                         {Emojis["300"]} {hitWindow300:N2} ms
+                         {Emojis["100"]} {hitWindow100:N2} ms
+                         {Emojis["50"]} {hitWindow50:N2} ms
+                         """;
+
+    string maths = greatProbabilityCircle.HasValue ? $"Circle probability: {greatProbabilityCircle.Value * 100:N2} %" : $"Slider probability: {greatProbabilitySlider!.Value * 100:N2} %";
+    if (mehVariance is not null)
+      maths += $"\nMeh variance: {mehVariance:N2} ms";
+    maths += $"\n**Total: {ur:N2}**";
+
+    string circleCounts = $"{Emojis["300"]} {greatCountCircles} {Emojis["100"]} {okCountCircles} {Emojis["50"]} {mehCountCircles} {Emojis["miss"]} {missCountCircles}";
+
+    return BaseEmbed
+      .WithTitle("Estimated UR breakdown")
+      .AddField("Hit Windows", hitWindows, true)
+      .AddField("Maths", maths, true)
+      .AddField("Circle Counts", circleCounts)
+      .Build();
   }
 
   /// <summary>
