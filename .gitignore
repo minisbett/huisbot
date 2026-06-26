@@ -401,3 +401,6 @@ FodyWeavers.xsd
 /huisbot/.env
 /huisbot/appsettings.json
 /huisbot/appsettings.Development.json
+/huisbot/database.db
+/huisbot/database.db-shm
+/huisbot/database.db-wal
